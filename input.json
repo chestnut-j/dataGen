@@ -1,0 +1,12 @@
+[{
+  "( (Length(10) Opt Length(20)) And (ColNum(6) Opt ColNum(10)) )": {
+      "index": "Range(0,20) Opt Range(10,50)",
+      "col1": "Int And (Repeat(5,5) Opt Repeat(2,2)) And Empty(1)",
+      "col2": "String And (Empty(5) Or Repeat('a',2)) And (Empty(6) Or Repeat('b',2))",
+      "col3": "Frequency(6.9, 0.4, 5, 0.3) And Empty(2)",
+      "col4": "Real And FreqIf(>6, 0.4)",
+      "col5": "Range(0, 400.8)",
+      "col6": "Faker(name) And (Empty(1) Or Repeat(3))",
+      "col7": "Faker(phone_number)"
+  }
+}]
