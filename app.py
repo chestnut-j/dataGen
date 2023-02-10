@@ -7,6 +7,8 @@ import json
 import csv
 import numpy as np
 
+fake = Faker()
+
 def findPosi(allStr, findStr):
   #用于存储findStr标识符的出现
   posiList = []
@@ -107,9 +109,14 @@ def generateSlot(constraintList):
         slotJson += "}"
         tempSlotContent = []
         if len(frontParenthesisList) - len(backParenthesisList) + slotParenthesis > 0:
-            nextSlotParenthesis = len(frontParenthesisList) + slotParenthesis - len(backParenthesisList)
+            nextSlotParenthesis = 0
+            for position in range(0, len(backParenthesisList)):
+              if frontParenthesisList[len(frontParenthesisList)-1-position] < backParenthesisList[len(backParenthesisList)-1-position]:
+                nextSlotParenthesis+=1
+              else:
+                break
             slotParenthesis = nextSlotParenthesis
-            slotStart = frontParenthesisList[slotParenthesis - 1]
+            slotStart = frontParenthesisList[-(slotParenthesis+1)]
             slotJson += constraintStr[slotEnd + 1:slotStart]
             tempSlotContent.append(constraintStr[slotStart + 1:])
             slotJson += "{"
@@ -264,7 +271,8 @@ def solveFaker(config, len):
   if 'locale' in config:
     fk = Faker(locale=config['locale'])
   else:
-    fk = Faker(locale='zh-CN')
+    # fk = Faker(locale='zh-CN')
+    fk = Faker()
   data = [eval('faker.'+config['content']+'()',{'faker': fk}) for i in range(len)]
 
   unselected_index = np.arange(num_len)
@@ -283,9 +291,9 @@ def solveFaker(config, len):
   
   return data
 
-def parse2csv(data_list,name):
-  csv_fp = open('./data/'+name+'test_csv.csv','w',encoding='utf-8',newline='')
-  print(data_list)
+def parse2csv(data_list,path):
+  csv_fp = open(path,'w',encoding='utf-8',newline='')
+  # print(data_list)
   sheet_title = data_list[0].keys()
   sheet_data = []
   for data in data_list:
@@ -400,7 +408,7 @@ tables
 
 AllRes = []
 for index in range(len(tables)):
-  print('soving table……')
+  print('========  soving table '+str(index)+'  ========')
   print(table)
   table = tables[index]
   res = []
@@ -462,6 +470,8 @@ for index in range(len(tables)):
           random_list = [round(np.random.uniform(0,100),0) for i in range(num_len)]
         elif col_type == 'Real':
           random_list = [round(np.random.uniform(0,100),2) for i in range(num_len)]
+        elif col_type == 'String':
+          random_list = [fake.pystr() for i in range(num_len)]
           
       #define repeat
       if 'repeat' in col:
@@ -544,7 +554,7 @@ for index in range(len(tables)):
           solver.add(distri_c+period_c)
 
       # 随机数
-      if 'type' in col and (col['type']=='Int' or col['type']=='Real' ) and not 'distribution' in col:
+      if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'distribution' in col:
         # print(random_num,random_list)
         random_num = num_len - special_value
         random_c = z3.Sum([d[col['name']][i]==random_list[i] for i in range(num_len)]) == random_num
@@ -577,8 +587,8 @@ for index in range(len(tables)):
           else:
             data[col['name']] = round(np.random.uniform(0,10000),2)
         output.append(data)
-      # print(output)
-      parse2csv(output,str(index))
+      print('========  write to csv:  ','"./data/test'+str(index)+'.csv"  ========')
+      parse2csv(output,'./data/test'+str(index)+'.csv')
     else:
       print('无解')
     res.extend(output)
