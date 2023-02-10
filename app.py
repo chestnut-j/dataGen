@@ -54,6 +54,7 @@ def generateSlot(constraintList):
   slotJson = ""
   isOnlyOption = True
   for constraintStr in constraintList:
+    # print(constraintStr)
     #用于存储前括号的位置信息
     frontParenthesisList = findPosi(constraintStr, '(')
     #用于存储后括号的位置信息
@@ -72,6 +73,16 @@ def generateSlot(constraintList):
         slotJson += "{"
     # 处理字符串中只有条件的情况
     elif len(frontParenthesisList) == len(backParenthesisList):
+        if count==0: 
+          slotParenthesis = 0
+          slotJson += "{"
+        else:
+          slotParenthesis = 0
+          for position in range(0, len(backParenthesisList)):
+            if frontParenthesisList[position] < backParenthesisList[position]:
+              slotParenthesis+=1
+            else:
+              break
         isOnlyOption = True
         for position in range(0, len(frontParenthesisList)):
             if frontParenthesisList[position] > backParenthesisList[position]:
@@ -124,10 +135,16 @@ def generateSlot(constraintList):
             slotJson += constraintStr[slotEnd + 1:]
         
     count += 1
+
+  #用于存储前括号的位置信息
+  frontSlotList = findPosi(slotJson, '{')
+  #用于存储后括号的位置信息
+  backSlotList = findPosi(slotJson, '}')
   if len(tempSlotContent):
     slotContentList.append(tempSlotContent)
-  if len(slotContentList)>0 and len(slotJson)==0:
-    slotJson = "{}"
+  if len(frontSlotList)>len(backSlotList):
+    slotJson += "}"
+  # print(slotJson, slotContentList)
   return [slotJson, slotContentList]    
 
 def removeOrOp(constraint):
@@ -142,11 +159,26 @@ def removeOrOp(constraint):
   
   return finalJson
 
+def isOuterrontParenthesis(constraint):
+  if constraint[0] == '(' and constraint[len(constraint)-1] == ')':
+    constraint = constraint[1:len(constraint)-1]
+    #用于存储前括号的位置信息
+    frontParenthesisList = findPosi(constraint, '(')
+    #用于存储后括号的位置信息
+    backParenthesisList = findPosi(constraint, ')')
+    for position in range(0, len(backParenthesisList)):
+      if frontParenthesisList[position] > backParenthesisList[position]:
+        return False
+    return True
+  else:
+    return False
+
 def parseConstraint(rawConstraint):
+
     constraint = rawConstraint.replace(" ","")
 
     if constraint.find('Opt') == -1:
-      if constraint[0] == '(' and constraint[len(constraint)-1] == ')':
+      if isOuterrontParenthesis(constraint):
         constraint = constraint[1:len(constraint)-1]
       return [constraint]
             
@@ -164,7 +196,7 @@ def parseConstraint(rawConstraint):
 
 def findConstrain(allStr, operation):
     constraint = allStr.replace(" ","")
-    if constraint[0] == '(' and constraint[len(constraint)-1] == ')':
+    if isOuterrontParenthesis(constraint):
         constraint = constraint[1:len(constraint)-1]
     opList = findPosi(constraint, operation)
     opLen = len(operation)
@@ -231,11 +263,14 @@ def parseCons(cons, col):
     
     for i in range(int(len(col['repeat'])/2)):
       content = col['repeat'][2*i]
-      if isinstance(content,float):
+      if isinstance(content,float) and 'type' not in col:
         col['type'] = 'Real'
         break
       elif isinstance(content,int) and 'type' not in col:
         col['type'] = 'Int'
+      elif isinstance(content,str) and 'type' not in col:
+        col['type'] = 'String'
+        break
 
   if cons.find('Frequency')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -250,10 +285,14 @@ def parseCons(cons, col):
         break
       elif isinstance(content,int) and 'type' not in col:
         col['type'] = 'Int'
+      elif isinstance(content,str) and 'type' not in col:
+        col['type'] = 'String'
+        break
 
   if cons.find('Empty')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['empty'] = eval(args[0]) 
+
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -378,6 +417,8 @@ for table in allTables:
           consList.append(col_value)
         for cons in consList:
           parseCons(cons, col)
+        if 'type' not in col:
+          col['type'] = 'Real'
         format['children'].append(col)
       # parse key
       constrainList = findConstrain(key, 'And')
@@ -510,7 +551,6 @@ for index in range(len(tables)):
           empty_c = z3.Sum([d[col['name']][i] == 1.12345 for i in range(num_len)]) == times
         elif col['type'] == 'String':
           empty_c = z3.Sum([d[col['name']][i] == '' for i in range(num_len)]) == times
-
         solver.add(empty_c)
 
       #define enum
