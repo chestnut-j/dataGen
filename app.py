@@ -47,6 +47,23 @@ def orSoluntion(optionList):
       optionResult.append(option[np.random.randint(0,len(option))])
   return optionResult
 
+# 计算slot内的括号数
+def calculateSlotParenthesis(frontParenthesisList, backParenthesisList, inverse=False):
+  slotParenthesis = 0
+  if inverse:
+    for position in range(0, len(backParenthesisList)):
+      if frontParenthesisList[len(frontParenthesisList)-1-position] < backParenthesisList[len(backParenthesisList)-1-position]:
+        slotParenthesis+=1
+      else:
+        break
+  else:
+    for position in range(0, len(frontParenthesisList)):
+      if frontParenthesisList[position] < backParenthesisList[position]:
+        slotParenthesis+=1
+      else:
+        break
+  return slotParenthesis
+
 def generateSlot(constraintList):
   count = 0
   slotContentList = []
@@ -60,13 +77,7 @@ def generateSlot(constraintList):
     #用于存储后括号的位置信息
     backParenthesisList = findPosi(constraintStr, ')')
     if len(frontParenthesisList) > len(backParenthesisList):
-        slotParenthesis = 0
-        for position in range(0, len(backParenthesisList)):
-          if frontParenthesisList[len(frontParenthesisList)-1-position] < backParenthesisList[len(backParenthesisList)-1-position]:
-            slotParenthesis+=1
-          else:
-            break
-        # slotParenthesis = len(backParenthesisList)
+        slotParenthesis = calculateSlotParenthesis(frontParenthesisList, backParenthesisList, True)
         slotStart = frontParenthesisList[-(slotParenthesis+1)]
         tempSlotContent.append(constraintStr[slotStart + 1:])
         slotJson += constraintStr[:slotStart]
@@ -77,12 +88,8 @@ def generateSlot(constraintList):
           slotParenthesis = 0
           slotJson += "{"
         else:
-          slotParenthesis = 0
-          for position in range(0, len(backParenthesisList)):
-            if frontParenthesisList[position] < backParenthesisList[position]:
-              slotParenthesis+=1
-            else:
-              break
+          slotParenthesis = calculateSlotParenthesis(frontParenthesisList, backParenthesisList)
+
         isOnlyOption = True
         for position in range(0, len(frontParenthesisList)):
             if frontParenthesisList[position] > backParenthesisList[position]:
@@ -97,15 +104,8 @@ def generateSlot(constraintList):
             slotJson += "}"
             tempSlotContent = []
             if len(frontParenthesisList) - len(backParenthesisList) + slotParenthesis > 0:
-                # nextSlotParenthesis  = len(frontParenthesisList) + slotParenthesis - len(backParenthesisList)
-                nextSlotParenthesis = 0
-                for position in range(0, len(backParenthesisList)):
-                  if frontParenthesisList[len(frontParenthesisList)-1-position] < backParenthesisList[len(backParenthesisList)-1-position]:
-                    nextSlotParenthesis+=1
-                  else:
-                    break
+                slotParenthesis = calculateSlotParenthesis(frontParenthesisList, backParenthesisList, True)
 
-                slotParenthesis = nextSlotParenthesis
                 slotStart = frontParenthesisList[-(slotParenthesis+1)]
                 slotJson += constraintStr[slotEnd + 1:slotStart]
                 tempSlotContent.append(constraintStr[slotStart + 1:])
@@ -114,25 +114,13 @@ def generateSlot(constraintList):
                 slotJson += constraintStr[slotEnd + 1:]
             
     else:
+        slotParenthesis = calculateSlotParenthesis(frontParenthesisList, backParenthesisList)
         slotEnd = backParenthesisList[slotParenthesis]
         tempSlotContent.append(constraintStr[:slotEnd])
         slotContentList.append(tempSlotContent)
         slotJson += "}"
+        slotJson += constraintStr[slotEnd + 1:]
         tempSlotContent = []
-        if len(frontParenthesisList) - len(backParenthesisList) + slotParenthesis > 0:
-            nextSlotParenthesis = 0
-            for position in range(0, len(backParenthesisList)):
-              if frontParenthesisList[len(frontParenthesisList)-1-position] < backParenthesisList[len(backParenthesisList)-1-position]:
-                nextSlotParenthesis+=1
-              else:
-                break
-            slotParenthesis = nextSlotParenthesis
-            slotStart = frontParenthesisList[-(slotParenthesis+1)]
-            slotJson += constraintStr[slotEnd + 1:slotStart]
-            tempSlotContent.append(constraintStr[slotStart + 1:])
-            slotJson += "{"
-        else:
-            slotJson += constraintStr[slotEnd + 1:]
         
     count += 1
 
