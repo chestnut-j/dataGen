@@ -1,0 +1,11 @@
+[{
+  "( (Length(10) Opt Length(20)) And (ColNum(8) Opt ColNum(10)) )": {
+    "name": "Faker(name)",
+    "gender": "Frequency(1, 0.6, 0, 0.4)",
+    "telephone": "Faker(phone_number) And Empty(2)",
+    "height": "Range(155.0,200.0) And FreqIf(>180, 0.4)",
+    "weight": "Range(35.0,100.0)",
+    "score": "Range(0,100) And FreqIf(<60, 0.2) Opt FreqIf( >80, 0.1)) And (Repeat(0, 2) Or Empty(2))",
+    "comment": "Repeat('goodcomment',2) Or Repeat('badcomment',2)"
+  }
+}]

@@ -277,6 +277,15 @@ def parseCons(cons, col):
         col['type'] = 'String'
         break
 
+  if cons.find('FreqIf')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+    if 'freqIf' in col:
+      col['freqIf'] = col['freqIf'] + [x for x in args]
+    else:
+      col['freqIf'] = [x for x in args]
+    for i in range(int(len(col['freqIf'])/2)):
+      col['freqIf'][2*i+1] = eval(col['freqIf'][2*i+1])
+
   if cons.find('Empty')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['empty'] = eval(args[0]) 
@@ -302,16 +311,16 @@ def solveFaker(config, len):
     fk = Faker()
   data = [eval('faker.'+config['content']+'()',{'faker': fk}) for i in range(len)]
 
-  unselected_index = np.arange(num_len)
+  unselected_index = np.arange(len)
   if 'repeat' in config and not 'distribution' in config:
-    times = col['repeat']
+    times = config['repeat']
     repeat_index = np.random.choice(unselected_index, times, replace=False)
     for index in repeat_index:
       data[index] = data[repeat_index[0]]
     unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
     
   if 'empty' in config and not 'distribution' in config:
-    times = col['empty']
+    times = config['empty']
     empty_index = np.random.choice(unselected_index, times, replace=False)
     for index in empty_index:
       data[index] = None
@@ -331,7 +340,226 @@ def parse2csv(data_list,path):
   csv_fp.close()
 
 
+# 拆分表格
+def parseJson(origin):
+  allTables = []
 
+  for format in origin:
+    
+    test = []
+    remainValue = {}
+    value_test = []
+    key_test = []
+    for key, value in format.items():
+      test = parseConstraint(key)
+      remainValue = value
+      # print(value.items())
+      for col_key, col_value in value.items():
+        value_test.append(parseConstraint(col_value))
+        key_test.append(col_key)
+    valueList = []
+    valueList = product(*value_test)
+
+    for value_op in valueList:
+      for op in test:
+        parseFormat = []
+        item = {}
+        valueFormat = {}
+        for i in range(len(key_test)):
+          if value_op[i].find('Or') != -1:
+            valueFormat[key_test[i]] = removeOrOp(value_op[i])
+          else:
+            valueFormat[key_test[i]] = value_op[i] 
+        item[op] = valueFormat
+        parseFormat.append(item)
+        allTables.append(parseFormat)
+  return allTables
+
+# 单表映射
+def parseTable(allTables):
+  tables = []
+  for table in allTables:
+    tableParse = []
+    for element in table:
+      for key,value in element.items():
+        format = {
+          'children': []
+        }
+        # parse children
+        for col_key, col_value in value.items():
+          col = {}
+          col['name'] = col_key
+          
+          consList = findConstrain(col_value, 'And')
+          if len(consList) == 0:
+            consList.append(col_value)
+          for cons in consList:
+            parseCons(cons, col)
+          if 'type' not in col:
+            col['type'] = 'Real'
+          format['children'].append(col)
+        # parse key
+        constrainList = findConstrain(key, 'And')
+        for cons in constrainList:
+          if cons.find('Length') != -1:
+            arg = cons[cons.find('(')+1:cons.find(')')]
+            format['length'] = int(arg)
+          if cons.find('ColNum') != -1:
+            arg = cons[cons.find('(')+1:cons.find(')')]
+            format['colNum'] = int(arg)
+          if cons.find('Distribution'):
+            arg = cons[cons.find('(')+1:cons.find(')')]
+            dis_type = cons[cons.find('$')+1:cons.find('Distribution')]
+            for child in format['children']:
+              if child['name'] == arg:
+                child['distribution'] = dis_type
+        # 补充其余列
+        if(len(value.items())<format['colNum']):
+          for i in range(format['colNum']-len(value.items())):
+            col = {}
+            col['name'] = 'col'+str(len(value.items())+i+1)
+            format['children'].append(col)
+        tableParse.append(format)
+    tables.append(tableParse)
+
+  return tables
+
+def buildSolver(format):
+  num_len = format['length']
+  columns = format['children']
+  col_size = format['colNum']
+  
+  d = {}
+  others = {}
+  solver = z3.Solver()
+
+  for col in columns:
+    special_value = 0
+    special_index = []
+    random_list = []
+    empty_index = []
+    #define type
+    if 'type' in col:
+      col_type = col['type'] 
+      if col_type == 'Int':
+        d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
+      if col_type == 'Real':
+        d[col['name']] = [z3.Real(f"{col['name']}_{i}") for i in range(num_len)]
+      if col_type == 'String':
+        d[col['name']] = [z3.String(f"{col['name']}_{i}") for i in range(num_len)]
+      if col_type == 'Date':
+        others[col['name']] = solveDate(col)
+        continue
+      if col_type == 'Faker':
+        # random_list = solveFaker(col,num_len)
+        others[col['name']] = solveFaker(col,num_len)
+        continue
+    else:
+      d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
+    
+    unselected_index = np.arange(num_len)
+    
+    if 'empty' in col:
+      times = col['empty']
+      special_value += times
+      empty_index = np.random.choice(unselected_index, times, replace=False)
+      col['empty_index'] = empty_index
+      unselected_index = [elem for elem in unselected_index if elem not in empty_index]
+        
+    #define repeat
+    if 'repeat' in col:
+      for i in range(int(len(col['repeat'])/2)):
+        content = col['repeat'][2*i]
+        times = col['repeat'][2*i+1]
+        special_value += times
+        
+        repeat_c = z3.Sum([d[col['name']][i]==content for i in unselected_index]) == times
+        solver.add(repeat_c)
+
+    #define frequency
+    if 'frequency' in col:
+      for i in range(int(len(col['frequency'])/2)):
+        content = col['frequency'][2*i]
+        times = col['frequency'][2*i+1]
+        special_value += round(num_len * times)
+        frequency_c = z3.Sum([d[col['name']][i]==content for i in unselected_index]) == round(num_len * times)
+        solver.add(frequency_c)
+    
+    #define frequency
+    if 'freqIf' in col:
+      for i in range(int(len(col['freqIf'])/2)):
+        content = col['freqIf'][2*i]
+        times = col['freqIf'][2*i+1]
+        special_value += round(num_len * times)
+        freqIf_c = z3.Sum([eval('m'+content,{'m': d[col['name']][i]}) for i in unselected_index]) == round(num_len * times)
+        solver.add(freqIf_c)
+
+    #define enum
+    if 'enum' in col:
+      col_enum = col['enum']
+      enum_c = [z3.Or([d[col['name']][i] == col_enum[j] for j in range(len(col_enum))])
+              for i in unselected_index]
+      solver.add(enum_c)
+    
+    #define distinct
+    if 'distinct' in col:
+      col_distinct = col['distinct']
+      if col_distinct == 'true':
+        distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
+        solver.add(distinct_c)
+
+    #define distribution
+    if 'distribution' in col:
+      col_distri = col['distribution']
+      if col_distri == 'Stable':
+        # 方差
+        var_c = [z3.And(z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len < 2,
+                    z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len > 0)  
+                for i in range(num_len)]
+        solver.add(var_c)
+      if col_distri == 'BlowUp':
+        # 递增
+        a = z3.Real('a')
+        asc_c = [z3.And(d[col['name']][i]<d[col['name']][i+1], a > 1, a < 1.01)  for i in range(num_len-1)]
+        # asc_c = [d[col['name']][i]<d[col['name']][i+1] for i in range(num_len-1)]
+        solver.add(asc_c)
+      if col_distri == 'period':
+        fre = 3
+        fre_len = num_len//fre
+        #分布
+        distri_c = [d[col['name']][i]<d[col['name']][i+1] if i< fre_len//2 else d[col['name']][i]>d[col['name']][i+1] for i in range(fre_len)]
+        # 周期
+        period_c = [z3.And(d[col['name']][fre_len*j+i]<=d[col['name']][i+1],d[col['name']][fre_len*j+i]>=d[col['name']][i]) if i< fre_len//2 
+                    else z3.And(d[col['name']][fre_len*j+i]>=d[col['name']][i+1],d[col['name']][fre_len*j+i]<=d[col['name']][i])
+                    for i in range(fre_len) for j in range(1,fre)]
+        solver.add(distri_c+period_c)
+
+    #define range
+    random_num = num_len - special_value
+    if 'range' in col:
+      col_range = col['range']
+      if col_type == 'Int' or col_type == 'Real':
+        range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1])  for i in unselected_index]
+        solver.add(range_c)
+      if col_type == 'Int':
+        random_list = [round(np.random.uniform(col_range[0],col_range[1]),0) for i in range(3*num_len)]
+      elif col_type == 'Real':
+        random_list = [round(np.random.uniform(col_range[0],col_range[1]),2) for i in range(3*num_len)]
+    else:
+      if col_type == 'Int':
+        random_list = [round(np.random.uniform(0,100),0) for i in range(3*num_len)]
+      elif col_type == 'Real':
+        random_list = [round(np.random.uniform(0,100),2) for i in range(3*num_len)]
+      elif col_type == 'String':
+        random_list = [fake.pystr() for i in range(3*num_len)]
+
+    # 随机数
+    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'distribution' in col:
+      # print(random_num,random_list)
+      # random_c = z3.Sum([d[col['name']][i] == random_list[i] for i in unselected_index]) == random_num
+      random_c = z3.Sum([z3.Or([d[col['name']][i] == temp for temp in np.random.choice(random_list,3, replace=False)]) for i in unselected_index]) == random_num
+      solver.add(random_c)
+  return [solver, d, others]
 # ===========================================================
 
 # 带有$
@@ -347,248 +575,39 @@ def parse2csv(data_list,path):
 #       "col6": "$Faker(phone_number)",
 #   }
 # }]
-input_path = './input.json'
+# input_path = './input.json'
+input_path = './test1.json'
 
 with open(input_path,"r") as f:
   origin = json.load(f)
 
 print(origin)
-# 拆分表格
-allTables = []
 
-for format in origin:
-  
-  test = []
-  remainValue = {}
-  value_test = []
-  key_test = []
-  for key, value in format.items():
-    test = parseConstraint(key)
-    remainValue = value
-    # print(value.items())
-    for col_key, col_value in value.items():
-      value_test.append(parseConstraint(col_value))
-      key_test.append(col_key)
-  valueList = []
-  valueList = product(*value_test)
+allTables = parseJson(origin)
 
-  for value_op in valueList:
-    for op in test:
-      parseFormat = []
-      item = {}
-      valueFormat = {}
-      for i in range(len(key_test)):
-        if value_op[i].find('Or') != -1:
-          valueFormat[key_test[i]] = removeOrOp(value_op[i])
-        else:
-          valueFormat[key_test[i]] = value_op[i] 
-      item[op] = valueFormat
-      parseFormat.append(item)
-      allTables.append(parseFormat)
-
-# 单表映射
-tables = []
-for table in allTables:
-  tableParse = []
-  for element in table:
-    for key,value in element.items():
-      format = {
-        'children': []
-      }
-      # parse children
-      for col_key, col_value in value.items():
-        col = {}
-        col['name'] = col_key
-        
-        consList = findConstrain(col_value, 'And')
-        if len(consList) == 0:
-          consList.append(col_value)
-        for cons in consList:
-          parseCons(cons, col)
-        if 'type' not in col:
-          col['type'] = 'Real'
-        format['children'].append(col)
-      # parse key
-      constrainList = findConstrain(key, 'And')
-      for cons in constrainList:
-        if cons.find('Length') != -1:
-          arg = cons[cons.find('(')+1:cons.find(')')]
-          format['length'] = int(arg)
-        if cons.find('ColNum') != -1:
-          arg = cons[cons.find('(')+1:cons.find(')')]
-          format['colNum'] = int(arg)
-        if cons.find('Distribution'):
-          arg = cons[cons.find('(')+1:cons.find(')')]
-          dis_type = cons[cons.find('$')+1:cons.find('Distribution')]
-          for child in format['children']:
-            if child['name'] == arg:
-              child['distribution'] = dis_type
-      # 补充其余列
-      if(len(value.items())<format['colNum']):
-        for i in range(format['colNum']-len(value.items())):
-          col = {}
-          col['name'] = 'col'+str(len(value.items())+i+1)
-          format['children'].append(col)
-      tableParse.append(format)
-  tables.append(tableParse)
-
-tables
-
+tables = parseTable(allTables)
 
 AllRes = []
 for index in range(len(tables)):
+  table = tables[index]
+
   print('========  soving table '+str(index)+'  ========')
   print(table)
-  table = tables[index]
   res = []
   for format in table:
+    
+    [solver, d, others] = buildSolver(format)
+    
     num_len = format['length']
     columns = format['children']
     col_size = format['colNum']
     
-    d = {}
-    others = {}
-
-    solver = z3.Solver()
-
-    for col in columns:
-      special_value = 0
-      special_index = []
-      random_list = []
-      #define type
-      if 'type' in col:
-        col_type = col['type'] 
-        if col_type == 'Int':
-          d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
-        if col_type == 'Real':
-          d[col['name']] = [z3.Real(f"{col['name']}_{i}") for i in range(num_len)]
-        if col_type == 'String':
-          d[col['name']] = [z3.String(f"{col['name']}_{i}") for i in range(num_len)]
-        if col_type == 'Date':
-          others[col['name']] = solveDate(col)
-          continue
-        if col_type == 'Faker':
-          # random_list = solveFaker(col,num_len)
-          others[col['name']] = solveFaker(col,num_len)
-          continue
-      else:
-        d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
-      #define range
-      if 'range' in col:
-        col_range = col['range']
-        if col_type == 'Int' or col_type == 'Real':
-          range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1]) for i in range(num_len)]
-          solver.add(range_c)
-          # seed = round(np.random.uniform(col_range[0],col_range[1]),1)
-          # print(seed)
-          # avg_c = z3.Sum([d[col['name']][i]for i in range(num_len)]) == num_len * seed
-          # if not('distribution' in col):
-          #   solver.add(avg_c)
-        if col_type == 'Int':
-          random_list = [round(np.random.uniform(col_range[0],col_range[1]),0) for i in range(num_len)]
-        elif col_type == 'Real':
-          random_list = [round(np.random.uniform(col_range[0],col_range[1]),2) for i in range(num_len)]
-      else:
-        # if col_type == 'Int' or col_type == 'Real':
-        #   # range_c = [d[col['name']][i]>=0 for i in range(num_len)]          
-        #   # solver.add(range_c)
-        #   seed = round(np.random.uniform(0,100),1)
-        #   avg_c = z3.Sum([d[col['name']][i]for i in range(num_len)]) == num_len * seed
-        #   solver.add(avg_c)
-        if col_type == 'Int':
-          random_list = [round(np.random.uniform(0,100),0) for i in range(num_len)]
-        elif col_type == 'Real':
-          random_list = [round(np.random.uniform(0,100),2) for i in range(num_len)]
-        elif col_type == 'String':
-          random_list = [fake.pystr() for i in range(num_len)]
-          
-      #define repeat
-      if 'repeat' in col:
-        for i in range(int(len(col['repeat'])/2)):
-          content = col['repeat'][2*i]
-          times = col['repeat'][2*i+1]
-          special_value += times
-          
-          repeat_c = z3.Sum([d[col['name']][i]==content for i in range(num_len)]) == times
-          solver.add(repeat_c)
-
-      #define frequency
-      if 'frequency' in col:
-        for i in range(int(len(col['frequency'])/2)):
-          content = col['frequency'][2*i]
-          times = col['frequency'][2*i+1]
-          special_value += num_len * times
-          frequency_c = z3.Sum([d[col['name']][i]==content for i in range(num_len)]) == num_len * times
-          solver.add(frequency_c)
-      
-      #define frequency
-      if 'freqIf' in col:
-        for i in range(int(len(col['freqIf'])/2)):
-          content = col['freqIf'][2*i]
-          times = col['freqIf'][2*i+1]
-          special_value += num_len * times
-          freqIf_c = z3.Sum([exec(d[col['name']][i]+content,d[col['name']]) for i in range(num_len)]) == num_len * times
-          solver.add(freqIf_c)
-
-      if 'empty' in col:
-        times = col['empty']
-        special_value += times
-        if col['type'] == 'Int':
-          empty_c = z3.Sum([d[col['name']][i] == 999999 for i in range(num_len)]) == times
-        elif col['type'] == 'Real':
-          empty_c = z3.Sum([d[col['name']][i] == 1.12345 for i in range(num_len)]) == times
-        elif col['type'] == 'String':
-          empty_c = z3.Sum([d[col['name']][i] == '' for i in range(num_len)]) == times
-        solver.add(empty_c)
-
-      #define enum
-      if 'enum' in col:
-        col_enum = col['enum']
-        enum_c = [z3.Or([d[col['name']][i] == col_enum[j] for j in range(len(col_enum))])
-                for i in range(num_len)]
-        solver.add(enum_c)
-      
-      #define distinct
-      if 'distinct' in col:
-        col_distinct = col['distinct']
-        if col_distinct == 'true':
-          distinct_c = z3.Distinct([d[col['name']][i] for i in range(num_len)])
-          solver.add(distinct_c)
-
-      #define distribution
-      if 'distribution' in col:
-        col_distri = col['distribution']
-        if col_distri == 'Stable':
-          # 方差
-          var_c = [z3.And(z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len < 2,
-                      z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len > 0)  
-                  for i in range(num_len)]
-          solver.add(var_c)
-        if col_distri == 'BlowUp':
-          # 递增
-          a = z3.Real('a')
-          asc_c = [z3.And(d[col['name']][i]<d[col['name']][i+1], a > 1, a < 1.01)  for i in range(num_len-1)]
-          # asc_c = [d[col['name']][i]<d[col['name']][i+1] for i in range(num_len-1)]
-          solver.add(asc_c)
-        if col_distri == 'period':
-          fre = 3
-          fre_len = num_len//fre
-          #分布
-          distri_c = [d[col['name']][i]<d[col['name']][i+1] if i< fre_len//2 else d[col['name']][i]>d[col['name']][i+1] for i in range(fre_len)]
-          # 周期
-          period_c = [z3.And(d[col['name']][fre_len*j+i]<=d[col['name']][i+1],d[col['name']][fre_len*j+i]>=d[col['name']][i]) if i< fre_len//2 
-                      else z3.And(d[col['name']][fre_len*j+i]>=d[col['name']][i+1],d[col['name']][fre_len*j+i]<=d[col['name']][i])
-                      for i in range(fre_len) for j in range(1,fre)]
-          solver.add(distri_c+period_c)
-
-      # 随机数
-      if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'distribution' in col:
-        # print(random_num,random_list)
-        random_num = num_len - special_value
-        random_c = z3.Sum([d[col['name']][i]==random_list[i] for i in range(num_len)]) == random_num
-        solver.add(random_c)
-        
     output = []
+    cnt = 0
+    while solver.check()!=z3.sat and cnt<10:
+      [solver, d, others] = buildSolver(format)
+      cnt+=1
+
     if solver.check()==z3.sat:
       m = solver.model()
       for i in range(num_len):
@@ -597,14 +616,15 @@ for index in range(len(tables)):
         for col in columns:
           if 'type' in col:
             if col['type'] == 'Int':
-              data[col['name']] = None if m[d[col['name']][i]].as_long() == 999999 else m[d[col['name']][i]].as_long()
+              data[col['name']] = None if 'empty_index' in col and list(col['empty_index']).count(i)>0 else m[d[col['name']][i]].as_long()
+              # data[col['name']] = None if m[d[col['name']][i]].as_long() == 999999 else m[d[col['name']][i]].as_long()
             elif col['type'] == 'Real':
-              if float(m[d[col['name']][i]].numerator_as_long())/float(m[d[col['name']][i]].denominator_as_long()) == 1.12345:
+              if 'empty_index' in col and list(col['empty_index']).count(i)>0:
                 data[col['name']] = None
               else:
                 data[col['name']] = float(m[d[col['name']][i]].numerator_as_long())/float(m[d[col['name']][i]].denominator_as_long())  
             elif col['type'] == 'String':
-              data[col['name']] = None if m[d[col['name']][i]]=='' else eval(str(m[d[col['name']][i]]))
+              data[col['name']] = None if 'empty_index' in col and list(col['empty_index']).count(i)>0 else eval(str(m[d[col['name']][i]]))
             elif col['type'] == 'Date':
               if i < len(others[col['name']]):
                 data[col['name']] = others[col['name']][i]
@@ -616,10 +636,11 @@ for index in range(len(tables)):
             data[col['name']] = round(np.random.uniform(0,10000),2)
         output.append(data)
       print('========  write to csv:  ','"./data/test'+str(index)+'.csv"  ========')
+      res.extend(output)
       parse2csv(output,'./data/test'+str(index)+'.csv')
     else:
       print('无解')
-    res.extend(output)
+  
   AllRes.append(res)
 
 AllRes

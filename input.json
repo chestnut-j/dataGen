@@ -3,7 +3,7 @@
       "col0": "Range(0,20) Opt Range(10,50)",
       "col1": "Int And (Repeat(5,5) Opt Repeat(2,2)) And Empty(1)",
       "col2": "Empty(3) And Repeat('repeat value 1',4) Or Empty(2) And Repeat('repeat value 2',2)",
-      "col3": "Frequency(6.9, 0.2, 5, 0.2) And (Empty(1) Or Repeat(310,2))",
+      "col3": "Frequency(6.9, 0.2, 5, 0.2) And (Empty(1) Or Repeat(3,2))",
       "col4": "Real And FreqIf(>6, 0.4)",
       "col5": "Range(233.3, 400.8)",
       "col6": "Faker(name) And (Empty(1) Or Repeat(3))",
