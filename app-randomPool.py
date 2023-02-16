@@ -204,8 +204,14 @@ def findConstrain(allStr, operation):
 
 def parseCons(cons, col):
   # parse type
-  if ['Int','Real','String','Date'].count(cons)>0:
-    col['type'] = cons
+  if cons == 'Int':
+    col['type'] = 'Int'
+  if cons == 'Real':
+    col['type'] = 'Real'
+  if cons == 'String':
+    col['type'] = 'String'
+  if cons == 'Date':
+    col['type'] = 'Date'
   
   if cons.find('DateData')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -274,24 +280,15 @@ def parseCons(cons, col):
   if cons.find('FreqIf')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     if 'freqIf' in col:
-      col['freqIf'] = col['freqIf'] + [eval(x) for x in args]
+      col['freqIf'] = col['freqIf'] + [x for x in args]
     else:
-      col['freqIf'] = [eval(x) for x in args]
-    # for i in range(int(len(col['freqIf'])/2)):
-    #   col['freqIf'][2*i+1] = eval(col['freqIf'][2*i+1])
+      col['freqIf'] = [x for x in args]
+    for i in range(int(len(col['freqIf'])/2)):
+      col['freqIf'][2*i+1] = eval(col['freqIf'][2*i+1])
 
   if cons.find('Empty')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['empty'] = eval(args[0]) 
-
-  if cons.find('Trend')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['trend'] = args[0]
-
-  if cons.find('Distribution')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['distribution'] =  [eval(x) for x in args]
-
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -408,9 +405,9 @@ def parseTable(allTables):
           if cons.find('ColNum') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['colNum'] = int(arg)
-          if cons.find('Trend'):
+          if cons.find('trend'):
             arg = cons[cons.find('(')+1:cons.find(')')]
-            dis_type = cons[cons.find('$')+1:cons.find('Trend')]
+            dis_type = cons[cons.find('$')+1:cons.find('trend')]
             for child in format['children']:
               if child['name'] == arg:
                 child['trend'] = dis_type
@@ -469,21 +466,13 @@ def buildSolver(format):
         
     #define repeat
     if 'repeat' in col:
-      if len(col['repeat'])==1:
-        times = col['repeat'][0]
+      for i in range(int(len(col['repeat'])/2)):
+        content = col['repeat'][2*i]
+        times = col['repeat'][2*i+1]
         special_value += times
-        repeat_index = np.random.choice(unselected_index, times, replace=False)
-        repeat_c = [d[col['name']][i]==d[col['name']][repeat_index[0]] for i in repeat_index]
-        unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+        
+        repeat_c = z3.Sum([d[col['name']][i]==content for i in unselected_index]) == times
         solver.add(repeat_c)
-      else:
-        for i in range(int(len(col['repeat'])/2)):
-          content = col['repeat'][2*i]
-          times = col['repeat'][2*i+1]
-          special_value += times
-          
-          repeat_c = z3.Sum([d[col['name']][i]==content for i in unselected_index]) == times
-          solver.add(repeat_c)
 
     #define frequency
     if 'frequency' in col:
@@ -548,16 +537,10 @@ def buildSolver(format):
     if 'range' in col:
       col_range = col['range']
       if col_type == 'Int' or col_type == 'Real':
-        nonempty_index = [elem for elem in range(num_len) if elem not in empty_index]
-        range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1])  for i in nonempty_index]
-        solver.add(range_c) 
+        range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1])  for i in unselected_index]
+        solver.add(range_c)
       if col_type == 'Int':
-        if 'distribution' in col:
-          args = col['distribution']
-          if args[0]=='normal':
-            random_list = np.random.normal(loc=args[1],scale=args[2],size=int(1.3*num_len))
-        else:
-          random_list = [round(np.random.uniform(col_range[0],col_range[1]),0) for i in range(3*num_len)]
+        random_list = [round(np.random.uniform(col_range[0],col_range[1]),0) for i in range(3*num_len)]
       elif col_type == 'Real':
         random_list = [round(np.random.uniform(col_range[0],col_range[1]),2) for i in range(3*num_len)]
     else:
@@ -568,14 +551,10 @@ def buildSolver(format):
       elif col_type == 'String':
         random_list = [fake.pystr() for i in range(3*num_len)]
 
-    # # 随机数
+    # 随机数池子
     if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'trend' in col:
       # print(random_num,random_list)
       # random_c = z3.Sum([d[col['name']][i] == random_list[i] for i in unselected_index]) == random_num
-      if col['type']=='Int':
-        # sample_pool = np.random.choice(random_list,num_len, replace=False)
-        # random_c = [[d[col['name']][i] == int(sample_pool[i])] for i in unselected_index]
-        random_c = [z3.Or([d[col['name']][i] == int(temp) for temp in np.random.choice(random_list,2, replace=False)]) for i in unselected_index]
       random_c = z3.Sum([z3.Or([d[col['name']][i] == temp for temp in np.random.choice(random_list,3, replace=False)]) for i in unselected_index]) == random_num
       solver.add(random_c)
   return [solver, d, others]
@@ -595,9 +574,7 @@ def buildSolver(format):
 #   }
 # }]
 # input_path = './input.json'
-# input_path = './test1.json'
-
-input_path = './distribution.json'
+input_path = './test1.json'
 
 with open(input_path,"r") as f:
   origin = json.load(f)
@@ -625,7 +602,7 @@ for index in range(len(tables)):
     
     output = []
     cnt = 0
-    while solver.check()!=z3.sat and cnt<50:
+    while solver.check()!=z3.sat and cnt<10:
       [solver, d, others] = buildSolver(format)
       cnt+=1
 
