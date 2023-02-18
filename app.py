@@ -228,62 +228,44 @@ def parseCons(cons, col):
 
   if cons.find('Range')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['range'] = [eval(args[0]),eval(args[1])]
-   
+    col['range'] = [eval(x) for x in args]
     if isinstance(col['range'][0],float) or isinstance(col['range'][1],float):
       if 'type' not in col: 
         col['type'] = 'Real'
     elif isinstance(col['range'][0],int) or isinstance(col['range'][1],int):
       if 'type' not in col: 
         col['type'] = 'Int'
-
-  if cons.find('Max')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['max'] = eval(args[0])
-    if isinstance(col['max'] ,float) or isinstance(col['max'] ,float):
-      if 'type' not in col: 
-        col['type'] = 'Real'
-    elif isinstance(col['max'],int) or isinstance(col['max'] ,int):
-      if 'type' not in col: 
-        col['type'] = 'Int'
   
-  if cons.find('Min')!= -1:
+  if cons.find('Quantile')!=-1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['min'] = eval(args[0])
-    if isinstance(col['min'] ,float) or isinstance(col['min'] ,float):
-      if 'type' not in col: 
-        col['type'] = 'Real'
-    elif isinstance(col['min'],int) or isinstance(col['min'] ,int):
-      if 'type' not in col: 
-        col['type'] = 'Int'
+    col['quantile'] = [eval(x) for x in args]
+    if isinstance(col['quantile'][1] ,float) and 'type' not in col:
+      col['type'] = 'Real'
+    elif isinstance(col['quantile'][1],int) and 'type' not in col: 
+      col['type'] = 'Int'
 
-  if cons.find('Repeat')!= -1:
+  
+  if cons.find('Max')!= -1 or cons.find('Min')!= -1 or cons.find('Sum')!= -1 or cons.find('Mean')!= -1 or cons.find('Var')!= -1 or cons.find('Std')!= -1  :
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    if 'repeat' in col:
-      col['repeat'] = col['repeat'] + [eval(x) for x in args]
+    cons_name = cons[:cons.find('(')].lower()
+    col[cons_name] = eval(args[0])
+    if isinstance(col[cons_name] ,float) and 'type' not in col:
+      col['type'] = 'Real'
+    elif isinstance(col[cons_name],int) and 'type' not in col:
+      col['type'] = 'Int'
+  
+
+  if cons.find('Repeat')!= -1 or cons.find('Frequency')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+    cons_name = cons[:cons.find('(')].lower()
+    if cons_name in col:
+      col[cons_name] = col[cons_name] + [eval(x) for x in args]
     else:
-      col['repeat'] = [eval(x) for x in args]
+      col[cons_name] = [eval(x) for x in args]
     
-    for i in range(int(len(col['repeat'])/2)):
-      content = col['repeat'][2*i]
+    for i in range(int(len(col[cons_name])/2)):
+      content = col[cons_name][2*i]
       if isinstance(content,float) and 'type' not in col:
-        col['type'] = 'Real'
-        break
-      elif isinstance(content,int) and 'type' not in col:
-        col['type'] = 'Int'
-      elif isinstance(content,str) and 'type' not in col:
-        col['type'] = 'String'
-        break
-
-  if cons.find('Frequency')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    if 'frequency' in col:
-      col['frequency'] = col['frequency'] + [eval(x) for x in args]
-    else:
-      col['frequency'] = [eval(x) for x in args]
-    for i in range(int(len(col['frequency'])/2)):
-      content = col['frequency'][2*i]
-      if isinstance(content,float):
         col['type'] = 'Real'
         break
       elif isinstance(content,int) and 'type' not in col:
@@ -298,8 +280,6 @@ def parseCons(cons, col):
       col['freqIf'] = col['freqIf'] + [eval(x) for x in args]
     else:
       col['freqIf'] = [eval(x) for x in args]
-    # for i in range(int(len(col['freqIf'])/2)):
-    #   col['freqIf'][2*i+1] = eval(col['freqIf'][2*i+1])
 
   if cons.find('Empty')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -321,6 +301,9 @@ def parseCons(cons, col):
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['distribution'] =  [eval(x) for x in args]
 
+  if cons.find('Correlation')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+    col['correlation'] = [eval(x) for x in args]
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -434,9 +417,9 @@ def parseTable(allTables):
           if cons.find('Length') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['length'] = int(arg)
-          if cons.find('ColNum') != -1:
+          if cons.find('Column') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
-            format['colNum'] = int(arg)
+            format['column'] = int(arg)
           if cons.find('Trend'):
             arg = cons[cons.find('(')+1:cons.find(')')]
             dis_type = cons[cons.find('$')+1:cons.find('Trend')]
@@ -444,8 +427,8 @@ def parseTable(allTables):
               if child['name'] == arg:
                 child['trend'] = dis_type
         # 补充其余列
-        if(len(value.items())<format['colNum']):
-          for i in range(format['colNum']-len(value.items())):
+        if(len(value.items())<format['column']):
+          for i in range(format['column']-len(value.items())):
             col = {}
             col['name'] = 'col'+str(len(value.items())+i+1)
             format['children'].append(col)
@@ -457,7 +440,7 @@ def parseTable(allTables):
 def buildSolver(format):
   num_len = format['length']
   columns = format['children']
-  col_size = format['colNum']
+  col_size = format['column']
   
   d = {}
   others = {}
@@ -508,8 +491,6 @@ def buildSolver(format):
       special_value += 1
       unselected_index = [elem for elem in unselected_index if elem != max_index]
       max_c = z3.And(z3.And([d[col['name']][i]<=d[col['name']][max_index] for i in unselected_index]),d[col['name']][max_index]==value)
-      # empty_index = np.random.choice(unselected_index, times, replace=False)
-      # col['empty_index'] = empty_index
       solver.add(max_c)
 
     if 'min' in col:
@@ -522,9 +503,42 @@ def buildSolver(format):
       special_value += 1
       unselected_index = [elem for elem in unselected_index if elem != min_index]
       min_c = z3.And(z3.And([d[col['name']][i]<=d[col['name']][min_index] for i in unselected_index]),d[col['name']][min_index]==value)
-      # empty_index = np.random.choice(unselected_index, times, replace=False)
-      # col['empty_index'] = empty_index
       solver.add(min_c)
+
+    if 'sum' in col:
+      value = col['sum']
+      sum_c = z3.Sum([d[col['name']][i] for i in nonempty_index]) == value
+      solver.add(sum_c)
+
+    if 'mean' in col:
+      value = col['mean']
+      mean_c = z3.Sum([d[col['name']][i] for i in nonempty_index]) == value*len(nonempty_index)
+      solver.add(mean_c)
+    
+    if 'var' in col:
+      value = col['var']
+      avg = z3.Sum([d[col['name']][i] for i in nonempty_index])/len(nonempty_index)
+      var_c = z3.Sum([(d[col['name']][i]-avg)**2 for i in nonempty_index])/len(nonempty_index) == value
+      solver.add(var_c)
+    
+    if 'std' in col:
+      value = col['std']
+      avg = z3.Sum([d[col['name']][i] for i in nonempty_index])/len(nonempty_index)
+      std_c = z3.Sum([(d[col['name']][i]-avg)**2 for i in nonempty_index])/len(nonempty_index) == value*value
+      solver.add(std_c)
+    
+    if 'quantile' in col:
+      pos = col['quantile'][0]
+      value = col['quantile'][1]
+      quan_len = len(nonempty_index)*pos//100
+      special_index = np.random.choice(unselected_index, 1, replace=False)[0]
+      special_value += 1
+      unselected_index = [elem for elem in unselected_index if elem != special_index]
+      quan_c = z3.And(
+                  z3.Sum([d[col['name']][i]<value for i in unselected_index])==quan_len,
+                  d[col['name']][special_index]==value
+                )
+      solver.add(quan_c)
         
     #define repeat
     if 'repeat' in col:
@@ -585,6 +599,13 @@ def buildSolver(format):
           for p in range(part)
         ]
       solver.add(cluster_c)
+
+    #define correlation
+    if 'correlation' in col:
+      [col_name, type, k] = col['correlation']
+      if type == 'linear':
+        correlation_c = [d[col['name']][i]==k*d[col_name][i] for i in nonempty_index]
+      solver.add(correlation_c)
 
     #define enum
     if 'enum' in col:
@@ -688,7 +709,7 @@ def buildSolver(format):
           random_list.extend(np.random.uniform(part_mid*p-part_len,part_mid*p+part_len,part_num))
    
     # # 随机数
-    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'trend' in col:
+    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'trend' in col and not 'correlation' in col:
       # print(random_num,random_list)
       # random_c = z3.Sum([d[col['name']][i] == random_list[i] for i in unselected_index]) == random_num
       if col['type']=='Int':
@@ -712,7 +733,7 @@ def save2json(data, path):
 
 # 带有$
 # origin = [{
-#   "( ($Length(10) $Opt $Length(20)) $And ($ColNum(6) $Opt $ColNum(10)) )": {
+#   "( ($Length(10) $Opt $Length(20)) $And ($column(6) $Opt $column(10)) )": {
 #       "index": "$Int $And ( $Range(0,20) $Opt $Range(10,50))",
 #       "col1": "$Int $And ($Repeat(5,5) $Opt $Repeat(2,2)) $And $Empty(1)",
 #       "col2": "$String $And ($Empty(5) $Or $Repeat('a',2)) $And ($Empty(6) $Or $Repeat('b',2))",
@@ -727,6 +748,7 @@ def save2json(data, path):
 # input_path = './test1.json'
 
 input_path = './sample.json'
+# input_path = './example.json'
 
 with open(input_path,"r") as f:
   origin = json.load(f)
@@ -752,7 +774,7 @@ for index in range(len(tables)):
 
     num_len = format['length']
     columns = format['children']
-    col_size = format['colNum']
+    col_size = format['column']
     
     output = []
     cnt = 0

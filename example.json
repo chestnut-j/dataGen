@@ -1,0 +1,11 @@
+[{
+  "( Length(20) And (Column(8) Opt Column(7)))": {
+    "name": "GPT(name)",
+    "gender": "Frequency('male', 0.6, 'female', 0.4)",
+    "telephone": "GPT(phone_number) And (Empty(2) Or Repeat(2))",
+    "height": "Range(155.0,200.0) And (FreqIf('>180', 0.4) Opt Frequency(166,0.5))",
+    "weight": "Range(35.0,100.0) And Max(88.8) And Mean(50,50)",
+    "score": "Distribution('normal',70,15)",
+    "comment": "String"
+  }
+}]
