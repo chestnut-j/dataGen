@@ -19,13 +19,17 @@ def generate_prompt(cons, origin):
 
 cons = "'range': [150.0, 190.0], 'type': 'Real', 'Empty': [2]"
 origin = "[155,155,155,181,None,155,None,155,181,181]"
-print(generate_prompt(cons, origin))
+# print(generate_prompt(cons, origin))
 response = openai.Completion.create(
-    model="text-curie-001",
-    # model="text-davinci-003",
-    prompt="write python code using z3 to check if a list is normal distribution list",
+    # model="text-curie-001",
+    model="text-davinci-003",
+    prompt="give me a high dimensional data(6 columns and 10 rows) which contain 3 clusters,without specific cluster content ,and convert it into a python list without data argument, just a list",
     # prompt=generate_prompt(cons, origin),
-    temperature=1,
-    max_tokens=1500,
+    temperature=0.2,
+    max_tokens=2000,
 )
-print("response: ", response.choices)
+text_data = response.choices[0].text
+print(text_data)
+data=eval(text_data)
+print(data)
+# print("response: ", response.choices[0].text)

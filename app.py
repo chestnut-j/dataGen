@@ -547,8 +547,8 @@ def buildSolver(format):
         special_value += times
         repeat_index = np.random.choice(unselected_index, times, replace=False)
         repeat_c = z3.And([d[col['name']][i]==d[col['name']][repeat_index[0]] for i in repeat_index])
-        unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
         solver.add(repeat_c)
+        unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
       else:
         for i in range(int(len(col['repeat'])/2)):
           content = col['repeat'][2*i]
@@ -576,6 +576,10 @@ def buildSolver(format):
         freqIf_c = z3.Sum([eval('m'+content,{'m': d[col['name']][i]}) for i in unselected_index]) == round(num_len * times)
         solver.add(freqIf_c)
     
+    if 'repeat' in col or 'frequency' in col:
+      distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
+      solver.add(distinct_c)
+
     #define cluster
     if 'cluster' in col:
       part = col['cluster']
