@@ -1,0 +1,104 @@
+[
+  {
+    "children": [
+      {
+        "name": "name",
+        "type": "Faker",
+        "content": "name"
+      },
+      {
+        "name": "gender",
+        "frequency": [
+          "male",
+          0.6,
+          "female",
+          0.4
+        ],
+        "type": "String"
+      },
+      {
+        "name": "telephone",
+        "type": "Faker",
+        "content": "phone_number",
+        "empty": 2
+      },
+      {
+        "name": "height",
+        "range": [
+          155.0,
+          200.0
+        ],
+        "type": "Real",
+        "freqIf": [
+          ">180",
+          0.4
+        ],
+        "mean": 170
+      },
+      {
+        "name": "weight",
+        "range": [
+          35.0,
+          100.0
+        ],
+        "type": "Real",
+        "max": 88.8,
+        "quantile": [
+          50,
+          50
+        ]
+      },
+      {
+        "name": "score",
+        "distribution": [
+          "normal",
+          80,
+          15
+        ],
+        "type": "Real"
+      },
+      {
+        "name": "doubleScore",
+        "correlation": [
+          "score",
+          "linear",
+          2
+        ],
+        "type": "Real"
+      },
+      {
+        "name": "comment",
+        "repeat": [
+          "goodcomment",
+          2
+        ],
+        "type": "String"
+      },
+      {
+        "name": "trend",
+        "trend": [
+          "exponential",
+          1.4
+        ],
+        "type": "Real"
+      },
+      {
+        "name": "cluster",
+        "type": "Int",
+        "cluster": 4,
+        "range": [
+          0,
+          300
+        ]
+      },
+      {
+        "name": "col11"
+      },
+      {
+        "name": "col12"
+      }
+    ],
+    "length": 100,
+    "column": 12
+  }
+]

@@ -33,7 +33,9 @@ export default {
     font-weight: 600;
     color: #fff;
     background: #000;
-    padding: 5px;
+    line-height: 40px;
+    padding-left: 20px;
+    text-align: left;
   }
   .content {
     display: flex;
@@ -43,14 +45,14 @@ export default {
     flex:1;
 
     .left-panel {
-      width:35%;
+      width:30%;
       border: 1px solid #eeeeee;
-      margin: 5px 0 ;
+      margin: 5px;
     }
     .right-panel {
-      width:64%;
+      width:69%;
       border: 1px solid #eeeeee;
-      margin: 5px 0;
+      margin: 5px;
     }
   }
 }

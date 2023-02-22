@@ -531,13 +531,22 @@ def buildSolver(format):
       pos = col['quantile'][0]
       value = col['quantile'][1]
       quan_len = len(nonempty_index)*pos//100
-      special_index = np.random.choice(unselected_index, 1, replace=False)[0]
-      special_value += 1
-      unselected_index = [elem for elem in unselected_index if elem != special_index]
-      quan_c = z3.And(
-                  z3.Sum([d[col['name']][i]<value for i in unselected_index])==quan_len,
-                  d[col['name']][special_index]==value
-                )
+      if len(nonempty_index)%2:
+        special_index = np.random.choice(unselected_index, 1, replace=False)[0]
+        special_value += 1
+        unselected_index = [elem for elem in unselected_index if elem != special_index]
+        quan_c = z3.And(
+                    z3.Sum([d[col['name']][i]<value for i in unselected_index])==quan_len,
+                    d[col['name']][special_index]==value
+                  )
+      else:
+        special_index = np.random.choice(unselected_index, 2, replace=False)
+        special_value += 2
+        unselected_index = [elem for elem in unselected_index if elem not in special_index]
+        quan_c = z3.And(
+                    z3.Sum([d[col['name']][i]<value for i in unselected_index])==quan_len,
+                    d[col['name']][special_index[0]] + d[col['name']][special_index[1]] ==value*2
+                  )
       solver.add(quan_c)
         
     #define repeat
@@ -576,9 +585,9 @@ def buildSolver(format):
         freqIf_c = z3.Sum([eval('m'+content,{'m': d[col['name']][i]}) for i in unselected_index]) == round(num_len * times)
         solver.add(freqIf_c)
     
-    if 'repeat' in col or 'frequency' in col:
-      distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
-      solver.add(distinct_c)
+    # if 'repeat' in col or 'frequency' in col:
+    #   distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
+    #   solver.add(distinct_c)
 
     #define cluster
     if 'cluster' in col:
@@ -820,7 +829,7 @@ for index in range(len(tables)):
       print('========  write to csv:  ','"./data/test'+str(index)+'.csv"  ========')
       res.extend(output)
       parse2csv(output,'./data/test'+str(index)+'.csv')
-
+      save2json(output,'./data/json'+str(index)+'.json')
       #item list mode {a:[1,2],b:[2,2]...}
       mode2 = {}
       for col in columns:
