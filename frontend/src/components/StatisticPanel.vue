@@ -7,8 +7,9 @@
 
 <script>
 import { store } from '../store/store.js'
-import { getBoxOption } from '../common.js'
+import { getBoxOption, getLineOption, getHistogramOption, getBarOption } from '../common.js'
 import * as echarts from 'echarts'
+import * as ecStat from 'echarts-stat';
 
 export default {
   name: 'StatisticPanel',
@@ -29,6 +30,7 @@ export default {
   },
   mounted(){
     // this.initPlots()
+
   },
   watch: {
     columns:{
@@ -49,13 +51,15 @@ export default {
       const that = this
       this.columns.forEach(item=>{
         let keys = Object.keys(item)
-        if(keys.includes('range') || keys.includes('max') || keys.includes('min') ||
+        if(keys.includes('range')&& !keys.includes('cluster') || keys.includes('max') || keys.includes('min') ||
           keys.includes('quantile') ||keys.includes('mean')  ){
             that.drawBox(item)
-        }else if(keys.includes('trend') || keys.includes('correlation') ){
+        }else if(keys.includes('trend')){
           that.drawLine(item)
-        } else {
+        } else if(item['type']==='Real' ||item['type']==='Int'  || keys.includes('cluster')  || !keys.includes('type')  ){
           that.drawHistogram(item)
+        } else {
+          that.drawBar(item)
         }
       })
     },
@@ -69,14 +73,48 @@ export default {
       this.charts[item.name].setOption(getBoxOption(item.name, data))
     },
     drawLine(item){
-      
-      console.log(item)
+      let data = this.extraData(item.name)
+      if (this.charts[item.name] != null && this.charts[item.name] != "" && this.charts[item.name] != undefined) {
+        this.charts[item.name].dispose();
+      }
+      this.charts[item.name] = echarts.init(document.getElementById('column-'+item.name));
+      // 绘制图表
+      this.charts[item.name].setOption(getLineOption(item.name, data))
     },
     drawHistogram(item){
-      console.log(item)
+      echarts.registerTransform(ecStat.transform.histogram);
+      let data = this.extraData(item.name)
+      let bins = ecStat.histogram(data)
+      if (this.charts[item.name] != null && this.charts[item.name] != "" && this.charts[item.name] != undefined) {
+        this.charts[item.name].dispose();
+      }
+      this.charts[item.name] = echarts.init(document.getElementById('column-'+item.name));
+      // 绘制图表
+      this.charts[item.name].setOption(getHistogramOption(item.name, bins.data))
+    },
+    drawBar(item){
+      let data = this.extraData(item.name)
+      let bins = this.getBins(data)
+      if (this.charts[item.name] != null && this.charts[item.name] != "" && this.charts[item.name] != undefined) {
+        this.charts[item.name].dispose();
+      }
+      this.charts[item.name] = echarts.init(document.getElementById('column-'+item.name));
+      // 绘制图表
+      this.charts[item.name].setOption(getBarOption(item.name, bins))
     },
     extraData(colName) {
       return this.tableData.map(item=>item[colName])
+    },
+    getBins(data){
+      let obj = {}
+      data.forEach(item=>{
+        if(obj[item]!==undefined){
+          obj[item]++
+        }else{
+          obj[item]=1
+        }
+      })
+      return obj
     }
   }
 }
@@ -98,9 +136,7 @@ export default {
     border: 1px solid #eeeeee;
     width:260px;
     height: 260px;
-    // padding: 20px;
-    // white-space: normal;
-    // word-wrap:break-word;
+    
   }
   // background: #e6e6e6;
   &::-webkit-scrollbar {

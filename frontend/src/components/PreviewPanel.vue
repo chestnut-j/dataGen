@@ -33,11 +33,11 @@ export default {
   .header {
     border-bottom: 1px solid #e6e6e6;
     .title{
-      height: 30px;
+      height: 28px;
       width: 100%;
       font-weight: bold;
-      font-size: 22px;
-      line-height: 22px;
+      font-size: 14px;
+      line-height: 18px;
       padding:4px;
       padding-left: 10px;
       background: #f6f6f6;
