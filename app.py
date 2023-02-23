@@ -544,8 +544,9 @@ def buildSolver(format):
         special_value += 2
         unselected_index = [elem for elem in unselected_index if elem not in special_index]
         quan_c = z3.And(
-                    z3.Sum([d[col['name']][i]<value for i in unselected_index])==quan_len,
-                    d[col['name']][special_index[0]] + d[col['name']][special_index[1]] ==value*2
+                    z3.Sum([d[col['name']][i]<value for i in unselected_index])==quan_len-1,
+                    d[col['name']][special_index[0]]==value-1,
+                    d[col['name']][special_index[1]]==value+1
                   )
       solver.add(quan_c)
         

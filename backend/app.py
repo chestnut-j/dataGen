@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import json
 
 app = Flask(__name__)
@@ -13,6 +13,13 @@ def get_table_info():
     "table": table,
     "config": config
   })
+  return data
+
+@app.route('/submit', methods=['GET', 'POST'])
+def submit_json_data():
+  print(request)
+  data = json.dumps(json.loads(request.data))
+  print(data)
   return data
 
 if __name__ == '__main__':
