@@ -29,7 +29,7 @@ export default {
   // padding: 8px;
   .header{
     height: 40px;
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 600;
     color: #fff;
     background: #000;

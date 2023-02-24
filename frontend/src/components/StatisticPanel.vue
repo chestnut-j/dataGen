@@ -21,11 +21,14 @@ export default {
     }
   },
   computed: {
+    currentIndex(){
+      return store.currentTableIndex
+    },
     columns(){
-      return store.config
+      return store.totalInfo[this.currentIndex]?.config[0].children || []
     },
     tableData(){
-      return store.currentTable
+      return store.totalInfo[this.currentIndex]?.table || []
     }
   },
   mounted(){
@@ -84,13 +87,16 @@ export default {
     drawHistogram(item){
       echarts.registerTransform(ecStat.transform.histogram);
       let data = this.extraData(item.name)
-      let bins = ecStat.histogram(data)
-      if (this.charts[item.name] != null && this.charts[item.name] != "" && this.charts[item.name] != undefined) {
-        this.charts[item.name].dispose();
+      if(data.length){
+        let bins = ecStat.histogram(data)
+        if (this.charts[item.name] != null && this.charts[item.name] != "" && this.charts[item.name] != undefined) {
+          this.charts[item.name].dispose();
+        }
+        this.charts[item.name] = echarts.init(document.getElementById('column-'+item.name));
+        // 绘制图表
+        this.charts[item.name].setOption(getHistogramOption(item.name, bins.data))
       }
-      this.charts[item.name] = echarts.init(document.getElementById('column-'+item.name));
-      // 绘制图表
-      this.charts[item.name].setOption(getHistogramOption(item.name, bins.data))
+      
     },
     drawBar(item){
       let data = this.extraData(item.name)

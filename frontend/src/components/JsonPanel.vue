@@ -4,6 +4,18 @@
       <div class="title">
         json panel
       </div>
+      <a-select
+        class="select-box"
+        ref="select"
+        :value="currentCase"
+        size="small"
+        style="width: 90px"
+        @change="handleCaseChange"
+      >
+        <a-select-option v-for="item in options" :key="item.id" :value="item.id">
+          {{item.title}}
+        </a-select-option>
+      </a-select>
     </div>
     <div class="content">
       <monaco
@@ -14,8 +26,7 @@
       ></monaco>
     </div>
     <div class="footer">
-      <a-button type="primary" @click="submit()">send</a-button>
-      <a-button type="primary" @click="getInfo()">get</a-button>
+      <a-button type="primary" @click="submit()">run</a-button>
     </div>
   </div>
 </template>
@@ -25,18 +36,10 @@ import axios from 'axios'
 import { store } from '../store/store.js'
 // import VueCodemirror from '@/components/JsonEditor/index.vue'
 import monaco from '@/components/monaco/index.vue'
+import {caseOptions} from '@/common.js'
+import { message } from 'ant-design-vue'
 
 //test data
-// [
-//     {
-//         "( Length(100) And Column(12) )": 
-//             {
-//                 "name": "Faker(name)",
-//                 "gender": "Frequency('male', 0.6, 'female', 0.4)", 
-//                 "height": "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)"
-//             }
-//     }
-// ]
 export default {
   name: 'JsonPanel',
   props: {
@@ -49,7 +52,9 @@ export default {
         readOnly: false, // 是否可编辑
         language: 'json', // 语言类型
         theme: 'vs-light' // 编辑器主题
-      }
+      },
+      options: caseOptions,
+      currentCase: undefined,
     }
   },
   components: {
@@ -57,22 +62,13 @@ export default {
     // VueCodemirror,
   },
   methods:{
-    getInfo(){
-      const that = this
-      axios.get('/api/getInfo').then(res=>{
-        console.log(res.data)
-        that.parseData(res.data)
-      })
-      .catch(err=>{
-        console.log(err)
-      })
-    },
     submit(){
       const that = this
       this.jsonData = this.$refs.monaco.getVal()
-      axios.post('/api/submit',{data: that.jsonData}).then(res=>{
+      axios.post('/api/submit',{data: JSON.parse(that.jsonData)}).then(res=>{
         console.log(res.data)
-        that.parseData(res.data)
+        store.setTotalInfo(res.data)
+        message.success('generate success')
       })
       .catch(err=>{
         console.log(err)
@@ -86,6 +82,10 @@ export default {
     changeValue (val) {
       // console.log(val)
       this.jsonData = val
+    },
+    handleCaseChange(val){
+      const find = caseOptions.find(item=>item.id==val) 
+      this.$refs.monaco.setVal(JSON.stringify(find.content))
     }
   }
 }
@@ -96,18 +96,24 @@ export default {
 .json-panel {
   position: relative;
   .header {
+    background: #f6f6f6;
     border-bottom: 1px solid #e6e6e6;
     margin-bottom: 10px;
+    display: flex;
+    flex-flow: row;
+    justify-content: space-between;
     .title{
       height: 28px;
-      width: 100%;
+      // width: 100%;
       font-weight: bold;
       font-size: 14px;
       line-height: 18px;
       padding:4px;
       padding-left: 10px;
-      background: #f6f6f6;
       text-align: left;
+    }
+    .select-box {
+      margin: 3px 5px;
     }
   }
   

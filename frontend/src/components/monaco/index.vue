@@ -31,7 +31,11 @@ export default {
         value: '', // 编辑器的值
         theme: 'vs', // 编辑器主题：vs, hc-black, or vs-dark，更多选择详见官网
         roundedSelection: true, // 右侧不显示编辑器预览框
-        autoIndent: true // 自动缩进
+        autoIndent: true, // 自动缩进
+        formatOnPaste: true,
+        formatOnType: true,
+        fontSize:"12px",
+        tabSize: 2, 
       },
       // 编辑器对象
       monacoEditor: {}
@@ -66,6 +70,11 @@ export default {
       // return this.monacoEditor.getValue()
       return toRaw(this.monacoEditor).getValue(); //获取编辑器中的文本
 
+    },
+    setVal (val) {
+      toRaw(this.monacoEditor).setValue(val);
+      this.monacoEditor.trigger("anything", "editor.action.formatDocument");
+      toRaw(this.monacoEditor).setValue(toRaw(this.monacoEditor).getValue());
     }
   }
 }

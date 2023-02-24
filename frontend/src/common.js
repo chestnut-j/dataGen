@@ -196,3 +196,42 @@ export const getBarOption = function(name, data) {
     ]
   }
 }
+
+export const caseOptions = [
+  {
+    id: 1,
+    title: 'case 1',
+    content:  [{
+      "( (Length(40) Opt Length(85)) And Column(12) )": {
+        "name": "Faker(name)",
+        "gender": "Frequency('male', 0.6, 'female', 0.4)",
+        "telephone": "Faker(phone_number) And Empty(2)",
+        "height": "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)",
+        "weight": "Range(35.0,100.0) And Max(88.8) And Quantile(50,50)",
+        "score": "Distribution('normal',80,15)",
+        "doubleScore": "Correlation('score','linear',2) ",
+        "comment": "Repeat('goodcomment',2)",
+        "trend": "Trend('exponential',1.4)",
+        "cluster": "Int And Cluster(4) And Range(0,300)"
+      }
+    }]
+  },
+  {
+    id: 2,
+    title: 'case 2',
+    content:  [{
+      "( (Length(50) Opt Length(100)) And Column(12) )": {
+        "name": "Faker(name)",
+        "gender": "Frequency('male', 0.6, 'female', 0.4)",
+        "telephone": "Faker(phone_number) And (Empty(2) Opt repeat(4))",
+        "height": "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)",
+        "weight": "Range(35.0,100.0) And Max(88.8) And Quantile(50,50)",
+        "score": "Distribution('normal',80,15)",
+        "doubleScore": "Correlation('score','linear',2) ",
+        "comment": "Repeat('goodcomment',2) Or Repeat('badcomment',2)",
+        "trend": "Trend('exponential',1.4)",
+        "cluster": "Int And Cluster(4) And Range(0,300)"
+      }
+    }]
+  }
+]

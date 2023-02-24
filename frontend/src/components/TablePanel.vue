@@ -1,12 +1,13 @@
 <template>
   <div class="table-panel">
     <div>
-      <a-tabs v-model:activeKey="activeKey">
-        <a-tab-pane key="1" tab="Tab 1"  class="panel-content">
+      <a-tabs :activeKey="currentTab" @change="handleTabChange">
+        <a-tab-pane v-for="(item, index) in info"
+          :key="index" :tab="'Table'+(index+1)"  class="panel-content">
           <a-table 
             class="table-content"
-            :data-source="tableData"
-            :columns="columns"
+            :data-source="item.table"
+            :columns="getColumns(item.config)"
             :bordered="true"
             :scroll="{
               'x':true,
@@ -15,21 +16,10 @@
             size="small"
           ></a-table>
           <div class="json-content">
-            <pre>[{'( Length(100) And Column(12) )': 
-      {'name': 'Faker(name)', 'gender': "Frequency('male', 0.6, 'female', 0.4)", 
-      'telephone': 'Faker(phone_number) And Empty(2)', 
-      'height': "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)", 
-      'weight': 'Range(35.0,100.0) And Max(88.8) And Quantile(50,50)', 
-      'score': "Distribution('normal',80,15)", 
-      'doubleScore': "Correlation('score','linear',2) ",
-      'comment': "Repeat('goodcomment',2) Or Repeat('badcomment',2)", 
-      'trend': "Trend('exponential',1.4)", 
-      'cluster': 'Int And Cluster(4) And Range(0,300)'}}]
+            <pre>{{item.origin}}
             </pre>
           </div>
         </a-tab-pane>
-        <a-tab-pane key="2" tab="Tab 2">Content of Tab Pane 2</a-tab-pane>
-        <a-tab-pane key="3" tab="Tab 3">Content of Tab Pane 3</a-tab-pane>
       </a-tabs>
     </div>
     
@@ -43,14 +33,35 @@ export default {
   props: {
   },
   data(){
-    return {}
+    return {
+      currentTab: 0
+    }
   },
   computed:{
+    info(){
+      return store.totalInfo
+    },
     tableData(){
       return store.currentTable
     },
     columns(){
       return store.config.map(v=>{
+                return {
+                  title: v.name,
+                  dataIndex: v.name,
+                  key:v.name,
+                  ellipsis: true,
+                }
+              })
+    }
+  },
+  methods:{
+    handleTabChange(val){
+      this.currentTab = val
+      store.setCurrentIndex(val)
+    },
+    getColumns(config){
+      return config[0].children.map(v=>{
                 return {
                   title: v.name,
                   dataIndex: v.name,
@@ -87,6 +98,7 @@ export default {
     pre{
       height: 100%;
       font-size: 12px;
+      text-align: left;
 
       &::-webkit-scrollbar {
         height: 4px;
