@@ -1,6 +1,12 @@
 <template>
-  <div class="statistic-panel">
-    <div class="column-content" v-for="item in columns" :key="item.name" :id="'column-'+item.name">
+  <div class="comp-data">
+    <div class="json-content">
+      <pre>{{origin}}
+      </pre>
+    </div>
+    <div class="statistic-panel">
+      <div class="column-content" v-for="item in columns" :key="item.name" :id="'column-'+item.name">
+      </div>
     </div>
   </div>
 </template>
@@ -29,6 +35,9 @@ export default {
     },
     tableData(){
       return store.totalInfo[this.currentIndex]?.table || []
+    },
+    origin(){
+      return store.totalInfo[this.currentIndex]?.origin
     }
   },
   mounted(){
@@ -128,45 +137,92 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style  lang="less" scoped>
-.statistic-panel {
-  height: 40%;
-  margin: 0 20px;
-  padding: 10px 0;
-  overflow-x: scroll;
-  white-space: nowrap;
-  border-top: 1px solid #e6e6e6;
-  .column-content{
-    margin-right: 20px;
-    display: inline-block;
+.comp-data {
+  display: flex;
+  flex-flow: row;
+  height: calc(100% - 40px);
 
-    border: 1px solid #eeeeee;
-    width:260px;
-    height: 260px;
-    
-  }
-  // background: #e6e6e6;
-  &::-webkit-scrollbar {
-    height: 4px;
-    width: 10px;
+  .json-content {
+    height: 100%;
+    width: 30%;
+    // top: 0;
+    // height: 100%;
+    // display: inline-block;
+
+    pre{
+      height: 100%;
+      font-size: 12px;
+      text-align: left;
+      overflow: scroll;
+
+
+      &::-webkit-scrollbar {
+        height: 4px;
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgb(239, 239, 239);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #bfbfbf;
+        border-radius: 6px;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: #333;
+      }
+
+      &::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+    }
   }
 
-  &::-webkit-scrollbar-track {
-    background: rgb(239, 239, 239);
-    border-radius: 2px;
-  }
+  .statistic-panel {
+    height: 100%;
+    margin: 0 20px;
+    padding: 10px 0;
+    overflow-x: scroll;
+    white-space: nowrap;
+    border-top: 1px solid #e6e6e6;
+    .column-content{
+      margin-right: 20px;
+      display: inline-block;
 
-  &::-webkit-scrollbar-thumb {
-    background: #bfbfbf;
-    border-radius: 6px;
-  }
+      border: 1px solid #eeeeee;
+      width:260px;
+      height: 260px;
+      
+    }
+    // background: #e6e6e6;
+    &::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
 
-  &::-webkit-scrollbar-thumb:hover {
-    background: #333;
-  }
+    &::-webkit-scrollbar-track {
+      background: rgb(239, 239, 239);
+      border-radius: 2px;
+    }
 
-  &::-webkit-scrollbar-corner {
-    background: transparent;
+    &::-webkit-scrollbar-thumb {
+      background: #bfbfbf;
+      border-radius: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #333;
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
   }
 
 }
+
 </style>

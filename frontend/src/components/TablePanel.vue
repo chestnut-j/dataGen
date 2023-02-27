@@ -1,49 +1,63 @@
 <template>
   <div class="table-panel">
-    <div>
-      <a-tabs :activeKey="currentTab" @change="handleTabChange">
-        <a-tab-pane v-for="(item, index) in info"
-          :key="index" :tab="'Table'+(index+1)"  class="panel-content">
-          <a-table 
-            class="table-content"
-            :data-source="item.table"
-            :columns="getColumns(item.config)"
-            :bordered="true"
-            :scroll="{
-              'x':true,
-              'y':280
-            }"
-            size="small"
-          ></a-table>
-          <div class="json-content">
-            <pre>{{item.origin}}
-            </pre>
-          </div>
-        </a-tab-pane>
-      </a-tabs>
+    <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
+      <left-circle-outlined />
     </div>
+    <div class="panel-content">
+      <svg class="chart">
+        {{drawChart(tableData)}}
+
+      </svg>
+    </div>
+    <div class="custom-slick-arrow" style="right: 10px" @click="toNext()">
+      <right-circle-outlined />
+    </div>
+    <!-- <a-carousel arrows :after-change="onChange">
+      <template #prevArrow>
+      <div class="custom-slick-arrow" style="left: 10px; zindex: 1">
+        <left-circle-outlined />
+      </div>
+    </template>
+    <template #nextArrow>
+      <div class="custom-slick-arrow" style="right: 10px">
+        <right-circle-outlined />
+      </div>
+    </template>
+      <div v-for="(item, index) in info"
+          :key="index"
+          class="panel-content">
+        {{drawChart(item.table, id)}}
+        <svg :id="'item-'+index"></svg>
+      </div>
+    </a-carousel> -->
     
   </div>
 </template>
-
 <script>
 import {store} from '../store/store.js'
+import * as d3 from 'd3';
+
+import { LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons-vue';
 export default {
   name: 'TablePanel',
   props: {
   },
+  components:{
+    LeftCircleOutlined,
+    RightCircleOutlined,
+  },
   data(){
     return {
-      currentTab: 0
+      currentTab: 0,
     }
   },
   computed:{
     info(){
       return store.totalInfo
     },
-    tableData(){
-      return store.currentTable
-    },
+    // tableData(){
+    //   return store.currentTable
+    // },
     columns(){
       return store.config.map(v=>{
                 return {
@@ -53,11 +67,32 @@ export default {
                   ellipsis: true,
                 }
               })
+    },
+    currentIndex(){
+      return store.currentTableIndex
+    },
+    tableData(){
+      return store.totalInfo[this.currentIndex]?.table || []
+    },
+    totalLen() {
+      return this.info.length
     }
   },
   methods:{
     handleTabChange(val){
       this.currentTab = val
+      store.setCurrentIndex(val)
+    },
+    toLast(){
+      let index = (this.currentIndex - 1 + this.totalLen)%this.totalLen
+      store.setCurrentIndex(index)
+    },
+    toNext(){
+      let index = (this.currentIndex + 1)%this.totalLen
+      store.setCurrentIndex(index)
+    },
+    onChange(val){
+      console.log(val)
       store.setCurrentIndex(val)
     },
     getColumns(config){
@@ -69,62 +104,41 @@ export default {
                   ellipsis: true,
                 }
               })
-    }
+    },
+    drawChart(data){
+      if(data.length){
+        d3.select('.chart').selectAll('*').remove();
+        store.visFunction('.chart',data, d3)
+      }
+    },
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="less" scoped>
+
 .table-panel {
-  height: 60%;
-  // background: #e0e0e0;
+  height: calc(100% - 40px);
   padding: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  
   .panel-content {
     // position: relative;
-    display: flex;
-    justify-content: flex-start;
+    height: 100%;
+    padding: 5px;
+    overflow: auto;
+    width: calc(100% - 60px);
   }
   .table-content {
     width:70%;
     height: 100%;
     display: inline-block;
   }
-  .json-content {
-    width: 30%;
-    // top: 0;
-    height: 100%;
-    display: inline-block;
-    pre{
-      height: 100%;
-      font-size: 12px;
-      text-align: left;
-
-      &::-webkit-scrollbar {
-        height: 4px;
-        width: 4px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgb(239, 239, 239);
-        border-radius: 2px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #bfbfbf;
-        border-radius: 6px;
-      }
-
-      &::-webkit-scrollbar-thumb:hover {
-        background: #333;
-      }
-
-      &::-webkit-scrollbar-corner {
-        background: transparent;
-      }
-    }
-  }
-
+  
   :deep(.ant-table-body) {
     &::-webkit-scrollbar {
       height: 4px;
@@ -151,5 +165,19 @@ export default {
   }
   
   
+}
+.custom-slick-arrow {
+  width: 30px;
+  height: 30px;
+  font-size: 30px;
+  color: rgb(0, 0, 0);
+  // background-color: rgba(31, 45, 61, 0.11);
+  opacity: 0.3;
+}
+.custom-slick-arrow:before {
+  display: none;
+}
+.custom-slick-arrow:hover {
+  opacity: 0.5;
 }
 </style>

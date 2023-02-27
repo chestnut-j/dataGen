@@ -2,7 +2,7 @@
   <div class="json-panel">
     <div class="header">
       <div class="title">
-        json panel
+        js panel
       </div>
       <a-select
         class="select-box"
@@ -22,7 +22,7 @@
         ref="monaco"
         :opts="opts"
         @change="changeValue"
-        :height="600"
+        :height="860"
       ></monaco>
     </div>
     <div class="footer">
@@ -38,23 +38,33 @@ import { store } from '../store/store.js'
 import monaco from '@/components/monaco/index.vue'
 import {caseOptions} from '@/common.js'
 import { message } from 'ant-design-vue'
+// import {sampleData} from './sampleData'
+// const JSON = require('json-fns')
 
 //test data
+const defaultValue= `data=[{
+
+}]
+func = function(){
+  
+}`
 export default {
   name: 'JsonPanel',
   props: {
   },
   data(){
     return {
-      jsonData: {},
+      jsCode: {},
       opts: {
-        value: '',
+        value: defaultValue,
+        height:800,
         readOnly: false, // 是否可编辑
-        language: 'json', // 语言类型
+        language: 'javascript', // 语言类型
         theme: 'vs-light' // 编辑器主题
       },
       options: caseOptions,
       currentCase: undefined,
+      
     }
   },
   components: {
@@ -63,9 +73,14 @@ export default {
   },
   methods:{
     submit(){
-      const that = this
-      this.jsonData = this.$refs.monaco.getVal()
-      axios.post('/api/submit',{data: JSON.parse(that.jsonData)}).then(res=>{
+      // const that = this
+      this.jsCode = this.$refs.monaco.getVal()
+      let myJson = this.getJsonData(this.jsCode)
+      let myFunc = this.getFunction(this.jsCode)
+      // myFunc('a11','a22')
+      store.setVisFunction(myFunc)
+      // store.setTotalInfo(sampleData)
+      axios.post('/api/submit',{data: myJson}).then(res=>{
         console.log(res.data)
         store.setTotalInfo(res.data)
         message.success('generate success')
@@ -79,13 +94,29 @@ export default {
       store.setConfig(newData)
       store.setTable(data.table)
     },
+    getJsonData(data){
+      let json = data.slice(data.indexOf("["),data.indexOf(']')+1)
+      console.log(json,JSON.parse(json))
+      return JSON.parse(json)
+    },
+    getFunction(data){
+      let index = data.indexOf("func")
+      let fun = data.slice(index)
+      let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
+      let f = fun.slice(fun.indexOf('{')+1,-1)
+      // console.log(fun.indexOf('}'))
+      // console.log(f)
+      let myFun = new Function(...arg, f)
+      console.log(myFun)
+      return myFun
+    },  
     changeValue (val) {
       // console.log(val)
-      this.jsonData = val
+      this.jsCode = val
     },
     handleCaseChange(val){
       const find = caseOptions.find(item=>item.id==val) 
-      this.$refs.monaco.setVal(JSON.stringify(find.content))
+      this.$refs.monaco.setVal(find.content)
     }
   }
 }
@@ -119,6 +150,10 @@ export default {
   
   .content {
     text-align: left;
+    height: calc(100% - 100px);
+    .monaco-editor {
+      height: 100%;
+    }
   }
   .footer{
     position: absolute;

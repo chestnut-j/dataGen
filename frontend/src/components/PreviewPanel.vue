@@ -1,15 +1,26 @@
 <template>
   <div class="preview-panel">
-    <div class="header">
-      <div class="title">
-        preview panel
+    <div class="chart-panel">
+      <div class="header">
+        <div class="title">
+          preview panel
+        </div>
       </div>
-    </div>
-    
-    <div class="content">
       <TablePanel/>
+    </div>
+    <div class="data-panel">
+      <div class="header">
+        <div class="title">
+          data panel
+        </div>
+      </div>
       <StatisticPanel/>
     </div>
+    
+<!--     
+    <div class="content">
+      <StatisticPanel/>
+    </div> -->
   </div>
 </template>
 
@@ -45,9 +56,12 @@ export default {
     }
   }
   
-  .content {
-    height: calc(100% - 40px);
-    overflow: hidden;
+  .chart-panel{
+    height:60%;
+  }
+
+  .data-panel {
+    height: 40%;
   }
 }
 </style>

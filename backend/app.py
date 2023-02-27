@@ -596,7 +596,7 @@ def buildSolver(format):
         part_mid = range_len//(part-1)
         part_len = range_len//(2*part)
 
-        cluster_c = [
+        cluster_c = [  
           z3.Sum([z3.And(d[col['name']][i]>col['range'][0]+part_mid*p-part_len,d[col['name']][i]<col['range'][0]+part_mid*p+part_len) for i in nonempty_index]) == part_num
           for p in range(part)
         ]
