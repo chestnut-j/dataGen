@@ -2,9 +2,6 @@
   <div class="homepage">
     <div class="header">
       <div>dataGen</div>
-      <div>
-
-      </div>
     </div>
     <a-spin :spinning="loading">
       <div class="content">

@@ -9,8 +9,12 @@ export const store = reactive({
   visFunction: null,
   d3:d3,
   loading: false,
+  isGptMode: false,
   setLoading(state){
     this.loading = state
+  },
+  setMode(state){
+    this.isGptMode = state
   },
   setConfig(data){
     this.config = data

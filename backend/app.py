@@ -905,12 +905,29 @@ def dataGen(json):
   return response_data
 # =================================================
 
+# ====================gpt数据生成======================
+def gptDataGen(description):
+  import openai
+  openai.api_key = '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'
+  openai.Model.list()
+
+  response = openai.Completion.create(
+    # model="text-curie-001",
+    model="text-davinci-003",
+    prompt="""{}
+    output format as [{{"key1": value1,"key2":value2}},{{"key1": value1,"key2":value2}}……]
+    """.format(description), 
+    temperature=0.2,
+    max_tokens=2000,
+  )
+  text_data = response.choices[0].text
+  data=json.loads(text_data.replace(' ','').replace('\n',''))
+
+  print(text_data, data)
+  return data
 
 
-
-
-
-
+  
 
 
 # =======================后端接口部分==============================
@@ -936,6 +953,13 @@ def submit_json_data():
   data = json.loads(request.data)
   print('input',data['data'])
   out = dataGen(data['data'])
+  return jsonify(out)
+
+@app.route('/gptSubmit', methods=['GET', 'POST'])
+def submit_gpt_data():
+  data = json.loads(request.data)
+  print('input',data['data'])
+  out = gptDataGen(data['data'])
   return jsonify(out)
 
 if __name__ == '__main__':
