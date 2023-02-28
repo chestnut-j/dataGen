@@ -1,16 +1,24 @@
 <template>
   <div class="homepage">
-    <div class="header">dataGen</div>
-    <div class="content">
-      <JsonPanel class="left-panel"/>
-      <PreviewPanel class="right-panel"/>
+    <div class="header">
+      <div>dataGen</div>
+      <div>
+
+      </div>
     </div>
+    <a-spin :spinning="loading">
+      <div class="content">
+        <JsonPanel  class="left-panel"/>
+        <PreviewPanel class="right-panel"/>
+      </div>
+    </a-spin>
   </div>
 </template>
 
 <script>
 import JsonPanel from '../components/JsonPanel.vue'
 import PreviewPanel from '../components/PreviewPanel.vue'
+import {store} from '@/store/store'
 
 export default {
   name: 'HomePage',
@@ -18,6 +26,11 @@ export default {
     JsonPanel,
     PreviewPanel,
   },
+  computed:{
+    loading(){
+      return store.loading
+    }
+  }
 }
 </script>
 
@@ -41,7 +54,7 @@ export default {
     display: flex;
     flex-flow: row;
     justify-content: space-between;
-    height:calc(100% - 40px);
+    height:calc(100vh - 45px);
     flex:1;
 
     .left-panel {

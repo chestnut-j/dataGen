@@ -129,9 +129,31 @@ export default {
   .panel-content {
     // position: relative;
     height: 100%;
-    padding: 5px;
+    margin: 5px;
     overflow: auto;
     width: calc(100% - 60px);
+    &::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgb(239, 239, 239);
+      border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #bfbfbf;
+      border-radius: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #333;
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
   .table-content {
     width:70%;

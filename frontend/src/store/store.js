@@ -8,6 +8,10 @@ export const store = reactive({
   currentTableIndex: 0,
   visFunction: null,
   d3:d3,
+  loading: false,
+  setLoading(state){
+    this.loading = state
+  },
   setConfig(data){
     this.config = data
   },

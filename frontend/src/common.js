@@ -304,7 +304,8 @@ export const caseOptions = [
     id: 3,
     title: 'case 3',
     content:  `data = [{
-      "( (Length(50) Opt Length(80) )  And Column(6) )": {
+      "( (Length(50) Opt Length(80)) And Column(6) )": {
+        "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
         "species": "Frequency('Adelie',0.3,'Chinstrap',0.4,'Gentoo',0.3)",
         "culmen_length_mm": "Real And Range(30,60)",
         "culmen_depth_mm": "Real And Range(13,25)",

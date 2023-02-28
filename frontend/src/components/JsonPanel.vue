@@ -22,7 +22,7 @@
         ref="monaco"
         :opts="opts"
         @change="changeValue"
-        :height="860"
+        :height="900"
       ></monaco>
     </div>
     <div class="footer">
@@ -42,10 +42,10 @@ import { message } from 'ant-design-vue'
 // const JSON = require('json-fns')
 
 //test data
-const defaultValue= `data=[{
+const defaultValue= `data = [{
 
 }]
-func = function(){
+func = function(svgId, data, d3){
   
 }`
 export default {
@@ -78,15 +78,18 @@ export default {
       let myJson = this.getJsonData(this.jsCode)
       let myFunc = this.getFunction(this.jsCode)
       // myFunc('a11','a22')
-      store.setVisFunction(myFunc)
       // store.setTotalInfo(sampleData)
+      store.setLoading(true)
       axios.post('/api/submit',{data: myJson}).then(res=>{
         console.log(res.data)
         store.setTotalInfo(res.data)
+        store.setVisFunction(myFunc)
         message.success('generate success')
+        store.setLoading(false)
       })
       .catch(err=>{
         console.log(err)
+        store.setLoading(false)
       })
     },
     parseData(data){

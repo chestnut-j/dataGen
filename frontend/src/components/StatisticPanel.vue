@@ -153,8 +153,7 @@ export default {
       height: 100%;
       font-size: 12px;
       text-align: left;
-      overflow: scroll;
-
+      overflow: auto;
 
       &::-webkit-scrollbar {
         height: 4px;
