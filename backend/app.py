@@ -167,7 +167,8 @@ def isOuterrontParenthesis(constraint):
 
 def parseConstraint(rawConstraint):
 
-    constraint = rawConstraint.replace(" ","")
+    # constraint = rawConstraint.replace(" ","")
+    constraint = rawConstraint
 
     if constraint.find('Opt') == -1:
       if isOuterrontParenthesis(constraint):
@@ -187,7 +188,8 @@ def parseConstraint(rawConstraint):
     return finalJsonList
 
 def findConstrain(allStr, operation):
-    constraint = allStr.replace(" ","")
+    # constraint = allStr.replace(" ","")
+    constraint = allStr
     if isOuterrontParenthesis(constraint):
         constraint = constraint[1:len(constraint)-1]
     opList = findPosi(constraint, operation)
@@ -232,6 +234,12 @@ def parseCons(cons, col):
     if len(args)==2:
       col['locale'] = args[1]
 
+  if cons.find('GPT')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+    col['type'] = 'GPT'
+    col['content'] = eval(args[0])
+
+
   if cons.find('Range')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['range'] = [eval(x) for x in args]
@@ -253,7 +261,7 @@ def parseCons(cons, col):
   
   if cons.find('Max')!= -1 or cons.find('Min')!= -1 or cons.find('Sum')!= -1 or cons.find('Mean')!= -1 or cons.find('Var')!= -1 or cons.find('Std')!= -1  :
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    cons_name = cons[:cons.find('(')].lower()
+    cons_name = cons[:cons.find('(')].lower().replace(" ","")
     col[cons_name] = eval(args[0])
     if isinstance(col[cons_name] ,float) and 'type' not in col:
       col['type'] = 'Real'
@@ -263,7 +271,7 @@ def parseCons(cons, col):
 
   if cons.find('Repeat')!= -1 or cons.find('Frequency')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    cons_name = cons[:cons.find('(')].lower()
+    cons_name = cons[:cons.find('(')].lower().replace(" ","")
     if cons_name in col:
       col[cons_name] = col[cons_name] + [eval(x) for x in args]
     else:
@@ -338,6 +346,16 @@ def solveFaker(config, len):
     for index in repeat_index:
       data[index] = data[repeat_index[0]]
     unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+
+  if 'frequency' in config and not 'trend' in config:
+    for i in range(int(len(config['frequency'])/2)):
+      content = config['frequency'][2*i]
+      times = int(config['frequency'][2*i+1] * len)
+      repeat_index = np.random.choice(unselected_index, times, replace=False)
+      for index in repeat_index:
+        data[index] = content
+      unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+    
     
   if 'empty' in config and not 'trend' in config:
     times = config['empty']
@@ -346,6 +364,54 @@ def solveFaker(config, len):
       data[index] = None
   
   return data
+
+def generate_prompt(semantics, len):
+  return """
+    give me a python list containing {}, and it's length is {}, just a list, on other text
+  """.format(semantics, len)
+
+def solveGPT(config, len):
+  import openai
+  openai.api_key = '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'
+  openai.Model.list()
+
+  response = openai.Completion.create(
+    # model="text-curie-001",
+    model="text-davinci-003",
+    prompt=generate_prompt(config['content'], len), 
+    temperature=0.5,
+    max_tokens=2000,
+  )
+  text_data = response.choices[0].text
+  # print(response.choices[0])
+  data=eval(text_data.replace(' ','').replace('\n',''))
+  print(data)
+  unselected_index = np.arange(len)
+  if 'repeat' in config and not 'trend' in config:
+    times = config['repeat'][0]
+    repeat_index = np.random.choice(unselected_index, times, replace=False)
+    for index in repeat_index:
+      data[index] = data[repeat_index[0]]
+    unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+
+  if 'frequency' in config and not 'trend' in config:
+    for i in range(int(len(config['frequency'])/2)):
+      content = config['frequency'][2*i]
+      times = int(config['frequency'][2*i+1] * len)
+      repeat_index = np.random.choice(unselected_index, times, replace=False)
+      for index in repeat_index:
+        data[index] = content
+      unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+    
+    
+  if 'empty' in config and not 'trend' in config:
+    times = config['empty']
+    empty_index = np.random.choice(unselected_index, times, replace=False)
+    for index in empty_index:
+      data[index] = None
+  
+  return data
+
 
 # 拆分表格
 def parseJson(origin):
@@ -398,6 +464,9 @@ def parseTable(allTables):
           col['name'] = col_key
           
           consList = findConstrain(col_value, 'And')
+          for cons in consList:
+            if ['Int','Real','String','Date'].count(cons.replace(" ",""))>0:
+              col['type'] = cons.replace(" ","")
           if len(consList) == 0:
             consList.append(col_value)
           for cons in consList:
@@ -461,6 +530,10 @@ def buildSolver(format):
       if col_type == 'Faker':
         # random_list = solveFaker(col,num_len)
         others[col['name']] = solveFaker(col,num_len)
+        continue
+      if col_type == 'GPT':
+        # random_list = solveFaker(col,num_len)
+        others[col['name']] = solveGPT(col,num_len)
         continue
     else:
       d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
@@ -553,8 +626,12 @@ def buildSolver(format):
         times = col['repeat'][0]
         special_value += times
         repeat_index = np.random.choice(unselected_index, times, replace=False)
+        print(repeat_index[2])
         repeat_c = z3.And([d[col['name']][i]==d[col['name']][repeat_index[0]] for i in repeat_index])
+        print(repeat_c)
+
         solver.add(repeat_c)
+
         unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
       else:
         for i in range(int(len(col['repeat'])/2)):
@@ -583,9 +660,9 @@ def buildSolver(format):
         freqIf_c = z3.Sum([eval('m'+content,{'m': d[col['name']][i]}) for i in unselected_index]) == int(num_len * times)
         solver.add(freqIf_c)
     
-    # if 'repeat' in col or 'frequency' in col:
-    #   distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
-    #   solver.add(distinct_c)
+    if 'repeat' in col:
+      distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
+      solver.add(distinct_c)
 
     #define cluster
     if 'cluster' in col:
@@ -811,7 +888,7 @@ def dataGen(json):
                   data[col['name']] = others[col['name']][i]
                 else:
                   data[col['name']] = ''
-              elif col['type'] == 'Faker':
+              elif col['type'] == 'Faker' or col['type'] == 'GPT' :
                 data[col['name']] = others[col['name']][i]
             else:
               data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)
