@@ -251,23 +251,25 @@ export const caseOptions = [
 
       keyz = "economy(mpg)"
       margin = ({top: 20, right: 10, bottom: 20, left: 10})
-      height = keys.length * 100
+      width = keys.length * 100
 
-      width = 900
+      height = 900
 
-      x = new Map(Array.from(keys, key => [key, d3.scaleLinear(d3.extent(data, d => d[key]), [margin.left, width - margin.right])]))
-      y = d3.scalePoint(keys, [margin.top, height - margin.bottom])
-      z = d3.scaleSequential(x.get(keyz).domain(), t => d3.interpolateBrBG(1 - t))
+      y = new Map(Array.from(keys, key => [key, d3.scaleLinear(d3.extent(data, d => d[key]), [margin.left, width - margin.right])]))
+      x = d3.scalePoint(keys, [margin.top, height - margin.bottom])
+      z = d3.scaleSequential(y.get(keyz).domain(), t => d3.interpolateBrBG(1 - t))
 
 
       line = d3.line()
         .defined(([, value]) => value != null)
-        .x(([key, value]) => x.get(key)(value))
-        .y(([key]) => y(key))
+        .y(([key, value]) => y.get(key)(value))
+        .x(([key]) => x(key))
       
       
 
       const svg = d3.select(svgId)
+          .attr('height',height)
+          .attr('width',width)
           .attr("viewBox", [0, 0, width, height]);
 
       svg.append("g")
@@ -286,11 +288,11 @@ export const caseOptions = [
         .selectAll("g")
         .data(keys)
         .join("g")
-          .attr("transform", d => \`translate(0,\${y(d)})\`)
-          .each(function(d) { d3.select(this).call(d3.axisBottom(x.get(d))); })
+          .attr("transform", d => \`translate(\${x(d)},0)\`)
+          .each(function(d) { d3.select(this).call(d3.axisLeft(y.get(d))); })
           .call(g => g.append("text")
-            .attr("x", margin.left)
-            .attr("y", -6)
+            .attr("y", margin.left)
+            .attr("x", -6)
             .attr("text-anchor", "start")
             .attr("fill", "currentColor")
             .text(d => d))

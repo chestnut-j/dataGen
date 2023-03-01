@@ -12,7 +12,7 @@
           ref="select"
           v-model:value="currentCase"
           size="small"
-          style="width: 90px"
+          style="width: 140px"
           @change="handleCaseChange"
         >
           <a-select-option v-for="item in options" :key="item.id" :value="item.id">
