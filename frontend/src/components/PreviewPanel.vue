@@ -11,7 +11,8 @@
     <div class="data-panel">
       <div class="header">
         <div class="title">
-          data panel
+          data panel  
+          <span class="overview">{{ Object.keys(origin||{})[0] }}</span>
         </div>
       </div>
       <StatisticPanel/>
@@ -27,7 +28,7 @@
 <script>
 import TablePanel from './TablePanel.vue'
 import StatisticPanel from './StatisticPanel.vue'
-
+import { store }from '@/store/store'
 export default {
   name: 'PreviewPanel',
   components: {
@@ -35,6 +36,14 @@ export default {
     StatisticPanel,
   },
   props: {
+  },
+  computed:{
+    currentIndex(){
+      return store.currentTableIndex
+    },
+    origin(){
+      return store.totalInfo[this.currentIndex]?.origin[0]
+    },
   }
 }
 </script>
@@ -53,6 +62,10 @@ export default {
       padding-left: 10px;
       background: #f6f6f6;
       text-align: left;
+      .overview {
+        font-size: 12px;
+        font-weight: 400;
+      }
     }
   }
   

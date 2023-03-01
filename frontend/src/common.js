@@ -1,9 +1,9 @@
 export const getBoxOption = function(name, data){
   return {
     title: {
-      top: '5%',
-      left: '5%',
-      text: name
+      // top: '5%',
+      // left: '5%',
+      // text: name
     },
     dataset: [
       {
@@ -72,9 +72,9 @@ export const getBoxOption = function(name, data){
 export const getLineOption = function(name, data) {
   return {
     title: {
-      top: '5%',
-      left: '5%',
-      text: name
+      // top: '5%',
+      // left: '5%',
+      // text: name
     },
     tooltip: {
       trigger: 'item',
@@ -118,9 +118,9 @@ export const getLineOption = function(name, data) {
 export const getHistogramOption = function(name, data) {
   return {
     title: {
-      top: '5%',
-      left: '5%',
-      text: name
+      // top: '5%',
+      // left: '5%',
+      // text: name
     },
     tooltip: {
     },
@@ -161,9 +161,9 @@ export const getHistogramOption = function(name, data) {
 export const getBarOption = function(name, data) {
   return {
     title: {
-      top: '5%',
-      left: '5%',
-      text: name
+      // top: '5%',
+      // left: '5%',
+      // text: name
     },
     tooltip: {
     },
@@ -197,6 +197,34 @@ export const getBarOption = function(name, data) {
   }
 }
 
+export const getPieOption = function(name, data) {
+  return {
+    title: {
+    },
+    tooltip: {
+      trigger: 'item'
+    },
+    legend: {
+      orient: 'horizontal',
+      bottom: 'bottom',
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: '50%',
+        data: data,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }
+}
+
 export const caseOptions = [
   {
     id: 1,
@@ -223,7 +251,7 @@ export const caseOptions = [
   {
     id: 2,
     title: 'case 2',
-    content:  `data = [{
+    content:  `data = {
       "( (Length(50) Opt Length(80) )  And Column(8) )": {
         "cname": "String",
         "economy(mpg)": "Real And Range(9,48)",
@@ -234,7 +262,7 @@ export const caseOptions = [
         "0-60 mph(s)": "Real And Range(8,25)",
         "year": "Range(70,82)"
       }
-    }]
+    }
     
     func= function (svgId, data, d3) {
       keys = [
@@ -303,8 +331,8 @@ export const caseOptions = [
   {
     id: 3,
     title: 'case 3',
-    content:  `data = [{
-      "( (Length(50) Opt Length(80)) And Column(6) )": {
+    content:  `data = {
+      "( (Length(50) Opt Length(20)) And Column(6) )": {
         "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
         "species": "Frequency('Adelie',0.3,'Chinstrap',0.4,'Gentoo',0.3)",
         "culmen_length_mm": "Real And Range(30,60)",
@@ -313,7 +341,7 @@ export const caseOptions = [
         "body_mass_g": "Cluster(4) And Range(0,300)",
         "sex": "Frequency('MALE',0.6,'FEMALE',0.4)"
       }
-    }]
+    }
     
     func= function (svgId, data, d3) {
       function ScatterplotMatrix(data, {

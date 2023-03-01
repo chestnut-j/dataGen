@@ -10,7 +10,7 @@
         <a-select
           class="select-box"
           ref="select"
-          :value="currentCase"
+          v-model:value="currentCase"
           size="small"
           style="width: 90px"
           @change="handleCaseChange"
@@ -63,9 +63,9 @@ import { message } from 'ant-design-vue'
 
 //test data
 const defaultValue= `// data definition
-data = [{
+data = {
 
-}]
+}
 // vis function
 func = function(svgId, data, d3){
   
@@ -127,6 +127,7 @@ func = function(svgId, data, d3){
         })
         .catch(err=>{
           console.log(err)
+          message.error('generate failed')
           store.setLoading(false)
         })
       }else{
@@ -145,6 +146,7 @@ func = function(svgId, data, d3){
         })
         .catch(err=>{
           console.log(err)
+          message.error('generate failed')
           store.setLoading(false)
         })
       }
@@ -155,7 +157,8 @@ func = function(svgId, data, d3){
       store.setTable(data.table)
     },
     getJsonData(data){
-      let json = data.slice(data.indexOf("["),data.indexOf(']')+1)
+      let json = data.slice(data.indexOf("=")+1,data.indexOf('func'))
+      json = '['+json+']'
       console.log(json,JSON.parse(json))
       return JSON.parse(json)
     },
@@ -186,6 +189,7 @@ func = function(svgId, data, d3){
     },
     handleModeChange(checked){
       this.isGPTMode = checked
+      this.currentCase = null
       store.setMode(this.isGPTMode)
     },
     handleDescriptionChange(){

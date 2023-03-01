@@ -1,36 +1,22 @@
 <template>
   <div class="table-panel">
-    <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
-      <left-circle-outlined />
-    </div>
-    <div class="panel-content">
-      <svg class="chart">
-        {{drawChart(tableData)}}
-
-      </svg>
-    </div>
-    <div class="custom-slick-arrow" style="right: 10px" @click="toNext()">
-      <right-circle-outlined />
-    </div>
-    <!-- <a-carousel arrows :after-change="onChange">
-      <template #prevArrow>
-      <div class="custom-slick-arrow" style="left: 10px; zindex: 1">
+    <div class="content">
+      <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
         <left-circle-outlined />
       </div>
-    </template>
-    <template #nextArrow>
-      <div class="custom-slick-arrow" style="right: 10px">
+      <div class="panel-content">
+        <svg class="chart">
+          {{drawChart(tableData)}}
+
+        </svg>
+      </div>
+      <div class="custom-slick-arrow" style="right: 10px" @click="toNext()">
         <right-circle-outlined />
       </div>
-    </template>
-      <div v-for="(item, index) in info"
-          :key="index"
-          class="panel-content">
-        {{drawChart(item.table, id)}}
-        <svg :id="'item-'+index"></svg>
-      </div>
-    </a-carousel> -->
-    
+    </div>
+    <div class="footer">
+      {{ currentIndex+1 }}/{{ totalLen }}
+    </div>
   </div>
 </template>
 <script>
@@ -120,12 +106,20 @@ export default {
 
 .table-panel {
   height: calc(100% - 40px);
-  padding: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-flow: row;
-  align-items: center;
   
+  .content {
+    height: calc(100% - 20px);
+    padding: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+  }
+  .footer {
+    bottom: 0;
+    height: 20px;
+    text-align: center;
+  }
   .panel-content {
     // position: relative;
     height: 100%;

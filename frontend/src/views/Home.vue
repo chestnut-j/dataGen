@@ -1,7 +1,7 @@
 <template>
   <div class="homepage">
     <div class="header">
-      <div>dataGen</div>
+      <div>VisArena</div>
     </div>
     <a-spin :spinning="loading">
       <div class="content">
