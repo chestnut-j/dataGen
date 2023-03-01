@@ -4,11 +4,10 @@
       <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
         <left-circle-outlined />
       </div>
-      <div class="panel-content">
-        <svg class="chart">
-          {{drawChart(tableData)}}
-
-        </svg>
+      <div class="panel-content" id="outer">
+        <div class="chart-content" id="chart-dom">
+          <svg id="chart"></svg>
+        </div>
       </div>
       <div class="custom-slick-arrow" style="right: 10px" @click="toNext()">
         <right-circle-outlined />
@@ -22,6 +21,7 @@
 <script>
 import {store} from '../store/store.js'
 import * as d3 from 'd3';
+import * as echarts from 'echarts'
 
 import { LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons-vue';
 export default {
@@ -64,6 +64,24 @@ export default {
       return this.info.length
     }
   },
+  watch:{
+    tableData:{
+      handler() {
+        d3.select('#outer').selectAll('*').remove()
+        d3.select('#outer')
+          .append('div')
+            .attr("id",'chart-dom')
+            .attr('class','chart-content')
+            .style('height','100%')
+            .style('width','100%')
+        d3.select('#chart-dom')
+          .append('svg').attr("id",'chart')
+        this.$nextTick(()=>{this.drawChart()})
+      },
+      immediate: true,
+      deep: true,
+    }
+  },  
   methods:{
     handleTabChange(val){
       this.currentTab = val
@@ -91,10 +109,11 @@ export default {
                 }
               })
     },
-    drawChart(data){
+    async drawChart(){
+      const data = this.tableData
       if(data.length){
-        d3.select('.chart').selectAll('*').remove();
-        store.visFunction('.chart',data, d3)
+          const chartDom = document.getElementById('chart-dom')
+          store.visFunction('#chart', chartDom, data, d3, echarts)
       }
     },
   }
@@ -126,6 +145,9 @@ export default {
     margin: 5px;
     overflow: auto;
     width: calc(100% - 60px);
+    .chart-content {
+      height: 100%;
+    }
     &::-webkit-scrollbar {
       height: 4px;
       width: 4px;

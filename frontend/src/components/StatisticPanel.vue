@@ -227,7 +227,7 @@ export default {
       let emptyCount = 0
       let nonEmptyCount = 0 
       data.forEach(item=>{
-        if(item){
+        if(item!==null){
           nonEmptyCount++
         }else{
           emptyCount++

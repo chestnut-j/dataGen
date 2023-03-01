@@ -926,8 +926,16 @@ def gptDataGen(description):
   print(text_data, data)
   return data
 
-
-  
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
 
 
 # =======================后端接口部分==============================
@@ -953,14 +961,14 @@ def submit_json_data():
   data = json.loads(request.data)
   print('input',data['data'])
   out = dataGen(data['data'])
-  return jsonify(out)
+  return json.dumps(out, cls=NpEncoder)
 
 @app.route('/gptSubmit', methods=['GET', 'POST'])
 def submit_gpt_data():
   data = json.loads(request.data)
   print('input',data['data'])
   out = gptDataGen(data['data'])
-  return jsonify(out)
+  return json.dumps(out, cls=NpEncoder)
 
 if __name__ == '__main__':
   app.run()

@@ -50,7 +50,6 @@ export const getBoxOption = function(name, data){
     },
     series: [
       {
-        name: 'boxplot',
         type: 'boxplot',
         datasetIndex: 1,
         tooltip: {//以下是设置tooltip的显示数据和显示格式
@@ -106,7 +105,6 @@ export const getLineOption = function(name, data) {
     },
     series: [
       {
-        name: 'line',
         type: 'line',
         data: data,
         smooth: true,
@@ -145,7 +143,6 @@ export const getHistogramOption = function(name, data) {
     },
     series: [
       {
-        name: 'histogram',
         type: 'bar',
         data: data,
         barWidth: '99.3%',
@@ -189,7 +186,6 @@ export const getBarOption = function(name, data) {
     },
     series: [
       {
-        name: 'histogram',
         type: 'bar',
         data: Object.values(data),
       },
@@ -228,29 +224,7 @@ export const getPieOption = function(name, data) {
 export const caseOptions = [
   {
     id: 1,
-    title: 'case 1',
-    content:  `data = [{
-      "( (Length(20) Opt Length(35)) And Column(12) )": {
-        "name": "Faker(name)",
-        "gender": "Frequency('male', 0.6, 'female', 0.4)",
-        "telephone": "Faker(phone_number) And Empty(2)",
-        "height": "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)",
-        "weight": "Range(35.0,100.0) And Max(88.8) And Quantile(50,50)",
-        "score": "Distribution('normal',80,15)",
-        "doubleScore": "Correlation('score','linear',2) ",
-        "comment": "Repeat('goodcomment',2)",
-        "trend": "Trend('exponential',1.4)",
-        "cluster": "Int And Cluster(4) And Range(0,300)"
-      }
-    }]
-    
-    func= function (a, b) {
-      console.log('args:', a, b)
-    }`
-  },
-  {
-    id: 2,
-    title: 'case 2',
+    title: 'd3 case 1',
     content:  `data = {
       "( (Length(50) Opt Length(80) )  And Column(8) )": {
         "cname": "String",
@@ -264,7 +238,7 @@ export const caseOptions = [
       }
     }
     
-    func= function (svgId, data, d3) {
+    func= function (svgId, chartDom, data, d3, echarts) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -329,8 +303,8 @@ export const caseOptions = [
     }`
   },
   {
-    id: 3,
-    title: 'case 3',
+    id: 2,
+    title: 'd3 case 2',
     content:  `data = {
       "( (Length(50) Opt Length(20)) And Column(6) )": {
         "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
@@ -343,7 +317,7 @@ export const caseOptions = [
       }
     }
     
-    func= function (svgId, data, d3) {
+    func= function (svgId, chartDom, data, d3, echarts) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
@@ -462,7 +436,256 @@ export const caseOptions = [
         z: d => d.species
       })
     }`
+  },
+  {
+    id: 3,
+    title: 'echart case 1',
+    content:  `data = {
+  "( (Length(50) Opt Length(20)) And Column(8) )": {
+    "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
+    "PM25": "Range(0,300) And FreqIf('<100',0.7)",
+    "PM10": "Range(0,300) And FreqIf('<100',0.6)",
+    "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
+    "NO2": "Range(0,150) And Distribution('normal', 50,30)",
+    "SO2": "Range(0,90) And Distribution('normal', 25,15)",
+    "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
+    "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
+}
+
+func= function (svgId, chartDom, data, d3, echarts) {
+  var myChart = echarts.init(chartDom);
+  var option;
+
+  // Schema:
+  // date,AQIindex,PM2.5,PM10,CO,NO2,SO2
+  const schema = [
+    { name: 'AQIindex', index: 1, text: 'AQI' },
+    { name: 'PM25', index: 2, text: 'PM 2.5' },
+    { name: 'PM10', index: 3, text: 'PM 10' },
+    { name: 'CO', index: 4, text: 'CO' },
+    { name: 'NO2', index: 5, text: 'NO₂' },
+    { name: 'SO2', index: 6, text: 'SO₂' },
+    { name: 'rank', index: 7, text: 'rank' }
+  ];
+
+  const rawData = data.map(v =>{
+    return [v['AQIindex'], v['PM25'], v['PM10'], v['CO'], v['NO2'], v['SO2'], v['rank'], v['city']]
+  })
+
+  const CATEGORY_DIM_COUNT = 6;
+  const GAP = 2;
+  const BASE_LEFT = 5;
+  const BASE_TOP = 10;
+  // const GRID_WIDTH = 220;
+  // const GRID_HEIGHT = 220;
+  const GRID_WIDTH = (100 - BASE_LEFT - GAP) / CATEGORY_DIM_COUNT - GAP;
+  const GRID_HEIGHT = (100 - BASE_TOP - GAP) / CATEGORY_DIM_COUNT - GAP;
+  const CATEGORY_DIM = 7;
+  const SYMBOL_SIZE = 4;
+  function retrieveScatterData(data, dimX, dimY) {
+    let result = [];
+    for (let i = 0; i < data.length; i++) {
+      let item = [data[i][dimX], data[i][dimY]];
+      item[CATEGORY_DIM] = data[i][CATEGORY_DIM];
+      result.push(item);
+    }
+    return result;
+  }
+  function generateGrids() {
+    let index = 0;
+    const grid = [];
+    const xAxis = [];
+    const yAxis = [];
+    const series = [];
+    for (let i = 0; i < CATEGORY_DIM_COUNT; i++) {
+      for (let j = 0; j < CATEGORY_DIM_COUNT; j++) {
+        if (CATEGORY_DIM_COUNT - i + j >= CATEGORY_DIM_COUNT) {
+          continue;
+        }
+        grid.push({
+          left: BASE_LEFT + i * (GRID_WIDTH + GAP) + '%',
+          top: BASE_TOP + j * (GRID_HEIGHT + GAP) + '%',
+          width: GRID_WIDTH + '%',
+          height: GRID_HEIGHT + '%'
+        });
+        xAxis.push({
+          splitNumber: 3,
+          position: 'top',
+          axisLine: {
+            show: j === 0,
+            onZero: false
+          },
+          axisTick: {
+            show: j === 0,
+            inside: true
+          },
+          axisLabel: {
+            show: j === 0
+          },
+          type: 'value',
+          gridIndex: index,
+          scale: true
+        });
+        yAxis.push({
+          splitNumber: 3,
+          position: 'right',
+          axisLine: {
+            show: i === CATEGORY_DIM_COUNT - 1,
+            onZero: false
+          },
+          axisTick: {
+            show: i === CATEGORY_DIM_COUNT - 1,
+            inside: true
+          },
+          axisLabel: {
+            show: i === CATEGORY_DIM_COUNT - 1
+          },
+          type: 'value',
+          gridIndex: index,
+          scale: true
+        });
+        series.push({
+          type: 'scatter',
+          symbolSize: SYMBOL_SIZE,
+          xAxisIndex: index,
+          yAxisIndex: index,
+          data: retrieveScatterData(rawData, i, j)
+        });
+        index++;
+      }
+    }
+    return {
+      grid,
+      xAxis,
+      yAxis,
+      series
+    };
+  }
+  const gridOption = generateGrids();
+  option = {
+    animation: false,
+    brush: {
+      brushLink: 'all',
+      xAxisIndex: gridOption.xAxis.map(function (_, idx) {
+        return idx;
+      }),
+      yAxisIndex: gridOption.yAxis.map(function (_, idx) {
+        return idx;
+      }),
+      inBrush: {
+        opacity: 1
+      }
+    },
+    visualMap: {
+      type: 'piecewise',
+      categories: ['Beijing', 'Shanghai', 'Guangzhou'],
+      dimension: CATEGORY_DIM,
+      orient: 'horizontal',
+      top: 0,
+      left: 'center',
+      inRange: {
+        color: ['#51689b', '#ce5c5c', '#fbc357']
+      },
+      outOfRange: {
+        color: '#ddd'
+      },
+      seriesIndex: gridOption.series.map(function (_, idx) {
+        return idx;
+      })
+    },
+    tooltip: {
+      trigger: 'item'
+    },
+    parallelAxis: [
+      { dim: 0, name: schema[0].text },
+      { dim: 1, name: schema[1].text },
+      { dim: 2, name: schema[2].text },
+      { dim: 3, name: schema[3].text },
+      { dim: 4, name: schema[4].text },
+      { dim: 5, name: schema[5].text },
+      {
+        dim: 6,
+        name: schema[6].text,
+        type: 'category',
+        data: ['A', 'B', 'C', 'D', 'E', 'F']
+      }
+    ],
+    parallel: {
+      bottom: '5%',
+      left: '2%',
+      height: '30%',
+      width: '55%',
+      parallelAxisDefault: {
+        type: 'value',
+        name: 'AQI指数',
+        nameLocation: 'end',
+        nameGap: 20,
+        splitNumber: 3,
+        nameTextStyle: {
+          fontSize: 14
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#555'
+          }
+        },
+        axisTick: {
+          lineStyle: {
+            color: '#555'
+          }
+        },
+        splitLine: {
+          show: false
+        },
+        axisLabel: {
+          color: '#555'
+        }
+      }
+    },
+    xAxis: gridOption.xAxis,
+    yAxis: gridOption.yAxis,
+    grid: gridOption.grid,
+    series: [
+      {
+        name: 'parallel',
+        type: 'parallel',
+        smooth: true,
+        lineStyle: {
+          width: 1,
+          opacity: 0.3
+        },
+        data: rawData
+      },
+      ...gridOption.series
+    ]
+  };
+
+  option && myChart.setOption(option);
+}`
+  },
+  {
+    id: 8,
+    title: 'draft',
+    content:  `data = [{
+      "( (Length(20) Opt Length(35)) And Column(12) )": {
+        "name": "Faker(name)",
+        "gender": "Frequency('male', 0.6, 'female', 0.4)",
+        "telephone": "Faker(phone_number) And Empty(2)",
+        "height": "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)",
+        "weight": "Range(35.0,100.0) And Max(88.8) And Quantile(50,50)",
+        "score": "Distribution('normal',80,15)",
+        "doubleScore": "Correlation('score','linear',2) ",
+        "comment": "Repeat('goodcomment',2)",
+        "trend": "Trend('exponential',1.4)",
+        "cluster": "Int And Cluster(4) And Range(0,300)"
+      }
+    }]
+    
+    func= function (a, b) {
+      console.log('args:', a, b)
+    }`
+  },
 ]
 export const gptCaseOptions = [
   {
