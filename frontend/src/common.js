@@ -308,7 +308,7 @@ export const caseOptions = [
     id: 2,
     title: 'd3 case 2',
     content:  `data = {
-      "( (Length(50) Opt Length(20)) And Column(6) )": {
+      "( (Length(50) Opt Length(20)) And Column(7) )": {
         "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
         "species": "Frequency('Adelie',0.3,'Chinstrap',0.4,'Gentoo',0.3)",
         "culmen_length_mm": "Real And Range(30,60)",
@@ -442,6 +442,144 @@ export const caseOptions = [
   {
     id: 3,
     title: 'echart case 1',
+    content:  `data = {
+  "( (Length(50) Opt Length(20)) And Column(8) )": {
+    "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
+    "PM25": "Range(0,300) And FreqIf('<100',0.7)",
+    "PM10": "Range(0,300) And FreqIf('<100',0.6)",
+    "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
+    "NO2": "Range(0,150) And Distribution('normal', 50,30)",
+    "SO2": "Range(0,90) And Distribution('normal', 25,15)",
+    "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
+    "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
+  }
+}
+
+func= function (svgId, chartDom, data, d3, echarts) {
+  var myChart = echarts.init(chartDom);
+  var option;
+
+  const schema = [
+    { name: 'AQIindex', index: 1, text: 'AQI' },
+    { name: 'PM25', index: 2, text: 'PM 2.5' },
+    { name: 'PM10', index: 3, text: 'PM 10' },
+    { name: 'CO', index: 4, text: 'CO' },
+    { name: 'NO2', index: 5, text: 'NO₂' },
+    { name: 'SO2', index: 6, text: 'SO₂' },
+    { name: 'rank', index: 7, text: 'rank' }
+  ];
+
+  var lineStyle = {
+    width: 1,
+    opacity: 0.5
+  };
+
+  const CATEGORY_DIM = 7;
+
+  const rawData = data.map(v =>{
+    return [v['AQIindex'], v['PM25'], v['PM10'], v['CO'], v['NO2'], v['SO2'], v['rank'], v['city']]
+  })
+
+  option = {
+    backgroundColor: '#333',
+    legend: {
+      bottom: 30,
+      data: ['Beijing', 'Shanghai', 'Guangzhou'],
+      itemGap: 20,
+      textStyle: {
+        color: '#fff',
+        fontSize: 14
+      }
+    },
+    tooltip: {
+      padding: 10,
+      backgroundColor: '#222',
+      borderColor: '#777',
+      borderWidth: 1
+    },
+    parallelAxis: [
+      { dim: 0, name: schema[0].text },
+      { dim: 1, name: schema[1].text },
+      { dim: 2, name: schema[2].text },
+      { dim: 3, name: schema[3].text },
+      { dim: 4, name: schema[4].text },
+      { dim: 5, name: schema[5].text },
+      {
+        dim: 6,
+        name: schema[6].text,
+        type: 'category',
+        data: ['A', 'B', 'C', 'D', 'E', 'F']
+      }
+    ],
+    visualMap: {
+      show: true,
+      min: 0,
+      max: 150,
+      dimension: 2,
+      inRange: {
+        color: ['#d94e5d', '#eac736', '#50a3ba'].reverse()
+        // colorAlpha: [0, 1]
+      }
+    },
+    parallel: {
+      left: '10%',
+      right: '10%',
+      bottom: 100,
+      parallelAxisDefault: {
+        type: 'value',
+        name: 'AQI指数',
+        nameLocation: 'end',
+        nameGap: 20,
+        nameTextStyle: {
+          color: '#fff',
+          fontSize: 12
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#aaa'
+          }
+        },
+        axisTick: {
+          lineStyle: {
+            color: '#777'
+          }
+        },
+        splitLine: {
+          show: false
+        },
+        axisLabel: {
+          color: '#fff'
+        }
+      }
+    },
+    series: [
+      {
+        name: 'Beijing',
+        type: 'parallel',
+        lineStyle: lineStyle,
+        data: rawData.filter(v=>v[CATEGORY_DIM]==='Beijing')
+      },
+      {
+        name: 'Shanghai',
+        type: 'parallel',
+        lineStyle: lineStyle,
+        data: rawData.filter(v=>v[CATEGORY_DIM]==='Shanghai')
+      },
+      {
+        name: 'Guangzhou',
+        type: 'parallel',
+        lineStyle: lineStyle,
+        data: rawData.filter(v=>v[CATEGORY_DIM]==='Guangzhou')
+      }
+    ]
+  };
+
+  option && myChart.setOption(option);
+}`
+  },
+  {
+    id: 4,
+    title: 'echart case 2',
     content:  `data = {
   "( (Length(50) Opt Length(20)) And Column(8) )": {
     "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",

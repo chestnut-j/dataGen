@@ -11,7 +11,7 @@
     <div class="data-panel">
       <div class="header">
         <div class="title">
-          data panel  
+           data panel  
           <span class="overview">{{ Object.keys(origin||{})[0] }}</span>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default {
       height: 28px;
       width: 100%;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 16px;
       line-height: 18px;
       padding:4px;
       padding-left: 10px;
@@ -65,6 +65,7 @@ export default {
       .overview {
         font-size: 12px;
         font-weight: 400;
+        margin-left: 8px;
       }
     }
   }

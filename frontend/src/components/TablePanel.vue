@@ -14,7 +14,7 @@
       </div>
     </div>
     <div class="footer">
-      {{ currentIndex+1 }}/{{ totalLen }}
+      {{ totalLen?currentIndex+1:0 }}/{{ totalLen }}
     </div>
   </div>
 </template>
@@ -137,6 +137,7 @@ export default {
   .footer {
     bottom: 0;
     height: 20px;
+    font-size: 14px;
     text-align: center;
   }
   .panel-content {
@@ -144,9 +145,11 @@ export default {
     height: 100%;
     margin: 5px;
     overflow: auto;
+    text-align: center;
     width: calc(100% - 60px);
     .chart-content {
       height: 100%;
+      text-align: center;
     }
     &::-webkit-scrollbar {
       height: 4px;

@@ -16,7 +16,7 @@
           :id="'column-'+item.name+chart">
         </div>
       </div>
-      <div>{{ constraints[item.name]}}</div>
+      <div class="constraint">{{ constraints[item.name]}}</div>
       <!-- <div>{{ chartConfig[item.name]}}</div> -->
       </div>
     </div>
@@ -306,6 +306,12 @@ export default {
         width:260px;
         height: 260px;
         margin:auto;
+      }
+      .constraint {
+        width: 100%;
+        background: rgba(238, 238, 238,0.35);
+        padding: 2px 10px;
+        margin-top:5px;
       }
     }
     // background: #e6e6e6;

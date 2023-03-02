@@ -1,8 +1,8 @@
 <template>
   <div class="homepage">
-    <div class="header">
+    <!-- <div class="header">
       <div>VisArena</div>
-    </div>
+    </div> -->
     <a-spin :spinning="loading">
       <div class="content">
         <JsonPanel  class="left-panel"/>
@@ -35,7 +35,7 @@ export default {
 <style lang="less" scoped>
 .homepage {
   width: 100%;
-  height: calc(100vh - 24px);
+  height: calc(100vh - 40px);
   // padding: 8px;
   .header{
     height: 40px;

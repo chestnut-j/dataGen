@@ -80,3 +80,8 @@ export default {
 }
 </script>
 
+<style scoped lang="less">
+.monaco-editor{
+  width: 100%;
+}
+</style>

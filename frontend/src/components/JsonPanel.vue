@@ -215,7 +215,7 @@ func = function(svgId, data, d3){
       height: 28px;
       // width: 100%;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 16px;
       line-height: 18px;
       padding:4px;
       padding-left: 10px;
