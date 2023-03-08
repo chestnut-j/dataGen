@@ -269,7 +269,7 @@ def parseCons(cons, col):
       col['type'] = 'Int'
   
 
-  if cons.find('Repeat')!= -1 or cons.find('Frequency')!= -1:
+  if cons.find('Repeat')!= -1 or cons.find('Frequency')!= -1 or cons.find('ContentIf')!= -1 :
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     cons_name = cons[:cons.find('(')].lower().replace(" ","")
     if cons_name in col:
@@ -318,6 +318,13 @@ def parseCons(cons, col):
   if cons.find('Correlation')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['correlation'] = [eval(x) for x in args]
+  
+  if cons.find('Distinct')!= -1:
+    col['distinct'] = True
+
+  if cons.find('Enum')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')]
+    col['enum'] = eval(args)
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -659,6 +666,24 @@ def buildSolver(format):
         special_value += int(num_len * times)
         freqIf_c = z3.Sum([eval('m'+content,{'m': d[col['name']][i]}) for i in unselected_index]) == int(num_len * times)
         solver.add(freqIf_c)
+
+    #define frequency
+    if 'contentif' in col:
+      for i in range(int(len(col['contentif'])/3)):
+        con_name = col['contentif'][3*i]
+        ifvalue = col['contentif'][3*i+1]
+        value = col['contentif'][3*i+2]
+        # print(con_name,ifvalue,value)
+        # print(d[con_name])
+        special_value += 1
+        print(others)
+        if con_name in others:
+          content_c = z3.Or([z3.And(d[con_name][i]==ifvalue, others[col['name']][i]==value ) for i in unselected_index])
+        else:
+          content_c = z3.Or([z3.And(d[con_name][i]==ifvalue, d[col['name']][i]==value ) for i in unselected_index])
+        # print(content_c)
+        solver.add(content_c)
+        # print(solver)
     
     if 'repeat' in col:
       distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
@@ -703,7 +728,7 @@ def buildSolver(format):
     #define distinct
     if 'distinct' in col:
       col_distinct = col['distinct']
-      if col_distinct == 'true':
+      if col_distinct == True:
         distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
         solver.add(distinct_c)
 
@@ -809,7 +834,7 @@ def buildSolver(format):
           random_list.extend(np.random.uniform(part_mid*p-part_len,part_mid*p+part_len,part_num))
         random_list.extend(np.random.uniform(0,max(100,num_len), 2*part_len))
     # # 随机数
-    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'trend' in col and not 'correlation' in col and 'var' not in col:
+    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'trend' in col and not 'correlation' in col and 'var' not in col and 'enum' not in col:
       # print(random_num,random_list)
       # random_c = z3.Sum([d[col['name']][i] == random_list[i] for i in unselected_index]) == random_num
       if col['type']=='Int':
@@ -920,7 +945,7 @@ def dataGen(json):
 # =================================================
 
 
-input_path = './exp-trend.json'
+input_path = './depth.json'
 # input_path = './example.json'
 
 with open(input_path,"r") as f:

@@ -1,0 +1,10 @@
+[
+  {
+    "( Length(100) And Column(4) )": {
+      "name": "String And Frequency('L1',0.01,'L2',0.01,'L3',0.01,'L4',0.01,'L5',0.01,'L6',0.01,'L7',0.01,'L8',0.01,'L9',0.01) And Distinct",
+      "parent": "Frequency('root',1) Opt ContentIf('name','L1','root','name','L2','L1') And Enum(['L1','L2','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2') And Enum(['L1','L2','L3','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2', 'name','L4','L3') And Enum(['L1','L2','L3','L4','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2', 'name','L4','L3', 'name','L5','L4') And Enum(['L1','L2','L3','L4','L5','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2', 'name','L4','L3', 'name','L5','L4', 'name','L6','L5') And Enum(['L1','L2','L3','L4','L5','L6','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2', 'name','L4','L3', 'name','L5','L4', 'name','L6','L5', 'name','L7','L6') And Enum(['L1','L2','L3','L4','L5','L6','L7','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2', 'name','L4','L3', 'name','L5','L4', 'name','L6','L5', 'name','L7','L6', 'name','L8','L7') And Enum(['L1','L2','L3','L4','L5','L6','L7','L8','root']) Opt ContentIf('name','L1','root','name','L2','L1','name','L3','L2', 'name','L4','L3', 'name','L5','L4', 'name','L6','L5', 'name','L7','L6', 'name','L8','L7', 'name','L9','L8') And Enum(['L1','L2','L3','L4','L5','L6','L7','L8','L9','root']))",
+      "1": "Range(1,1000)",
+      "2": "Range(1,1000)"
+    }
+  }
+]
