@@ -7,9 +7,11 @@ export const store = reactive({
   totalInfo: [],
   currentTableIndex: 0,
   visFunction: null,
+  evaluationFunction: null,
   d3:d3,
   loading: false,
   isGptMode: false,
+  performArr: [],
   setLoading(state){
     this.loading = state
   },
@@ -30,5 +32,11 @@ export const store = reactive({
   },
   setVisFunction(func){
     this.visFunction = func
+  },
+  setEvaluationFunction(func){
+    this.evaluationFunction = func
+  },
+  setPerformArr(arr){
+    this.performArr = arr
   }
 })

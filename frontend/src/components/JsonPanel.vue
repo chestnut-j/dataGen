@@ -67,8 +67,13 @@ data = {
 
 }
 // vis function
-func = function(svgId, data, d3){
+visFunc = function(svgId, chartDom, data, d3, echarts){
   
+}
+
+
+evaluationFunc = function(svgId, chartDom, data, performanceTest){
+  return performanceTest()
 }`
 export default {
   name: 'JsonPanel',
@@ -85,7 +90,12 @@ export default {
       },
       gptOpts: {
         value: `// vis function
-func = function(svgId, data, d3){
+visFunc = function(svgId, chartDom, data, d3, echarts){
+  
+}
+
+
+evaluationFunc = function(svgId, chartDom, data, d3, echarts){
   
 }`,
         readOnly: false, // 是否可编辑
@@ -111,7 +121,7 @@ func = function(svgId, data, d3){
       // const that = this
       if(this.isGPTMode){
         this.jsCode = this.$refs.gptmonaco.getVal()
-        let myFunc = this.getFunction(this.jsCode)
+        let myVisFunc = this.getVisFunction(this.jsCode)
         store.setLoading(true)
         axios.post('/api/gptSubmit',{data: this.gptDescription}).then(res=>{
           console.log(res.data)
@@ -121,7 +131,7 @@ func = function(svgId, data, d3){
             config: null
           }]
           store.setTotalInfo(info)
-          store.setVisFunction(myFunc)
+          store.setVisFunction(myVisFunc)
           message.success('generate success')
           store.setLoading(false)
         })
@@ -133,14 +143,16 @@ func = function(svgId, data, d3){
       }else{
         this.jsCode = this.$refs.monaco.getVal()
         let myJson = this.getJsonData(this.jsCode)
-        let myFunc = this.getFunction(this.jsCode)
+        let myVisFunc = this.getVisFunction(this.jsCode)
+        let myEvaluationFunc = this.getEvaluationFunction(this.jsCode)
         // myFunc('a11','a22')
         // store.setTotalInfo(sampleData)
         store.setLoading(true)
         axios.post('/api/submit',{data: myJson}).then(res=>{
           console.log(res.data)
           store.setTotalInfo(res.data)
-          store.setVisFunction(myFunc)
+          store.setVisFunction(myVisFunc)
+          store.setEvaluationFunction(myEvaluationFunc)
           message.success('generate success')
           store.setLoading(false)
         })
@@ -157,20 +169,24 @@ func = function(svgId, data, d3){
       store.setTable(data.table)
     },
     getJsonData(data){
-      let json = data.slice(data.indexOf("=")+1,data.indexOf('func'))
+      let json = data.slice(data.indexOf("=")+1,data.indexOf('visFunc'))
       json = '['+json+']'
       console.log(json,JSON.parse(json))
       return JSON.parse(json)
     },
-    getFunction(data){
-      let index = data.indexOf("func")
+    getVisFunction(data){
+      let fun = data.slice( data.indexOf("visFunc"),data.indexOf('evaluationFunc'))
+      let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
+      let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
+      let myFun = new Function(...arg, f)
+      return myFun
+    },  
+    getEvaluationFunction(data){
+      let index = data.indexOf("evaluationFunc")
       let fun = data.slice(index)
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
-      let f = fun.slice(fun.indexOf('{')+1,-1)
-      // console.log(fun.indexOf('}'))
-      // console.log(f)
+      let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
       let myFun = new Function(...arg, f)
-      console.log(myFun)
       return myFun
     },  
     changeValue (val) {

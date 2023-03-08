@@ -221,12 +221,40 @@ export const getPieOption = function(name, data) {
   }
 }
 
+export const getOverviewBarOption = function(name, data) {
+  return {
+    title: {
+    },
+    tooltip: {
+    },
+    grid: {
+      left: '15%',
+      right: '15%',
+      bottom: '25%',
+      top:'20%',
+    },
+    xAxis: {
+      type: 'category',
+      data: Object.keys(data),
+    },
+    yAxis: {
+      type:'value',
+    },
+    series: [
+      {
+        type: 'bar',
+        data: Object.values(data),
+      },
+    ]
+  }
+}
+
 export const caseOptions = [
   {
     id: 1,
     title: 'd3 case 1',
     content:  `data = {
-      "( (Length(50) Opt Length(80) )  And Column(8) )": {
+      "( (Length(50) Opt Length(80) Opt Length(100) Opt Length(150) )  And Column(8) )": {
         "cname": "String",
         "economy(mpg)": "Real And Range(9,48)",
         "cylinders": "Real And Range(3,8)",
@@ -238,7 +266,7 @@ export const caseOptions = [
       }
     }
     
-    func= function (svgId, chartDom, data, d3, echarts) {
+    visFunc= function (svgId, chartDom, data, d3, echarts) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -302,6 +330,9 @@ export const caseOptions = [
             .attr("stroke-width", 5)
             .attr("stroke-linejoin", "round")
             .attr("stroke", "white"));
+    }
+    evaluationFunc = function(svgId, chartDom, data, performanceTest){
+      return performanceTest()
     }`
   },
   {
@@ -319,7 +350,7 @@ export const caseOptions = [
       }
     }
     
-    func= function (svgId, chartDom, data, d3, echarts) {
+    visFunc= function (svgId, chartDom, data, d3, echarts) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
@@ -437,6 +468,9 @@ export const caseOptions = [
         ],
         z: d => d.species
       })
+    }
+    evaluationFunc = function(svgId, chartDom, data, performanceTest){
+      return performanceTest
     }`
   },
   {
@@ -455,7 +489,7 @@ export const caseOptions = [
   }
 }
 
-func= function (svgId, chartDom, data, d3, echarts) {
+visFunc= function (svgId, chartDom, data, d3, echarts) {
   var myChart = echarts.init(chartDom);
   var option;
 
@@ -575,6 +609,9 @@ func= function (svgId, chartDom, data, d3, echarts) {
   };
 
   option && myChart.setOption(option);
+}
+evaluationFunc = function(svgId, chartDom, data, performanceTest){
+  return performanceTest
 }`
   },
   {
@@ -593,7 +630,7 @@ func= function (svgId, chartDom, data, d3, echarts) {
   }
 }
 
-func= function (svgId, chartDom, data, d3, echarts) {
+visFunc= function (svgId, chartDom, data, d3, echarts) {
   var myChart = echarts.init(chartDom);
   var option;
 
@@ -802,6 +839,9 @@ func= function (svgId, chartDom, data, d3, echarts) {
   };
 
   option && myChart.setOption(option);
+}
+evaluationFunc = function(svgId, chartDom, data, performanceTest){
+  return performanceTest
 }`
   },
   {
@@ -822,8 +862,11 @@ func= function (svgId, chartDom, data, d3, echarts) {
       }
     }]
     
-    func= function (a, b) {
+    visFunc= function (a, b) {
       console.log('args:', a, b)
+    }
+    evaluationFunc = function(svgId, chartDom, data, performanceTest){
+      return performanceTest
     }`
   },
 ]
@@ -838,7 +881,7 @@ export const gptCaseOptions = [
 4. column "name" is random name 
 5. column "gender" 50% are 0, 50% are 1 
 6. column "score" is normal distribution,range from 0 to 100, with 1 empty value and 2 duplicate value`,
-    jsCode:  `func= function (svgId, data, d3) {
+    jsCode:  `visFunc= function (svgId, data, d3) {
   console.log(data)
 }`
   },
@@ -852,7 +895,7 @@ export const gptCaseOptions = [
     4. column "name" is random name 
     5. column "gender" 50% are 0, 50% are 1 
     6. column "score" is normal distribution,range from 0 to 100, with 1 empty value and 2 duplicate value`,
-    jsCode:  `func= function (svgId, data, d3) {
+    jsCode:  `visFunc= function (svgId, data, d3) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -919,7 +962,7 @@ export const gptCaseOptions = [
   {
     id: 3,
     title: 'gpt case 3',
-    jsCode:  `func= function (svgId, data, d3) {
+    jsCode:  `visFunc= function (svgId, data, d3) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
