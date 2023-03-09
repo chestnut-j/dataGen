@@ -1,6 +1,6 @@
 <template>
   <div class="table-panel">
-    <div class="header">
+    <div v-if="totalLen" class="header">
       <div id="overview-chart">
       </div>
     </div>
@@ -109,16 +109,26 @@ export default {
             d3.select(`#chart-dom-${i}`)
               .append('svg').attr("id",`chart-${i}`)
             this.$nextTick(()=>{
-              let start = +new Date()
-              this.drawChart(i)
-              let end = +new Date()
-              perfArr.push(end-start)
+              if(store.isPerformanceMode){
+                let start = +new Date()
+                this.drawChart(i)
+                let end = +new Date()
+                perfArr.push(end-start)
+              } else{
+                this.drawChart(i)
+                const chartDom = document.getElementById(`chart-dom-${i}`)
+                const data = this.info[i]?.table || []
+                let arg = store.evaluationFunction(`#chart-${i}`, chartDom, data)
+                console.log(arg)
+                perfArr.push(arg)
+              }
             })
           } 
-          store.setPerformArr(perfArr)
-          console.log(perfArr)
+          
           this.$nextTick(()=>{
-            this.drawOverviewChart()
+            store.setPerformArr(perfArr)
+          console.log(perfArr)
+            this.$nextTick(()=>{this.drawOverviewChart()})
           })
         })
       },

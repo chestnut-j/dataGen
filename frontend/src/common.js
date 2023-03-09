@@ -610,7 +610,62 @@ visFunc= function (svgId, chartDom, data, d3, echarts) {
 
   option && myChart.setOption(option);
 }
-evaluationFunc = function(svgId, chartDom, data, performanceTest){
+evaluationFunc = function(svgId, chartDom, data){
+  // data density
+  // return data.length
+
+  // data demension
+  // let keys = Object.keys(data)
+  // return keys.length
+
+  // Data overlap degree
+  // let overlap = 0
+  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank', 'city']
+  // let len = data.length
+  // let dem = keys.length 
+  // for(let i=0; i<len;i++){
+  //   for(let j=0;j<len;j++){
+  //     if(i!=j){
+  //       for(let k=0; k<dem-1; k++){
+  //         let key1 = keys[k]
+  //         let key2 = keys[k+1]
+  //         if(data[i][key1]===data[j][key1] &&data[i][key2]===data[j][key2]){
+  //           overlap++
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  // overlap = overlap/(dem-1)
+  // overlap=overlap/(len*len)
+  // return overlap
+
+  // Data intersect degree
+  let intersect = 0
+  let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank', 'city']
+  let len = data.length
+  let dem = keys.length 
+  for(let i=0; i<len;i++){
+    for(let j=0;j<len;j++){
+      if(i!=j){
+        for(let k=0; k<dem-1; k++){
+          let key1 = keys[k]
+          let key2 = keys[k+1]
+          if(data[i][key1]===data[j][key1] || 
+              data[i][key2]===data[j][key2] ||
+              (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
+              ){
+            intersect++
+          }
+        }
+      }
+    }
+  }
+  intersect = intersect/(dem-1)
+  intersect=intersect/(len*len)
+  return intersect
+
+  // Data distribution
   return performanceTest
 }`
   },

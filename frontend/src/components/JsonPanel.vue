@@ -186,8 +186,14 @@ evaluationFunc = function(svgId, chartDom, data, d3, echarts){
       let fun = data.slice(index)
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
       let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
-      let myFun = new Function(...arg, f)
-      return myFun
+      if(f.indexOf('performanceTest')>-1){
+        store.setEvaluationMode(true)
+        return null
+      }else{
+        store.setEvaluationMode(false)
+        let myFun = new Function(...arg, f)
+        return myFun
+      }
     },  
     changeValue (val) {
       // console.log(val)
