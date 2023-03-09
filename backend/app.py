@@ -288,6 +288,16 @@ def parseCons(cons, col):
         col['type'] = 'String'
         break
 
+  if cons.find('Switch')!= -1 :
+    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+    cons_name = cons[:cons.find('(')].lower().replace(" ","")
+    col[cons_name] = [eval(x) for x in args]
+  
+  if cons.find('If')!= -1 and cons.find('FreqIf')== -1:
+    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+    cons_name = cons[:cons.find('(')].lower().replace(" ","")
+    col[cons_name] = [eval(x) for x in args]
+
   if cons.find('FreqIf')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     if 'freqIf' in col:
@@ -483,6 +493,9 @@ def parseTable(allTables):
           if cons.find('Column') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['column'] = int(arg)
+          if cons.find('Order') != -1:
+            args = cons[cons.find('(')+1:cons.find(')')]
+            format['column'] = [eval(arg) for arg in args]
           if cons.find('Trend'):
             arg = cons[cons.find('(')+1:cons.find(')')]
             dis_type = cons[cons.find('$')+1:cons.find('Trend')]
@@ -659,6 +672,49 @@ def buildSolver(format):
         special_value += int(num_len * times)
         freqIf_c = z3.Sum([eval('m'+content,{'m': d[col['name']][i]}) for i in unselected_index]) == int(num_len * times)
         solver.add(freqIf_c)
+
+    #define switch
+    if 'switch' in col:
+      con_name = col['switch'][0]
+      conditions = col['switch'][1:]
+      for i in range(int(len(conditions)/2)):
+        ifvalue = conditions[2*i]
+        value = conditions[2*i+1]
+        # print(con_name,ifvalue,value)
+        # print(d[con_name])
+        special_value += 1
+        print(others)
+        if con_name in others:
+          switch_c = [z3.Or(z3.And(others[con_name][i]==ifvalue, d[col['name']][i]==value),others[con_name][i]!=ifvalue) for i in unselected_index]
+        else:
+          switch_c = [z3.Or(z3.And(d[con_name][i]==ifvalue, d[col['name']][i]==value),d[con_name][i]!=ifvalue) for i in unselected_index]
+        # print(content_c)
+        solver.add(switch_c)
+    
+    #define if
+    if 'if' in col:
+      con_name = col['if'][0]
+      ifvalue = col['if'][1]
+      value = col['if'][2]
+      if len(col['if'])>3:
+        else_value = col['if'][3]
+        # print(con_name,ifvalue,value)
+        # print(d[con_name])
+      special_value += 1
+      print(others)
+      if con_name in others:
+        if len(col['if'])>3:
+          if_c = [z3.Or(z3.And(others[con_name][i]==ifvalue, d[col['name']][i]==value),
+                z3.And(others[con_name][i]!=ifvalue, d[col['name']][i]==else_value)) for i in unselected_index]
+        else:
+          if_c = [z3.Or(z3.And(others[con_name][i]==ifvalue, d[col['name']][i]==value),others[con_name][i]!=ifvalue) for i in unselected_index]  
+      else:
+        if len(col['if'])>3:
+          if_c = [z3.Or(z3.And(d[con_name][i]==ifvalue, d[col['name']][i]==value),
+                z3.And(d[con_name][i]!=ifvalue, d[col['name']][i]==else_value)) for i in unselected_index]
+        else:
+          if_c = [z3.Or(z3.And(d[con_name][i]==ifvalue, d[col['name']][i]==value),d[con_name][i]!=ifvalue) for i in unselected_index] 
+      solver.add(if_c)
     
     if 'repeat' in col:
       distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
@@ -828,6 +884,7 @@ def parse2csv(data_list,path):
   writer.writerow(sheet_title)
   writer.writerows(sheet_data)
   csv_fp.close()
+  # sort part
 
 # ================================================================
 # ====================生成主流程==================================

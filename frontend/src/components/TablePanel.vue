@@ -188,7 +188,7 @@ export default {
     height: 90px;
     border-bottom:1px solid #dcdada ;
     margin: 4px 10px;
-    background: rgba(191, 191, 191,0.1);
+    background: rgba(207, 207, 207, 0.1);
   }
   #overview-chart {
     width: 600px;

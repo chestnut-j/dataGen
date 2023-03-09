@@ -490,6 +490,9 @@ def parseTable(allTables):
           if cons.find('Column') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['column'] = int(arg)
+          if cons.find('Order') != -1:
+            args = cons[cons.find('(')+1:cons.find(')')]
+            format['column'] = [eval(arg) for arg in args]
           if cons.find('Trend'):
             arg = cons[cons.find('(')+1:cons.find(')')]
             dis_type = cons[cons.find('$')+1:cons.find('Trend')]
@@ -866,6 +869,7 @@ def parse2csv(data_list,path):
   writer.writerow(sheet_title)
   writer.writerows(sheet_data)
   csv_fp.close()
+  # sort part
 
 # ================================================================
 # ====================生成主流程==================================
@@ -945,7 +949,7 @@ def dataGen(json):
 # =================================================
 
 
-input_path = './depth.json'
+input_path = './exp0309.json'
 # input_path = './example.json'
 
 with open(input_path,"r") as f:
