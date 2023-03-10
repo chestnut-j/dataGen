@@ -72,8 +72,8 @@ visFunc = function(svgId, chartDom, data, d3, echarts){
 }
 
 
-evaluationFunc = function(svgId, chartDom, data, performanceTest){
-  return performanceTest()
+evaluationFunc = function(svgId, echartInstance, data, performanceTest){
+  return performanceTest
 }`
 export default {
   name: 'JsonPanel',
@@ -95,7 +95,7 @@ visFunc = function(svgId, chartDom, data, d3, echarts){
 }
 
 
-evaluationFunc = function(svgId, chartDom, data, d3, echarts){
+evaluationFunc = function(svgId, echartInstance, data, performanceTest){
   
 }`,
         readOnly: false, // 是否可编辑
@@ -186,14 +186,8 @@ evaluationFunc = function(svgId, chartDom, data, d3, echarts){
       let fun = data.slice(index)
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
       let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
-      if(f.indexOf('performanceTest')>-1){
-        store.setEvaluationMode(true)
-        return null
-      }else{
-        store.setEvaluationMode(false)
-        let myFun = new Function(...arg, f)
-        return myFun
-      }
+      let myFun = new Function(...arg, f)
+      return myFun
     },  
     changeValue (val) {
       // console.log(val)

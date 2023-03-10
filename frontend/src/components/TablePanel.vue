@@ -46,7 +46,8 @@ export default {
   data(){
     return {
       currentTab: 0,
-      overviewChart: null
+      overviewChart: null,
+      echartsList:[]
     }
   },
   computed:{
@@ -109,25 +110,19 @@ export default {
             d3.select(`#chart-dom-${i}`)
               .append('svg').attr("id",`chart-${i}`)
             this.$nextTick(()=>{
-              if(store.isPerformanceMode){
-                let start = +new Date()
-                this.drawChart(i)
-                let end = +new Date()
-                perfArr.push(end-start)
-              } else{
-                this.drawChart(i)
-                const chartDom = document.getElementById(`chart-dom-${i}`)
-                const data = this.info[i]?.table || []
-                let arg = store.evaluationFunction(`#chart-${i}`, chartDom, data)
-                console.log(arg)
-                perfArr.push(arg)
-              }
+              let start = +new Date()
+              this.drawChart(i)
+              let end = +new Date()
+              let performanceTest = end-start
+              const data = this.info[i]?.table || []
+              let arg = store.evaluationFunction(`#chart-${i}`, this.echartsList[i], data, performanceTest)
+              perfArr.push(arg)
             })
           } 
           
           this.$nextTick(()=>{
             store.setPerformArr(perfArr)
-          console.log(perfArr)
+            console.log(perfArr)
             this.$nextTick(()=>{this.drawOverviewChart()})
           })
         })
@@ -169,7 +164,7 @@ export default {
       const data = this.info[index]?.table || []
       if(data.length){
           const chartDom = document.getElementById(`chart-dom-${index}`)
-          store.visFunction(`#chart-${index}`, chartDom, data, d3, echarts)
+          this.echartsList[index]=store.visFunction(`#chart-${index}`, chartDom, data, d3, echarts)
       }
     },
     drawOverviewChart(){

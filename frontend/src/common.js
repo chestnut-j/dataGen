@@ -266,7 +266,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (svgId, chartDom, data, d3, echarts) {
+    visFunc= function (svgId, echartInstance, data, performanceTest) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -469,7 +469,7 @@ export const caseOptions = [
         z: d => d.species
       })
     }
-    evaluationFunc = function(svgId, chartDom, data, performanceTest){
+    evaluationFunc = function(svgId, echartInstance, data, performanceTest){
       return performanceTest
     }`
   },
@@ -480,7 +480,7 @@ export const caseOptions = [
   "( (Length(50) Opt Length(20)) And Column(8) )": {
     "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
-    "PM10": "Range(0,300) And FreqIf('<100',0.6)",
+    "PM10": "Range(0,300) And (FreqIf('<100',0.6) Opt FreqIf('<100',0.2))",
     "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
     "NO2": "Range(0,150) And Distribution('normal', 50,30)",
     "SO2": "Range(0,90) And Distribution('normal', 25,15)",
@@ -609,8 +609,9 @@ visFunc= function (svgId, chartDom, data, d3, echarts) {
   };
 
   option && myChart.setOption(option);
+  return myChart
 }
-evaluationFunc = function(svgId, chartDom, data){
+evaluationFunc = function(svgId, echartInstance, data, performanceTest){
   // data density
   // return data.length
 
@@ -620,7 +621,7 @@ evaluationFunc = function(svgId, chartDom, data){
 
   // Data overlap degree
   // let overlap = 0
-  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank', 'city']
+  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
   // let len = data.length
   // let dem = keys.length 
   // for(let i=0; i<len;i++){
@@ -641,31 +642,49 @@ evaluationFunc = function(svgId, chartDom, data){
   // return overlap
 
   // Data intersect degree
-  let intersect = 0
-  let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank', 'city']
-  let len = data.length
-  let dem = keys.length 
-  for(let i=0; i<len;i++){
-    for(let j=0;j<len;j++){
-      if(i!=j){
-        for(let k=0; k<dem-1; k++){
-          let key1 = keys[k]
-          let key2 = keys[k+1]
-          if(data[i][key1]===data[j][key1] || 
-              data[i][key2]===data[j][key2] ||
-              (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
-              ){
-            intersect++
-          }
-        }
-      }
-    }
-  }
-  intersect = intersect/(dem-1)
-  intersect=intersect/(len*len)
-  return intersect
+  // let intersect = 0
+  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
+  // let len = data.length
+  // let dem = keys.length 
+  // for(let i=0; i<len;i++){
+  //   for(let j=0;j<len;j++){
+  //     if(i!=j){
+  //       for(let k=0; k<dem-1; k++){
+  //         let key1 = keys[k]
+  //         let key2 = keys[k+1]
+  //         if(data[i][key1]===data[j][key1] || 
+  //             data[i][key2]===data[j][key2] ||
+  //             (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
+  //             ){
+  //           intersect++
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  // intersect = intersect/(dem-1)
+  // intersect=intersect/(len*len)
+  // return intersect
 
   // Data distribution
+  let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
+  let dem = keys.length 
+  let sum = 0
+  for(let i=0;i<keys.length;i++){
+    var yMax = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[1];
+    var yMin = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[0];
+    let colData = data.map(v=>v[keys[i]])
+    let dataMax = Math.max(...colData)
+    let dataMin = Math.min(...colData)
+    let dataSub = dataMax-dataMin
+    let axisSub = yMax-yMin
+    if(!Number.isNaN(dataSub)){
+      sum += Math.pow(dataSub - axisSub, 2)
+    }
+  }
+  sum=sum/dem
+  return sum
+  
   return performanceTest
 }`
   },
@@ -895,7 +914,7 @@ visFunc= function (svgId, chartDom, data, d3, echarts) {
 
   option && myChart.setOption(option);
 }
-evaluationFunc = function(svgId, chartDom, data, performanceTest){
+evaluationFunc = function(svgId, echartInstance, data, performanceTestt){
   return performanceTest
 }`
   },
