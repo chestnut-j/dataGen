@@ -328,6 +328,13 @@ def parseCons(cons, col):
   if cons.find('Correlation')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['correlation'] = [eval(x) for x in args]
+  
+  if cons.find('Distinct')!= -1:
+    col['distinct'] = True
+
+  if cons.find('Enum')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')]
+    col['enum'] = eval(args)
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -341,15 +348,15 @@ def solveDate(config):
   data = pd.date_range(config['range'][0], config['range'][1], freq=config['freq']).strftime(date_format_match(config['format']))
   return data
 
-def solveFaker(config, len):
+def solveFaker(config, length):
   if 'locale' in config:
     fk = Faker(locale=config['locale'])
   else:
     # fk = Faker(locale='zh-CN')
     fk = Faker()
-  data = [eval('faker.'+config['content']+'()',{'faker': fk}) for i in range(len)]
+  data = [eval('faker.unique.'+config['content']+'()',{'faker': fk}) for i in range(length)]
 
-  unselected_index = np.arange(len)
+  unselected_index = np.arange(length)
   if 'repeat' in config and not 'trend' in config:
     times = config['repeat']
     repeat_index = np.random.choice(unselected_index, times, replace=False)
@@ -360,7 +367,7 @@ def solveFaker(config, len):
   if 'frequency' in config and not 'trend' in config:
     for i in range(int(len(config['frequency'])/2)):
       content = config['frequency'][2*i]
-      times = int(config['frequency'][2*i+1] * len)
+      times = int(config['frequency'][2*i+1] * length)
       repeat_index = np.random.choice(unselected_index, times, replace=False)
       for index in repeat_index:
         data[index] = content
@@ -380,7 +387,7 @@ def generate_prompt(semantics, len):
     give me a python list containing {}, and it's length is {}, just a list, on other text
   """.format(semantics, len)
 
-def solveGPT(config, len):
+def solveGPT(config, length):
   import openai
   openai.api_key = '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'
   openai.Model.list()
@@ -388,7 +395,7 @@ def solveGPT(config, len):
   response = openai.Completion.create(
     # model="text-curie-001",
     model="text-davinci-003",
-    prompt=generate_prompt(config['content'], len), 
+    prompt=generate_prompt(config['content'], length), 
     temperature=0.5,
     max_tokens=2000,
   )
@@ -396,7 +403,7 @@ def solveGPT(config, len):
   # print(response.choices[0])
   data=eval(text_data.replace(' ','').replace('\n',''))
   print(data)
-  unselected_index = np.arange(len)
+  unselected_index = np.arange(length)
   if 'repeat' in config and not 'trend' in config:
     times = config['repeat'][0]
     repeat_index = np.random.choice(unselected_index, times, replace=False)
@@ -407,7 +414,7 @@ def solveGPT(config, len):
   if 'frequency' in config and not 'trend' in config:
     for i in range(int(len(config['frequency'])/2)):
       content = config['frequency'][2*i]
-      times = int(config['frequency'][2*i+1] * len)
+      times = int(config['frequency'][2*i+1] * length)
       repeat_index = np.random.choice(unselected_index, times, replace=False)
       for index in repeat_index:
         data[index] = content
@@ -494,8 +501,8 @@ def parseTable(allTables):
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['column'] = int(arg)
           if cons.find('Order') != -1:
-            args = cons[cons.find('(')+1:cons.find(')')]
-            format['column'] = [eval(arg) for arg in args]
+            args = cons[cons.find('(')+1:cons.find(')')].split(',')
+            format['order'] = [eval(arg) for arg in args]
           if cons.find('Trend'):
             arg = cons[cons.find('(')+1:cons.find(')')]
             dis_type = cons[cons.find('$')+1:cons.find('Trend')]
@@ -600,7 +607,7 @@ def buildSolver(format):
     if 'var' in col:
       value = col['var']
       avg = z3.Sum([d[col['name']][i] for i in nonempty_index])/len(nonempty_index)
-      var_c = z3.Sum([(d[col['name']][i]-avg)**2 for i in nonempty_index])/len(nonempty_index) == value
+      var_c = z3.Sum([(d[col['name']][i]-avg)**2 for i in nonempty_index]) == len(nonempty_index)*value
       solver.add(var_c)
     
     if 'std' in col:
@@ -683,7 +690,6 @@ def buildSolver(format):
         # print(con_name,ifvalue,value)
         # print(d[con_name])
         special_value += 1
-        print(others)
         if con_name in others:
           switch_c = [z3.Or(z3.And(others[con_name][i]==ifvalue, d[col['name']][i]==value),others[con_name][i]!=ifvalue) for i in unselected_index]
         else:
@@ -700,8 +706,7 @@ def buildSolver(format):
         else_value = col['if'][3]
         # print(con_name,ifvalue,value)
         # print(d[con_name])
-      special_value += 1
-      print(others)
+      # special_value += 1
       if con_name in others:
         if len(col['if'])>3:
           if_c = [z3.Or(z3.And(others[con_name][i]==ifvalue, d[col['name']][i]==value),
@@ -759,7 +764,7 @@ def buildSolver(format):
     #define distinct
     if 'distinct' in col:
       col_distinct = col['distinct']
-      if col_distinct == 'true':
+      if col_distinct == True:
         distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
         solver.add(distinct_c)
 
@@ -769,8 +774,7 @@ def buildSolver(format):
       if col_trend == 'Stable':
         # 方差
         var_c = [z3.And(z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len < 2,
-                    z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len > 0)  
-                for i in range(num_len)]
+                    z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len > 0)]
         solver.add(var_c)
       if col_trend == 'linear':
         # 线性
@@ -810,17 +814,24 @@ def buildSolver(format):
       if col_type == 'Int' or col_type == 'Real':
         range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1])  for i in nonempty_index]
         solver.add(range_c) 
-      if col_type == 'Int':
+      if col_type == 'Int' or col_type=='Real':
         if 'distribution' in col:
           args = col['distribution']
           if args[0]=='normal':
             random_list = np.random.normal(args[1],args[2],temp_len)
           elif args[0]=='uniform':
             random_list = np.random.uniform(args[1],args[2],temp_len)
+          elif args[0]=='exponential':
+            temp_list = np.random.exponential(args[1],temp_len)
+            max_value = max(temp_list)
+            min_value = min(temp_list)
+            target_len = col_range[1] - col_range[0]
+            current_len = max_value - min_value
+            random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
         else:
           random_list = np.random.uniform(col_range[0],col_range[1],temp_len)
-      elif col_type == 'Real':
-        random_list = np.random.uniform(col_range[0],col_range[1], temp_len)
+      # elif col_type == 'Real':
+      #   random_list = np.random.uniform(col_range[0],col_range[1], temp_len)
     else:
       if col_type == 'Int' or col_type == 'Real':
         if 'distribution' in col:
@@ -829,10 +840,21 @@ def buildSolver(format):
             random_list = np.random.normal(args[1],args[2],temp_len)
           elif args[0]=='uniform':
             random_list = np.random.uniform(args[1],args[2],temp_len)
+          elif args[0]=='exponential':
+            temp_list = np.random.exponential(args[1],temp_len)
+            max_value = max(temp_list)
+            min_value = min(temp_list)
+            target_len = max(100,num_len)
+            current_len = max_value - min_value
+            random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
         else:
           random_list = np.random.uniform(0,max(100,num_len), temp_len)
       elif col_type == 'String':
         random_list = [fake.pystr() for i in range(3*num_len)]
+        if 'if' in col:
+          random_list.append(col['if'][2])
+          if len(col['if'])>3:
+            random_list.append(col['if'][3])
 
     if 'cluster' in col:
       part = col['cluster']
@@ -852,18 +874,19 @@ def buildSolver(format):
           random_list.extend(np.random.uniform(part_mid*p-part_len,part_mid*p+part_len,part_num))
         random_list.extend(np.random.uniform(0,max(100,num_len), 2*part_len))
     # # 随机数
-    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and not 'trend' in col and not 'correlation' in col:
+    if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and 'trend' not in col and 'correlation' not in col and 'enum' not in col and 'if' not in col:
       # print(random_num,random_list)
       # random_c = z3.Sum([d[col['name']][i] == random_list[i] for i in unselected_index]) == random_num
       if col['type']=='Int':
         # sample_pool = np.random.choice(random_list,num_len, replace=False)
         # random_c = [[d[col['name']][i] == int(sample_pool[i])] for i in unselected_index]
         random_c = z3.Sum([z3.Or([d[col['name']][i] == int(temp) for temp in np.random.choice(random_list,5, replace=False)]) for i in unselected_index]) == random_num
-      if col['type']=='Real':
+      elif col['type']=='Real':
         random_c = z3.Sum([z3.Or([d[col['name']][i] == round(temp,2) for temp in np.random.choice(random_list,5, replace=False)]) for i in unselected_index]) == random_num
       else:
         random_c = z3.Sum([z3.Or([d[col['name']][i] == temp for temp in np.random.choice(random_list,3, replace=False)]) for i in unselected_index]) == random_num
       solver.add(random_c)
+      
   return [solver, d, others]
 # ==========================================================
 # ================结果转换================================
@@ -873,7 +896,7 @@ def save2json(data, path):
   json_fp.write(b)
   json_fp.close
 
-def parse2csv(data_list,path):
+def parse2csv(data_list,path, sort_config):
   csv_fp = open(path,'w',encoding='utf-8',newline='')
   # print(data_list)
   sheet_title = data_list[0].keys()
@@ -885,7 +908,17 @@ def parse2csv(data_list,path):
   writer.writerows(sheet_data)
   csv_fp.close()
   # sort part
-
+  if len(sort_config)>0:
+    col_name = sort_config[0]
+    sort_type = sort_config[1] == 'asc'
+    data_frame = pd.read_csv(path)
+    sorted_df = data_frame.sort_values(col_name,sort_type)
+    sorted_df.to_csv(path, index=False)
+  with open(path, 'r') as f:
+    reader = csv.DictReader(f)
+    my_list = list(reader)
+    my_list = json.loads(json.dumps(my_list))
+  return my_list
 # ================================================================
 # ====================生成主流程==================================
 def dataGen(json):
@@ -894,6 +927,7 @@ def dataGen(json):
   tables = parseTable(allTables)
   AllRes = []
   response_data = []
+  sort_config = []
   for index in range(len(tables)):
     response_item = {}
     response_item['origin']=allTables[index]
@@ -913,6 +947,7 @@ def dataGen(json):
       num_len = format['length']
       columns = format['children']
       col_size = format['column']
+      sort_config = format['order']
       
       output = []
       cnt = 0
@@ -956,6 +991,7 @@ def dataGen(json):
       else:
         print('无解')
         res.extend([])
+    res=parse2csv(res,'./data/test'+str(index)+'.csv', sort_config)
     response_item['table']=res
     response_data.append(response_item)
     AllRes.append(res)
