@@ -316,7 +316,7 @@ export default {
     }
     // background: #e6e6e6;
     &::-webkit-scrollbar {
-      height: 4px;
+      height: 8px;
       width: 4px;
     }
 

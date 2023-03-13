@@ -5,8 +5,8 @@
         JS panel
       </div>
       <div class="options">
-        GPT mode
-        <a-switch :checked="isGPTMode" size="small" @change="handleModeChange"/>
+        <!-- GPT mode
+        <a-switch :checked="isGPTMode" size="small" @change="handleModeChange"/> -->
         <a-select
           class="select-box"
           ref="select"
@@ -19,6 +19,7 @@
             {{item.title}}
           </a-select-option>
         </a-select>
+        <a-button class="run-btn" type="primary" @click="submit()">run</a-button>
       </div>
     </div>
     <div v-if="!isGPTMode" class="content">
@@ -26,7 +27,7 @@
         ref="monaco"
         :opts="opts"
         @change="changeValue"
-        :height="900"
+        :height="970"
       ></monaco>
     </div>
     <div v-else class="gpt-content">
@@ -45,9 +46,8 @@
         :height="600"
       ></monaco>
     </div>
-    <div class="footer">
-      <a-button type="primary" @click="submit()">run</a-button>
-    </div>
+    <!-- <div class="footer">
+    </div> -->
   </div>
 </template>
 
@@ -243,6 +243,12 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
     .select-box {
       margin: 3px 5px;
       margin-left: 15px;
+    }
+    .run-btn{
+      // margin: 5px;
+      height: 24px;
+      padding: auto;
+      line-height: 13px;
     }
   }
   

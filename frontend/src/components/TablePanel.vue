@@ -105,8 +105,8 @@ export default {
               .append('div')
                 .attr("id",`chart-dom-${i}`)
                 .attr('class','chart-content')
-                .style('height','400px')
-                .style('width','1200px')
+                .style('height','434px')
+                .style('width','1233px')
             d3.select(`#chart-dom-${i}`)
               .append('svg').attr("id",`chart-${i}`)
             this.$nextTick(()=>{
@@ -193,7 +193,7 @@ export default {
     height: 90px;
     border-bottom:1px solid #dcdada ;
     margin: 4px 10px;
-    background: rgba(207, 207, 207, 0.1);
+    // background: rgba(207, 207, 207, 0.1);
   }
   #overview-chart {
     width: 600px;
@@ -224,11 +224,13 @@ export default {
     .item-outer{
       width:100%;
       height:100%;
+      text-align: center;
     }
     .chart-content {
       height: 100%;
       width:100%;
       text-align: center;
+      margin:auto;
     }
     &::-webkit-scrollbar {
       height: 4px;
