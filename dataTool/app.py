@@ -947,8 +947,11 @@ def dataGen(json):
       num_len = format['length']
       columns = format['children']
       col_size = format['column']
-      sort_config = format['order']
-      
+      if 'order' in format:
+        sort_config = format['order']
+      else:
+        sort_config = []
+        
       output = []
       cnt = 0
       while solver.check()!=z3.sat and cnt<10:
