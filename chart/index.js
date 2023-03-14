@@ -17,7 +17,7 @@ const parse = function(v){
 
 const drawLineChart = function(svgId, dataPath) {
   // set the dimensions and margins of the graph
-  const margin = {top: 40, right: 40, bottom: 60, left: 60},
+  const margin = {top: 40, right: 40, bottom: 72, left: 100},
       width = 640 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom;
 
@@ -51,26 +51,32 @@ const drawLineChart = function(svgId, dataPath) {
       .attr("transform", `translate(0, ${height})`)
       .call(
         d3.axisBottom(x)
-        .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i))
+        .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i%3===0))
+        // .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i))
         
       );
 
     // Add Y axis
-    // const y = d3.scaleLinear()
-    const y = d3.scaleLog()
-      .domain([0.1,1000])
+    const y = d3.scaleLinear()
+        .domain([0,1])
+    // const y = d3.scaleLog()
+    //   .domain([0.1,3100])
       .range([ height, 0 ])
     svg.append("g")
       .attr("class", "axis")
       .call(
         d3.axisLeft(y)
-          .tickValues([0.1, 1,10,100,1000])
+          // .tickValues([0.1, 1,10,100,1000])
           .tickFormat(i=>i)
+          .tickValues([0,0.2,0.4,0.6,0.8,1])
           // .ticks(10)
       )
     
-    let texts = svg.selectAll('.axis')
-        .attr("font-size", '14px')
+    let texts = svg.selectAll('.tick')
+        .selectAll('text')
+        .attr("font-size", '29px')
+        .attr("font-family", "Microsoft YaHei")
+        .attr("transform", 'translate(0, 5)')
       
 
 
@@ -78,10 +84,11 @@ const drawLineChart = function(svgId, dataPath) {
     svg.append("text")
         .attr("text-anchor", "middle")
         .attr("x", width/2)
-        .attr("y", height + margin.top)
-        .attr("font-size", '14px')
-        // .text("Growth Rate")
-        .text("Number of Leaf Nodes")
+        .attr("y", height + margin.top+30)
+        .attr("font-size", '29px')
+        .attr("font-family", "Microsoft YaHei")
+        .text("Growth Rate")
+        // .text("Number of Leaf Nodes")
         // .text("Depth")
 
 
@@ -89,12 +96,13 @@ const drawLineChart = function(svgId, dataPath) {
     svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left+20)
+        .attr("y", -margin.left+30)
         .attr("x", -height/2)
-        .attr("font-size", '14px')
+        .attr("font-size", '29px')
+        .attr("font-family", "Microsoft YaHei")
         // .text("Average Aspect Ratio");
-        // .text("Median Aspect Ratio");
-        .text("Running Time (ms)");
+        .text("Median Aspect Ratio");
+        // .text("Running Time (ms)");
 
 
     // let lines = [{x1: 0, x2: 1.2, y1: 0.5, y2: 0.5},{x1: 1.06, x2: 1.06, y1: 0, y2: 1}]
@@ -133,30 +141,30 @@ const drawLineChart = function(svgId, dataPath) {
         })
 
 
-    // svg.selectAll("mylines")
-    //   .data(keys)
-    //   .enter()
-    //   .append("rect")
-    //     .attr("x", margin.left) //width是svg的宽度，x属性用来调整位置
-    //     // .attr("x", (width / 160) * 157)  
-    //     //或者可以用width的分数来表示，更稳定一些，这是我试出来的，下面同
-    //     .attr("y", function(d,i){ return 71 + i*25})
-    //     .attr("width", 14)
-    //     .attr("height", 14) //设低一些就是线，高一些就是面，很好理解
-    //     .style("fill", function(d){ return color(d)})
+//     svg.selectAll("mylines")
+//       .data(keys)
+//       .enter()
+//       .append("rect")
+//         .attr("y", margin.left) //width是svg的宽度，x属性用来调整位置
+//         // .attr("x", (width / 160) * 157)  
+//         //或者可以用width的分数来表示，更稳定一些，这是我试出来的，下面同
+//         .attr("x", function(d,i){ return 71 + i*200})
+//         .attr("width", 24)
+//         .attr("height", 24) //设低一些就是线，高一些就是面，很好理解
+//         .style("fill", function(d){ return color(d)})
 
-    // // Add one dot in the legend for each name.
-    // svg.selectAll("mylabels")
-    //   .data(keys)
-    //   .enter()
-    //   .append("text")
-    //     .attr("x", margin.left+20)
-    //     .attr("y", function(d,i){ return 80 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-    //     .style("fill", function(d){ return color(d)})
-    //     .text(function(d){ return d})
-    //     .attr("text-anchor", "left")
-    //     .style("font-size", "12px")
-    //     .style("alignment-baseline", "middle")
+//     // Add one dot in the legend for each name.
+//     svg.selectAll("mylabels")
+//       .data(keys)
+//       .enter()
+//       .append("text")
+//         .attr("y", margin.left+12)
+//         .attr("x", function(d,i){ return 100 + i*200}) // 100 is where the first dot appears. 25 is the distance between dots
+//         .style("fill", function(d){ return color(d)})
+//         .text(function(d){ return d})
+//         .attr("text-anchor", "left")
+//         .style("font-size", "24px")
+//         .style("alignment-baseline", "middle")
                   
   })
 }
@@ -181,6 +189,113 @@ function onSaveSvg() { // 保存svg
   onDownload(source, 'text/xml', 'test.svg'); // 下载 
 }
 
+function drawTree(svgId, dataPath) {
+  // set the dimensions and margins of the graph
+  const margin = {top: 40, right: 40, bottom: 60, left: 180},
+      width = 640 - margin.left - margin.right,
+      height = 400 - margin.top - margin.bottom;
+
+  // append the svg object to the body of the page
+  const svg = d3.select(svgId)
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+  let tree = d3.tree()
+    // .size([width,height])
+  d3.csv(dataPath, function(data) {
+    var root = d3.stratify()
+            .id(function(d) { return d.name; })
+            .parentId(function(d) { return d.parent; })
+            (data);
+    console.log(root)
+    root.sort((a, b) => a.id>b.id?1:-1);
+    const dx = 14;
+  const dy = width / (root.height+3);
+  tree.nodeSize([dx, dy])(root);
+    let nodes = root.descendants()
+    let links = root.links()
+    console.log(nodes,links)
+
+    let link= svg.selectAll('.link')
+                .data(links)
+                .enter()
+                .append('path')
+                .attr('class','link')
+                .attr("fill", "none")
+                .attr("stroke", "#666666")
+                .attr("stroke-width", 1)
+                .attr('d', d3.linkHorizontal()
+                            .x(function(d) { return d.x; })
+                            .y(function(d) { return d.y; }));
+                
+
+    let node = svg.selectAll('.node')
+                .data(nodes)
+                .enter()
+                .append('g')
+                .attr('class','node')
+                .attr('transform', function(d){
+                  return "translate("+d.x+","+d.y+")";
+                })
+    let color = ['#333333','#444444','#555555','#666666','#777777']
+    node.append('circle')
+        .attr('r',function(d){
+          return ['root','L1','L2','L3'].includes(d.id)?6:5})
+        .attr("fill",function(d){
+          console.log(d)
+          return color[d.depth]})
+
+    node.append("text")
+        .attr("dx", function(d){return d.children?-15:15})
+        .attr("dy",10)
+        .style("text-anchor",function(d){return d.children?"end":"start"})
+        .attr('class','text')
+        .attr('transform',"translate(15,-20)")
+        .text(function(d){
+          return ['root','L1','L2','L3'].includes(d.id)?d.id:''})
+  })
+  // let tree = d3.tree()
+  //   .size([width,height-200])
+  
+  //   let diagonal = d3.diagonal()
+  //                 .projection(d=>[d.y,d.x])
+  // d3.json(dataPath, function(error,root){
+  //   let nodes = tree.nodes(root)
+  //   let links = tree.links(nodes)
+
+  //   let link= svg.selectAll('.link')
+  //               .data(links)
+  //               .enter()
+  //               .append('path')
+  //               .attr('claa','link')
+  //               .attr('d',diagonal)
+
+  //   let node = svg.selectAll('.node')
+  //               .data(nodes)
+  //               .enter()
+  //               .append('g')
+  //               .attr('class','node')
+  //               .attr('transform', function(d){
+  //                 return "translate("+d.y+","+d.x+")";
+  //               })
+
+  //   node.append('circle')
+  //       .attr('r',4.5)
+
+  //   node.append("text")
+  //       .attr("dx", function(d){return d.children?-15:15})
+  //       .attr("dy",10)
+  //       .style("text-anchor",function(d){return d.children?"end":"start"})
+  //       .attr('class','text')
+  //       .text(function(d){return d.name})
+  // })
+
+}
+    
+
 // drawLineChart('#plot','./data/acsAvg.csv')
 // drawLineChart('#plot','./data/acsMedian.csv')
 // drawLineChart('#plot','./data/desAvg.csv')
@@ -188,4 +303,5 @@ function onSaveSvg() { // 保存svg
 // drawLineChart('#plot','./data/randomAvg.csv')
 // drawLineChart('#plot','./data/randomMedian.csv')
 // drawLineChart('#plot','./data/depth.csv')
-drawLineChart('#plot','./data/scale.csv')
+// drawLineChart('#plot','./data/scale.csv')
+drawTree('#plot','./data/depth-3.csv')

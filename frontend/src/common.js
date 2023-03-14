@@ -482,8 +482,8 @@ export const caseOptions = [
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
     "PM10": "Range(0,300) And (FreqIf('<100',0.6) Opt FreqIf('<100',0.2))",
     "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And Distribution('normal', 50,30)",
-    "SO2": "Range(0,90) And Distribution('normal', 25,15)",
+    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Opt Distribution('normal', 60,10))",
+    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Opt Distribution('normal', 50,20))",
     "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
     "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
@@ -642,50 +642,50 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
   // return overlap
 
   // Data intersect degree
-  // let intersect = 0
-  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
-  // let len = data.length
-  // let dem = keys.length 
-  // for(let i=0; i<len;i++){
-  //   for(let j=0;j<len;j++){
-  //     if(i!=j){
-  //       for(let k=0; k<dem-1; k++){
-  //         let key1 = keys[k]
-  //         let key2 = keys[k+1]
-  //         if(data[i][key1]===data[j][key1] || 
-  //             data[i][key2]===data[j][key2] ||
-  //             (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
-  //             ){
-  //           intersect++
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-  // intersect = intersect/(dem-1)
-  // intersect=intersect/(len*len)
-  // return intersect
-
-  // Data distribution
+  let intersect = 0
   let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
+  let len = data.length
   let dem = keys.length 
-  let sum = 0
-  for(let i=0;i<keys.length;i++){
-    var yMax = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[1];
-    var yMin = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[0];
-    let colData = data.map(v=>v[keys[i]])
-    let dataMax = Math.max(...colData)
-    let dataMin = Math.min(...colData)
-    let dataSub = dataMax-dataMin
-    let axisSub = yMax-yMin
-    if(!Number.isNaN(dataSub)){
-      sum += Math.pow(dataSub - axisSub, 2)
+  for(let i=0; i<len;i++){
+    for(let j=0;j<len;j++){
+      if(i!=j){
+        for(let k=0; k<dem-1; k++){
+          let key1 = keys[k]
+          let key2 = keys[k+1]
+          if(data[i][key1]===data[j][key1] || 
+              data[i][key2]===data[j][key2] ||
+              (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
+              ){
+            intersect++
+          }
+        }
+      }
     }
   }
-  sum=sum/dem
-  return sum
+  intersect = intersect/(dem-1)
+  intersect=intersect/(len*len)
+  return intersect
+
+  // Data distribution
+  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
+  // let dem = keys.length 
+  // let sum = 0
+  // for(let i=0;i<keys.length;i++){
+  //   var yMax = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[1];
+  //   var yMin = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[0];
+  //   let colData = data.map(v=>v[keys[i]])
+  //   let dataMax = Math.max(...colData)
+  //   let dataMin = Math.min(...colData)
+  //   let dataSub = dataMax-dataMin
+  //   let axisSub = yMax-yMin
+  //   if(!Number.isNaN(dataSub)){
+  //     sum += Math.pow(dataSub - axisSub, 2)
+  //   }
+  // }
+  // sum=sum/dem
+  // return sum
   
-  return performanceTest
+  // return performanceTest
 }`
   },
   {

@@ -196,7 +196,7 @@ export default {
     // background: rgba(207, 207, 207, 0.1);
   }
   #overview-chart {
-    width: 600px;
+    width: 1000px;
     height: 90px;
     margin: auto;
   }

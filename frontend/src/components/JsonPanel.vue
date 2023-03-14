@@ -2,7 +2,7 @@
   <div class="json-panel">
     <div class="header">
       <div class="title">
-        JS panel
+        Code Panel
       </div>
       <div class="options">
         <!-- GPT mode

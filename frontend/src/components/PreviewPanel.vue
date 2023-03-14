@@ -3,7 +3,7 @@
     <div class="chart-panel">
       <div class="header">
         <div class="title">
-          preview panel
+          Preview Panel
         </div>
       </div>
       <TablePanel/>
@@ -11,7 +11,7 @@
     <div class="data-panel">
       <div class="header">
         <div class="title">
-           data panel  
+           Data Attributes Panel  
           <span class="overview">{{ Object.keys(origin||{})[0] }}</span>
         </div>
       </div>

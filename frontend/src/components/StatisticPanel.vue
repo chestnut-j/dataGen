@@ -178,7 +178,7 @@ export default {
     },
     drawHistogram(col, chart){
       echarts.registerTransform(ecStat.transform.histogram);
-      let data = this.extraData(col)
+      let data = this.tableData.map(item=>+item[col])
       if(data.length){
         let bins = ecStat.histogram(data)
         if (this.charts[chart] != null && this.charts[chart] != "" && this.charts[chart] != undefined) {
@@ -227,7 +227,7 @@ export default {
       let emptyCount = 0
       let nonEmptyCount = 0 
       data.forEach(item=>{
-        if(item!==null){
+        if(item!==null && item!=""){
           nonEmptyCount++
         }else{
           emptyCount++
