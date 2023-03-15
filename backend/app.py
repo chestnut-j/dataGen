@@ -234,10 +234,14 @@ def parseCons(cons, col):
     if len(args)==2:
       col['locale'] = args[1]
 
-  if cons.find('GPT')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
+  if cons.find('GPTCode')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')]
+    col['type'] = 'GPTCode'
+    col['content'] = eval(args)
+  elif cons.find('GPT')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')]
     col['type'] = 'GPT'
-    col['content'] = eval(args[0])
+    col['content'] = eval(args)
 
 
   if cons.find('Range')!= -1:
@@ -429,6 +433,60 @@ def solveGPT(config, length):
   
   return data
 
+def generate_code_prompt(semantics, len):
+  return """
+    show me a python function to generate a list containing satisfying {} with length {} ,
+    and assign the list to the global variable temp_res['data'], 
+    and do not declare this variable temp_res and temp_res['data'] in the function
+    import any library used
+  """.format(semantics, len)
+
+def solve_gpt_code(config, length):
+  import openai
+  openai.api_key = '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'
+  openai.Model.list()
+  print(config,length)
+  response = openai.Completion.create(
+    # model="text-curie-001",
+    model="text-davinci-003",
+    prompt=generate_code_prompt(config['content'], length), 
+    temperature=0.5,
+    max_tokens=2000,
+  )
+  text_data = response.choices[0].text
+  # print(response.choices[0])
+  print(text_data)
+
+  global temp_res
+  temp_res = {}
+  exec(text_data)
+  print(temp_res)
+  data = temp_res['data']
+  unselected_index = np.arange(length)
+  if 'repeat' in config and 'trend' not in config:
+    times = config['repeat'][0]
+    repeat_index = np.random.choice(unselected_index, times, replace=False)
+    for index in repeat_index:
+      data[index] = data[repeat_index[0]]
+    unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+
+  if 'frequency' in config and 'trend' not in config:
+    for i in range(int(len(config['frequency'])/2)):
+      content = config['frequency'][2*i]
+      times = int(config['frequency'][2*i+1] * length)
+      repeat_index = np.random.choice(unselected_index, times, replace=False)
+      for index in repeat_index:
+        data[index] = content
+      unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+    
+    
+  if 'empty' in config and 'trend' not in config:
+    times = config['empty']
+    empty_index = np.random.choice(unselected_index, times, replace=False)
+    for index in empty_index:
+      data[index] = None
+  
+  return data
 
 # 拆分表格
 def parseJson(origin):
@@ -443,7 +501,6 @@ def parseJson(origin):
     for key, value in format.items():
       test = parseConstraint(key)
       remainValue = value
-      # print(value.items())
       for col_key, col_value in value.items():
         value_test.append(parseConstraint(col_value))
         key_test.append(col_key)
@@ -475,22 +532,6 @@ def parseTable(allTables):
         format = {
           'children': []
         }
-        # parse children
-        for col_key, col_value in value.items():
-          col = {}
-          col['name'] = col_key
-          
-          consList = findConstrain(col_value, 'And')
-          for cons in consList:
-            if ['Int','Real','String','Date'].count(cons.replace(" ",""))>0:
-              col['type'] = cons.replace(" ","")
-          if len(consList) == 0:
-            consList.append(col_value)
-          for cons in consList:
-              parseCons(cons, col)
-          if 'type' not in col:
-            col['type'] = 'Real'
-          format['children'].append(col)
         # parse key
         constrainList = findConstrain(key, 'And')
         for cons in constrainList:
@@ -509,6 +550,27 @@ def parseTable(allTables):
             for child in format['children']:
               if child['name'] == arg:
                 child['trend'] = dis_type
+        # parse children
+        i=0
+        for col_key, col_value in value.items():
+          i = i+1
+          if i>format['column']:
+            continue
+          col = {}
+          col['name'] = col_key
+          
+          consList = findConstrain(col_value, 'And')
+          for cons in consList:
+            if ['Int','Real','String','Date'].count(cons.replace(" ",""))>0:
+              col['type'] = cons.replace(" ","")
+          if len(consList) == 0:
+            consList.append(col_value)
+          for cons in consList:
+              parseCons(cons, col)
+          if 'type' not in col:
+            col['type'] = 'Real'
+          format['children'].append(col)
+        
         # 补充其余列
         if(len(value.items())<format['column']):
           for i in range(format['column']-len(value.items())):
@@ -552,8 +614,10 @@ def buildSolver(format):
         others[col['name']] = solveFaker(col,num_len)
         continue
       if col_type == 'GPT':
-        # random_list = solveFaker(col,num_len)
         others[col['name']] = solveGPT(col,num_len)
+        continue
+      if col_type == 'GPTCode':
+        others[col['name']] = solve_gpt_code(col,num_len)
         continue
     else:
       d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
@@ -983,7 +1047,7 @@ def dataGen(json):
                   data[col['name']] = others[col['name']][i]
                 else:
                   data[col['name']] = ''
-              elif col['type'] == 'Faker' or col['type'] == 'GPT' :
+              elif col['type'] == 'Faker' or col['type'] == 'GPT' or col['type'] == 'GPTCode':
                 data[col['name']] = others[col['name']][i]
             else:
               data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)

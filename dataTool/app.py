@@ -501,7 +501,6 @@ def parseJson(origin):
     for key, value in format.items():
       test = parseConstraint(key)
       remainValue = value
-      # print(value.items())
       for col_key, col_value in value.items():
         value_test.append(parseConstraint(col_value))
         key_test.append(col_key)
@@ -533,22 +532,6 @@ def parseTable(allTables):
         format = {
           'children': []
         }
-        # parse children
-        for col_key, col_value in value.items():
-          col = {}
-          col['name'] = col_key
-          
-          consList = findConstrain(col_value, 'And')
-          for cons in consList:
-            if ['Int','Real','String','Date'].count(cons.replace(" ",""))>0:
-              col['type'] = cons.replace(" ","")
-          if len(consList) == 0:
-            consList.append(col_value)
-          for cons in consList:
-              parseCons(cons, col)
-          if 'type' not in col:
-            col['type'] = 'Real'
-          format['children'].append(col)
         # parse key
         constrainList = findConstrain(key, 'And')
         for cons in constrainList:
@@ -567,6 +550,27 @@ def parseTable(allTables):
             for child in format['children']:
               if child['name'] == arg:
                 child['trend'] = dis_type
+        # parse children
+        i=0
+        for col_key, col_value in value.items():
+          i = i+1
+          if i>format['column']:
+            continue
+          col = {}
+          col['name'] = col_key
+          
+          consList = findConstrain(col_value, 'And')
+          for cons in consList:
+            if ['Int','Real','String','Date'].count(cons.replace(" ",""))>0:
+              col['type'] = cons.replace(" ","")
+          if len(consList) == 0:
+            consList.append(col_value)
+          for cons in consList:
+              parseCons(cons, col)
+          if 'type' not in col:
+            col['type'] = 'Real'
+          format['children'].append(col)
+        
         # 补充其余列
         if(len(value.items())<format['column']):
           for i in range(format['column']-len(value.items())):
@@ -1043,7 +1047,7 @@ def dataGen(json):
                   data[col['name']] = others[col['name']][i]
                 else:
                   data[col['name']] = ''
-              elif col['type'] == 'Faker' or col['type'] == 'GPT'or col['type'] == 'GPTCode' :
+              elif col['type'] == 'Faker' or col['type'] == 'GPT' or col['type'] == 'GPTCode':
                 data[col['name']] = others[col['name']][i]
             else:
               data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)
