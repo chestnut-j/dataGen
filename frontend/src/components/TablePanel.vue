@@ -32,6 +32,7 @@
 import {store} from '../store/store.js'
 import * as d3 from 'd3';
 import * as echarts from 'echarts'
+// import * as visCharts from '@zjlabvis/vis-charts'  
 
 import { LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons-vue';
 import { getOverviewBarOption } from '../common.js';
@@ -115,7 +116,7 @@ export default {
               let end = +new Date()
               let efficiencyTest = end-start
               const data = this.info[i]?.table || []
-              let arg = store.validationFunction(data, `#chart-${i}`, this.echartsList[i], efficiencyTest)
+              let arg = store.evaluationFunction(data, `#chart-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
             })
           } 
@@ -138,15 +139,17 @@ export default {
     },
     toLast(){
       let index = (this.currentIndex - 1 + this.totalLen)%this.totalLen
+      this.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
       store.setCurrentIndex(index)
+      this.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: index});
     },
     toNext(){
       let index = (this.currentIndex + 1)%this.totalLen
-      console.log('aaa')
+      this.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
       store.setCurrentIndex(index)
+      this.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: index});
     },
     onChange(val){
-      console.log(val)
       store.setCurrentIndex(val)
     },
     getColumns(config){
@@ -164,8 +167,13 @@ export default {
       const data = this.info[index]?.table || []
       if(data.length){
           const chartDom = document.getElementById(`chart-dom-${index}`)
-          const myChart = echarts.init(chartDom);
-          this.echartsList[index]=store.visFunction(data, `#chart-${index}`, myChart, d3, echarts)
+          if (this.echartsList[index] != null && this.echartsList[index] != "" && this.echartsList[index] != undefined) {
+            this.echartsList[index]=store.visFunction(data, `#chart-${index}`, this.echartsList[index], d3, echarts)
+          }else{
+            const myChart = echarts.init(chartDom);
+            this.echartsList[index]=store.visFunction(data, `#chart-${index}`, myChart, d3, echarts)
+          }
+
       }
     },
     drawOverviewChart(){
@@ -175,9 +183,18 @@ export default {
       this.overviewChart = echarts.init(document.getElementById('overview-chart'));
       // 绘制图表
       this.overviewChart.setOption(getOverviewBarOption('', store.performArr))
-      this.overviewChart.on('click', 'series.bar', function (params) {
-          console.log(params);
-          store.setCurrentIndex(params.dataIndex)
+      let that = this
+      that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: this.currentIndex})
+      this.overviewChart.on('click', 'series.bar', function (e) {
+        
+          console.log(e);
+          if(e.dataIndex != this.currentIndex){
+              //没用选中的取消高亮
+              that.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
+          }
+          //选中某一条高亮
+          store.setCurrentIndex(e.dataIndex)
+          that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: e.dataIndex});
       });
     }
   }

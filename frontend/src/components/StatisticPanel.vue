@@ -66,14 +66,20 @@ export default {
       this.columns.forEach(item=>{
           let keys = Object.keys(item)
           config[item.name] = []
-          if(keys.includes('max') || keys.includes('min') ||  keys.includes('quantile') ||keys.includes('mean')  ){
+          if(keys.includes('max') || keys.includes('min') ||  keys.includes('quantile') ||keys.includes('mean')  || keys.includes('range')){
               config[item.name].push('box')
           }
           if(keys.includes('trend')){
             config[item.name].push('line')
           }
           if(keys.includes('empty')){
-            config[item.name].push('pie')
+            config[item.name].push('pie-empty')
+          }
+          if(keys.includes('freqIf')){
+            config[item.name].push(`pie-freqIf,${item['freqIf'][0]}`)
+          }
+          if(keys.includes('frequency')){
+            config[item.name].push('pie-freq')
           }
           if(item['type']==='Real' ||item['type']==='Int' || !keys.includes('type')  ){
             config[item.name].push('histogram')
@@ -117,26 +123,38 @@ export default {
           const items = this.chartConfig[key]
           items.forEach(chart=>{
             const id = key+chart
-            switch(chart){
-              case 'box': 
-                  that.drawBox(key, id)
-                  break
-              case 'line': 
-                  that.drawLine(key, id)
-                  break
-              case 'histogram': 
-                  that.drawHistogram(key, id)
-                   break
-              case 'bar':
-                  that.drawBar(key, id)
-                  break
-              case 'pie':
-                  that.drawPie(key, id)
-                  break
-              default:
-                  that.drawBar(key, id)
-                  break
+            if(chart.indexOf('freqIf')>-1){
+              let condition = chart.split(',')[1]
+              that.drawPie(key, id,'freqIf',condition)
+            }else{
+              switch(chart){
+                case 'box': 
+                    that.drawBox(key, id)
+                    break
+                case 'line': 
+                    that.drawLine(key, id)
+                    break
+                case 'histogram': 
+                    that.drawHistogram(key, id)
+                    break
+                case 'bar':
+                    that.drawBar(key, id)
+                    break
+                case 'pie-empty':
+                    that.drawPie(key, id, 'empty')
+                    break
+                case 'pie-freqIf':
+                    that.drawPie(key, id,'freqIf')
+                    break
+                case 'pie-freq':
+                    that.drawPie(key, id, 'freq')
+                    break
+                default:
+                    that.drawBar(key, id)
+                    break
+              }
             }
+            
           })
         })
         // this.columns.forEach(item=>{
@@ -199,9 +217,14 @@ export default {
       // 绘制图表
       this.charts[chart].setOption(getBarOption(col, bins))
     },
-    drawPie(col, chart){
+    drawPie(col, chart, type, condition=null){
       let data = this.extraData(col)
-      let myData = this.getEmpty(data)
+      let myData = data
+      if(type==='freqIf') {
+        myData = this.getBinsFreqIf(data, condition)
+      }else{
+        myData = (type==='empty')?this.getEmpty(data):this.getBins2(data)
+      }
       if (this.charts[chart] != null && this.charts[chart] != "" && this.charts[chart] != undefined) {
         this.charts[chart].dispose();
       }
@@ -223,11 +246,43 @@ export default {
       })
       return obj
     },
+    getBins2(data){
+      let obj = {}
+      data.forEach(item=>{
+        if(obj[item]!==undefined){
+          obj[item]++
+        }else{
+          obj[item]=1
+        }
+      })
+      let res = []
+      for (const [k, v] of Object.entries(obj)) {
+        res.push({
+          name: k,
+          value: v
+        })
+      }
+      return res
+    },
+    getBinsFreqIf(data, condition){
+      let satisfiedCount = 0
+      let notSatisfiedCount = 0 
+      console.log(condition)
+      data.forEach(item=>{
+        if(eval(item+condition)){
+          satisfiedCount++
+        }else{
+          notSatisfiedCount++
+        }
+      })
+      let notCondition = (condition.indexOf('>')>-1)?condition.replace('>','<='):condition.replace('<',">=")
+      return [{name:condition, value:satisfiedCount},{name:notCondition, value:notSatisfiedCount}]
+    },
     getEmpty(data){
       let emptyCount = 0
       let nonEmptyCount = 0 
       data.forEach(item=>{
-        if(item!==null && item!=""){
+        if(item!==null && item!==""){
           nonEmptyCount++
         }else{
           emptyCount++

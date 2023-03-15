@@ -72,7 +72,7 @@ visFunc = function(data, svgId, echartInstance, d3, echarts){
 }
 
 
-validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
   return efficiencyTest
 }`
 export default {
@@ -95,7 +95,7 @@ visFunc = function(data, svgId, echartInstance, d3, echarts){
 }
 
 
-validationFunc = function(data, svgId, echartInstance,  efficiencyTest){
+evaluationFunc = function(data, svgId, echartInstance,  efficiencyTest){
   
 }`,
         readOnly: false, // 是否可编辑
@@ -144,7 +144,7 @@ validationFunc = function(data, svgId, echartInstance,  efficiencyTest){
         this.jsCode = this.$refs.monaco.getVal()
         let myJson = this.getJsonData(this.jsCode)
         let myVisFunc = this.getVisFunction(this.jsCode)
-        let myValidationFunc = this.getValidationFunction(this.jsCode)
+        let myevaluationFunc = this.getevaluationFunction(this.jsCode)
         // myFunc('a11','a22')
         // store.setTotalInfo(sampleData)
         store.setLoading(true)
@@ -152,7 +152,7 @@ validationFunc = function(data, svgId, echartInstance,  efficiencyTest){
           console.log(res.data)
           store.setTotalInfo(res.data)
           store.setVisFunction(myVisFunc)
-          store.setValidationFunction(myValidationFunc)
+          store.setevaluationFunction(myevaluationFunc)
           message.success('generate success')
           store.setLoading(false)
         })
@@ -175,14 +175,14 @@ validationFunc = function(data, svgId, echartInstance,  efficiencyTest){
       return JSON.parse(json)
     },
     getVisFunction(data){
-      let fun = data.slice( data.indexOf("visFunc"),data.indexOf('validationFunc'))
+      let fun = data.slice( data.indexOf("visFunc"),data.indexOf('evaluationFunc'))
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
       let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
       let myFun = new Function(...arg, f)
       return myFun
     },  
-    getValidationFunction(data){
-      let index = data.indexOf("validationFunc")
+    getevaluationFunction(data){
+      let index = data.indexOf("evaluationFunc")
       let fun = data.slice(index)
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
       let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))

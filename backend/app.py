@@ -362,7 +362,7 @@ def solveFaker(config, length):
 
   unselected_index = np.arange(length)
   if 'repeat' in config and not 'trend' in config:
-    times = config['repeat']
+    times = config['repeat'][0]
     repeat_index = np.random.choice(unselected_index, times, replace=False)
     for index in repeat_index:
       data[index] = data[repeat_index[0]]
@@ -1058,7 +1058,7 @@ def dataGen(json):
       else:
         print('无解')
         res.extend([])
-    res=parse2csv(res,'./data/test'+str(index)+'.csv', sort_config)
+    # res=parse2csv(res,'./data/test'+str(index)+'.csv', sort_config)
     response_item['table']=res
     response_data.append(response_item)
     AllRes.append(res)

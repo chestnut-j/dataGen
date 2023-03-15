@@ -215,7 +215,15 @@ export const getPieOption = function(name, data) {
             shadowOffsetX: 0,
             shadowColor: 'rgba(0, 0, 0, 0.5)'
           }
-        }
+        },
+        label:{
+          // position: 'center',
+          formatter: '{b}\n({c})'
+        },
+        left: '5%',
+        right: '5%',
+        bottom: '5%',
+        top:'5%',
       }
     ]
   }
@@ -228,10 +236,10 @@ export const getOverviewBarOption = function(name, data) {
     tooltip: {
     },
     grid: {
-      left: '15%',
-      right: '15%',
-      bottom: '25%',
-      top:'20%',
+      left: '5%',
+      right: '5%',
+      bottom: '20%',
+      top:'15%',
     },
     xAxis: {
       type: 'category',
@@ -239,12 +247,18 @@ export const getOverviewBarOption = function(name, data) {
     },
     yAxis: {
       type:'value',
-      interval: 1,
+      // interval: 1,
+      interval: 'function(value){ return Math.ceil(value.max); }'
     },
     series: [
       {
         type: 'bar',
         data: Object.values(data),
+        emphasis: {
+            itemStyle: {
+                color: '#8DBCF4'
+            },
+        },
       },
     ]
   }
@@ -267,7 +281,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (data, svgId, echartInstance, efficiencyTest) {
+    visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -332,8 +346,8 @@ export const caseOptions = [
             .attr("stroke-linejoin", "round")
             .attr("stroke", "white"));
     }
-    validationFunc = function(svgId, echartInstance, data, efficiencyTest){
-      return efficiencyTest()
+    evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+      return efficiencyTest
     }`
   },
   {
@@ -351,7 +365,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (data, svgId, echartInstance, d3, echarts) {
+    visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
@@ -470,7 +484,7 @@ export const caseOptions = [
         z: d => d.species
       })
     }
-    validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+    evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
       return efficiencyTest
     }`
   },
@@ -490,7 +504,7 @@ export const caseOptions = [
   }
 }
 
-visFunc= function (data, svgId, echartInstance, d3, echarts) {
+visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
   var myChart = echartInstance;
   var option;
 
@@ -612,7 +626,7 @@ visFunc= function (data, svgId, echartInstance, d3, echarts) {
   option && myChart.setOption(option);
   return myChart
 }
-validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
   // data density
   // return data.length
 
@@ -705,7 +719,7 @@ validationFunc = function(data, svgId, echartInstance, efficiencyTest){
   }
 }
 
-visFunc= function (data, svgId, echartInstance, d3, echarts) {
+visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
   var myChart = echartInstance;
   var option;
 
@@ -915,7 +929,24 @@ visFunc= function (data, svgId, echartInstance, d3, echarts) {
 
   option && myChart.setOption(option);
 }
-validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+  return efficiencyTest
+}`
+  },
+  {
+    id: 5,
+    title: 'visChart case 1',
+    content:  `data = {
+  "( Length(1)And Column(2) )": {
+    "real": "Enum('22') Opt Enum('+22') Opt Enum('-22') Opt Enum('ppp') Opt Empty(1)",
+    "simu": "Range(0,300)",
+  }
+}
+
+visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
+
+}
+evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
   return efficiencyTest
 }`
   },
@@ -940,7 +971,7 @@ validationFunc = function(data, svgId, echartInstance, efficiencyTest){
     visFunc= function (a, b) {
       console.log('args:', a, b)
     }
-    validationFunc = function(svgId, echartInstance, data, efficiencyTest){
+    evaluationFunc = function(svgId, echartInstance, data, efficiencyTest){
       return efficiencyTest
     }`
   },
