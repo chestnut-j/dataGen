@@ -235,10 +235,11 @@ export const getOverviewBarOption = function(name, data) {
     },
     xAxis: {
       type: 'category',
-      data: Object.keys(data),
+      data: Object.keys(data).map(v=>+v+1),
     },
     yAxis: {
       type:'value',
+      interval: 1,
     },
     series: [
       {
@@ -266,7 +267,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (svgId, echartInstance, data, performanceTest) {
+    visFunc= function (data, svgId, echartInstance, efficiencyTest) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -331,8 +332,8 @@ export const caseOptions = [
             .attr("stroke-linejoin", "round")
             .attr("stroke", "white"));
     }
-    evaluationFunc = function(svgId, chartDom, data, performanceTest){
-      return performanceTest()
+    validationFunc = function(svgId, echartInstance, data, efficiencyTest){
+      return efficiencyTest()
     }`
   },
   {
@@ -350,7 +351,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (svgId, chartDom, data, d3, echarts) {
+    visFunc= function (data, svgId, echartInstance, d3, echarts) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
@@ -469,8 +470,8 @@ export const caseOptions = [
         z: d => d.species
       })
     }
-    evaluationFunc = function(svgId, echartInstance, data, performanceTest){
-      return performanceTest
+    validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+      return efficiencyTest
     }`
   },
   {
@@ -489,8 +490,8 @@ export const caseOptions = [
   }
 }
 
-visFunc= function (svgId, chartDom, data, d3, echarts) {
-  var myChart = echarts.init(chartDom);
+visFunc= function (data, svgId, echartInstance, d3, echarts) {
+  var myChart = echartInstance;
   var option;
 
   const schema = [
@@ -611,7 +612,7 @@ visFunc= function (svgId, chartDom, data, d3, echarts) {
   option && myChart.setOption(option);
   return myChart
 }
-evaluationFunc = function(svgId, echartInstance, data, performanceTest){
+validationFunc = function(data, svgId, echartInstance, efficiencyTest){
   // data density
   // return data.length
 
@@ -685,7 +686,7 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
   // sum=sum/dem
   // return sum
   
-  // return performanceTest
+  // return efficiencyTest
 }`
   },
   {
@@ -704,8 +705,8 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
   }
 }
 
-visFunc= function (svgId, chartDom, data, d3, echarts) {
-  var myChart = echarts.init(chartDom);
+visFunc= function (data, svgId, echartInstance, d3, echarts) {
+  var myChart = echartInstance;
   var option;
 
   // Schema:
@@ -914,8 +915,8 @@ visFunc= function (svgId, chartDom, data, d3, echarts) {
 
   option && myChart.setOption(option);
 }
-evaluationFunc = function(svgId, echartInstance, data, performanceTestt){
-  return performanceTest
+validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+  return efficiencyTest
 }`
   },
   {
@@ -939,8 +940,8 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTestt){
     visFunc= function (a, b) {
       console.log('args:', a, b)
     }
-    evaluationFunc = function(svgId, chartDom, data, performanceTest){
-      return performanceTest
+    validationFunc = function(svgId, echartInstance, data, efficiencyTest){
+      return efficiencyTest
     }`
   },
 ]

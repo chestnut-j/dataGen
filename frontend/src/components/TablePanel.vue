@@ -1,8 +1,8 @@
 <template>
   <div class="table-panel">
     <div v-if="totalLen" class="header">
-      <div id="overview-chart">
-      </div>
+      <div class="validation-label">data Intersect</div>
+      <div id="overview-chart"></div>
     </div>
     <div class="content">
       <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
@@ -113,9 +113,9 @@ export default {
               let start = +new Date()
               this.drawChart(i)
               let end = +new Date()
-              let performanceTest = end-start
+              let efficiencyTest = end-start
               const data = this.info[i]?.table || []
-              let arg = store.evaluationFunction(`#chart-${i}`, this.echartsList[i], data, performanceTest)
+              let arg = store.validationFunction(data, `#chart-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
             })
           } 
@@ -164,7 +164,8 @@ export default {
       const data = this.info[index]?.table || []
       if(data.length){
           const chartDom = document.getElementById(`chart-dom-${index}`)
-          this.echartsList[index]=store.visFunction(`#chart-${index}`, chartDom, data, d3, echarts)
+          const myChart = echarts.init(chartDom);
+          this.echartsList[index]=store.visFunction(data, `#chart-${index}`, myChart, d3, echarts)
       }
     },
     drawOverviewChart(){
@@ -190,19 +191,30 @@ export default {
   height: calc(100% - 40px);
   overflow: hidden;
   .header {
-    height: 90px;
+    height: 100px;
     border-bottom:1px solid #dcdada ;
-    margin: 4px 10px;
+    margin: 2px 10px;
+    display: flex;
+    align-items: end;
+    justify-content: flex-start;
     // background: rgba(207, 207, 207, 0.1);
   }
+  .validation-label{
+    width: 130px;
+    font-size: 16px;
+    padding-bottom: 10px;
+    padding-left: 32px;
+    line-height: 24px;
+
+  }
   #overview-chart {
-    width: 1000px;
-    height: 90px;
-    margin: auto;
+    width: calc(100% - 260px);
+    height: 100px;
+    // margin: auto;
   }
   .content {
-    height: calc(100% - 120px);
-    padding: 10px;
+    height: calc(100% - 130px);
+    padding: 0 10px 0 10px;
     overflow: hidden;
     display: flex;
     flex-flow: row;

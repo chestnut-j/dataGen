@@ -19,7 +19,7 @@
             {{item.title}}
           </a-select-option>
         </a-select>
-        <a-button class="run-btn" type="primary" @click="submit()">run</a-button>
+        <a-button class="run-btn" type="primary" @click="submit()">Run</a-button>
       </div>
     </div>
     <div v-if="!isGPTMode" class="content">
@@ -67,13 +67,13 @@ data = {
 
 }
 // vis function
-visFunc = function(svgId, chartDom, data, d3, echarts){
+visFunc = function(data, svgId, echartInstance, d3, echarts){
   
 }
 
 
-evaluationFunc = function(svgId, echartInstance, data, performanceTest){
-  return performanceTest
+validationFunc = function(data, svgId, echartInstance, efficiencyTest){
+  return efficiencyTest
 }`
 export default {
   name: 'JsonPanel',
@@ -90,12 +90,12 @@ export default {
       },
       gptOpts: {
         value: `// vis function
-visFunc = function(svgId, chartDom, data, d3, echarts){
+visFunc = function(data, svgId, echartInstance, d3, echarts){
   
 }
 
 
-evaluationFunc = function(svgId, echartInstance, data, performanceTest){
+validationFunc = function(data, svgId, echartInstance,  efficiencyTest){
   
 }`,
         readOnly: false, // 是否可编辑
@@ -144,7 +144,7 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
         this.jsCode = this.$refs.monaco.getVal()
         let myJson = this.getJsonData(this.jsCode)
         let myVisFunc = this.getVisFunction(this.jsCode)
-        let myEvaluationFunc = this.getEvaluationFunction(this.jsCode)
+        let myValidationFunc = this.getValidationFunction(this.jsCode)
         // myFunc('a11','a22')
         // store.setTotalInfo(sampleData)
         store.setLoading(true)
@@ -152,7 +152,7 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
           console.log(res.data)
           store.setTotalInfo(res.data)
           store.setVisFunction(myVisFunc)
-          store.setEvaluationFunction(myEvaluationFunc)
+          store.setValidationFunction(myValidationFunc)
           message.success('generate success')
           store.setLoading(false)
         })
@@ -175,14 +175,14 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
       return JSON.parse(json)
     },
     getVisFunction(data){
-      let fun = data.slice( data.indexOf("visFunc"),data.indexOf('evaluationFunc'))
+      let fun = data.slice( data.indexOf("visFunc"),data.indexOf('validationFunc'))
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
       let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
       let myFun = new Function(...arg, f)
       return myFun
     },  
-    getEvaluationFunction(data){
-      let index = data.indexOf("evaluationFunc")
+    getValidationFunction(data){
+      let index = data.indexOf("validationFunc")
       let fun = data.slice(index)
       let arg = fun.slice(fun.indexOf('(')+1,fun.indexOf(')')).split(',')
       let f = fun.slice(fun.indexOf('{')+1,fun.lastIndexOf('}'))
@@ -220,7 +220,7 @@ evaluationFunc = function(svgId, echartInstance, data, performanceTest){
 .json-panel {
   position: relative;
   .header {
-    background: #f6f6f6;
+    background: #ebebeb;
     border-bottom: 1px solid #e6e6e6;
     margin-bottom: 10px;
     display: flex;

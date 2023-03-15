@@ -60,7 +60,7 @@ export default {
       line-height: 18px;
       padding:4px;
       padding-left: 10px;
-      background: #f6f6f6;
+      background: #ebebeb;
       text-align: left;
       .overview {
         font-size: 12px;
