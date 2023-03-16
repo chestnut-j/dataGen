@@ -1,9 +1,5 @@
 <template>
   <div class="table-panel">
-    <div v-if="totalLen" class="header">
-      <div class="validation-label">data Intersect</div>
-      <div id="overview-chart"></div>
-    </div>
     <div class="content">
       <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
         <left-circle-outlined />
@@ -23,8 +19,13 @@
         <right-circle-outlined />
       </div>
     </div>
-    <div class="footer">
+    <!-- <div class="footer">
       {{ totalLen?currentIndex+1:0 }}/{{ totalLen }}
+    </div> -->
+    
+    <div v-if="totalLen" class="header">
+      <div class="validation-label">data Intersect</div>
+      <div id="overview-chart"></div>
     </div>
   </div>
 </template>
@@ -32,7 +33,7 @@
 import {store} from '../store/store.js'
 import * as d3 from 'd3';
 import * as echarts from 'echarts'
-// import * as visCharts from '@zjlabvis/vis-charts'  
+import * as visCharts from '@zjlabvis/vis-charts'  
 
 import { LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons-vue';
 import { getOverviewBarOption } from '../common.js';
@@ -106,17 +107,17 @@ export default {
               .append('div')
                 .attr("id",`chart-dom-${i}`)
                 .attr('class','chart-content')
-                .style('height','434px')
+                .style('height','530px')
                 .style('width','1233px')
-            d3.select(`#chart-dom-${i}`)
-              .append('svg').attr("id",`chart-${i}`)
+            // d3.select(`#chart-dom-${i}`)
+            //   .append('svg').attr("id",`chart-${i}`)
             this.$nextTick(()=>{
               let start = +new Date()
               this.drawChart(i)
               let end = +new Date()
               let efficiencyTest = end-start
               const data = this.info[i]?.table || []
-              let arg = store.evaluationFunction(data, `#chart-${i}`, this.echartsList[i], efficiencyTest)
+              let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
             })
           } 
@@ -166,14 +167,14 @@ export default {
       // const data = this.tableData
       const data = this.info[index]?.table || []
       if(data.length){
-          const chartDom = document.getElementById(`chart-dom-${index}`)
-          if (this.echartsList[index] != null && this.echartsList[index] != "" && this.echartsList[index] != undefined) {
-            this.echartsList[index]=store.visFunction(data, `#chart-${index}`, this.echartsList[index], d3, echarts)
-          }else{
-            const myChart = echarts.init(chartDom);
-            this.echartsList[index]=store.visFunction(data, `#chart-${index}`, myChart, d3, echarts)
-          }
-
+          // const chartDom = document.getElementById(`chart-dom-${index}`)
+          // if (this.echartsList[index] != null && this.echartsList[index] != "" && this.echartsList[index] != undefined) {
+          //   this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts)
+          // }else{
+          //   const myChart = echarts.init(chartDom);
+          //   this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts )
+          // }
+        this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts )
       }
     },
     drawOverviewChart(){
@@ -205,11 +206,11 @@ export default {
 <style lang="less" scoped>
 
 .table-panel {
-  height: calc(100% - 40px);
+  height: calc(100% - 25px);
   overflow: hidden;
   .header {
     height: 100px;
-    border-bottom:1px solid #dcdada ;
+    border-top:1px solid #dcdada ;
     margin: 2px 10px;
     display: flex;
     align-items: end;
@@ -238,7 +239,7 @@ export default {
     align-items: center;
   }
   .footer {
-    bottom: 0;
+    bottom: 15px;
     height: 20px;
     font-size: 14px;
     text-align: center;

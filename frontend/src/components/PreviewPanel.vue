@@ -1,13 +1,5 @@
 <template>
   <div class="preview-panel">
-    <div class="chart-panel">
-      <div class="header">
-        <div class="title">
-          Preview Panel
-        </div>
-      </div>
-      <TablePanel/>
-    </div>
     <div class="data-panel">
       <div class="header">
         <div class="title">
@@ -17,6 +9,15 @@
       </div>
       <StatisticPanel/>
     </div>
+    <div class="chart-panel">
+      <div class="header">
+        <div class="title">
+          Preview Panel
+        </div>
+      </div>
+      <TablePanel/>
+    </div>
+    
     
 <!--     
     <div class="content">
@@ -71,11 +72,11 @@ export default {
   }
   
   .chart-panel{
-    height:60%;
+    height:67%;
   }
 
   .data-panel {
-    height: 40%;
+    height: 33%;
   }
 }
 </style>

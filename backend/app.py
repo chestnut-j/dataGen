@@ -213,8 +213,8 @@ def findConstrain(allStr, operation):
 
 def parseCons(cons, col):
   # parse type
-  if ['Int','Real','String','Date'].count(cons)>0:
-    col['type'] = cons
+  if ['Int','Real','String','Date'].count(cons.replace(' ',''))>0:
+    col['type'] = cons.replace(' ','')
   
   if cons.find('DateData')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -339,6 +339,13 @@ def parseCons(cons, col):
   if cons.find('Enum')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')]
     col['enum'] = eval(args)
+    content = col['enum'][0]
+    if isinstance(content,float) and 'type' not in col:
+      col['type'] = 'Real'
+    elif isinstance(content,int) and 'type' not in col:
+      col['type'] = 'Int'
+    elif isinstance(content,str) and 'type' not in col:
+      col['type'] = 'String'
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -843,20 +850,29 @@ def buildSolver(format):
       if col_trend == 'linear':
         # 线性
         scope = col['trend'][1]
-        a = np.random.random()+1
+        if len(col['trend'])>2:
+          a = col['trend'][2]
+        else:
+          a = np.random.random()+1
         linear_c = [d[col['name']][i]==scope*i+a for i in nonempty_index]
         # dec_c = [z3.And(d[col['name']][i]>=a*d[col['name']][j], a > 1) if i<=j else True  for j in nonempty_index for i in nonempty_index]
         # asc_c = [d[col['name']][i]<d[col['name']][i+1] for i in range(num_len-1)]
         solver.add(linear_c)
       if col_trend == 'quadratic':
         # 平方
-        a = np.random.random()+1
+        if len(col['trend'])>1:
+          a = col['trend'][1]
+        else:
+          a = np.random.random()+1
         quad_c = [d[col['name']][i]==i*i+a for i in nonempty_index]
         solver.add(quad_c)
       if col_trend == 'exponential':
         # 指数
         base = col['trend'][1]
-        a = np.random.random()+1
+        if len(col['trend'])>2:
+          a = col['trend'][2]
+        else:
+          a = np.random.random()+1
         exp_c = [d[col['name']][i]==math.pow(base,i)+a for i in nonempty_index]
         solver.add(exp_c)
       if col_trend == 'periodic':

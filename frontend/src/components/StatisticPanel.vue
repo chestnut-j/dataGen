@@ -342,8 +342,8 @@ export default {
   .statistic-panel {
     height: 100%;
     margin: 0 20px;
-    padding: 10px 0;
-    overflow-x: scroll;
+    padding: 8px 0;
+    overflow-x: auto;
     white-space: nowrap;
     border-top: 1px solid #e6e6e6;
     .column-content{
@@ -354,12 +354,12 @@ export default {
       padding:5px 10px;
       .column-name {
         font-weight:600;
-        padding-top:10px;
+        padding-top:0px;
       }
       .column-chart {
         display: inline-block;
-        width:260px;
-        height: 260px;
+        width:200px;
+        height: 200px;
         margin:auto;
       }
       .constraint {

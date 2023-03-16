@@ -29,7 +29,8 @@ export const getBoxOption = function(name, data){
     grid: {
       left: '15%',
       right: '15%',
-      bottom: '10%'
+      bottom: '10%',
+      top:'15%'
     },
     xAxis: {
       type: 'category',
@@ -82,9 +83,10 @@ export const getLineOption = function(name, data) {
       }
     },
     grid: {
-      left: '20%',
+      left: '15%',
       right: '15%',
-      bottom: '10%'
+      bottom: '10%',
+      top:'15%'
     },
     xAxis: {
       type: 'category',
@@ -125,7 +127,8 @@ export const getHistogramOption = function(name, data) {
     grid: {
       left: '15%',
       right: '15%',
-      bottom: '10%'
+      bottom: '10%',
+      top:'15%'
     },
     xAxis: {
       type: 'category',
@@ -167,7 +170,8 @@ export const getBarOption = function(name, data) {
     grid: {
       left: '15%',
       right: '15%',
-      bottom: '10%'
+      bottom: '10%',
+      top:'15%'
     },
     xAxis: {
       type: 'category',
@@ -281,7 +285,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
+    visFunc= function (data, domId, d3, echarts, visCharts) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -310,10 +314,11 @@ export const caseOptions = [
       
       
 
-      const svg = d3.select(svgId)
-          .attr('height',height)
-          .attr('width',width)
-          .attr("viewBox", [0, 0, width, height]);
+      const svg = d3.select('#'+domId)
+          .append('svg')
+            .attr('height',height)
+            .attr('width',width)
+            .attr("viewBox", [0, 0, width, height]);
 
       svg.append("g")
           .attr("fill", "none")
@@ -346,7 +351,7 @@ export const caseOptions = [
             .attr("stroke-linejoin", "round")
             .attr("stroke", "white"));
     }
-    evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+    evaluationFunc = function(data, domId, instance, efficiencyTest){
       return efficiencyTest
     }`
   },
@@ -365,7 +370,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
+    visFunc= function (data, domId, d3, echarts, visCharts) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
@@ -407,11 +412,12 @@ export const caseOptions = [
         const xAxis = d3.axisBottom().ticks(cellWidth / 50);
         const yAxis = d3.axisLeft().ticks(cellHeight / 35);
       
-        const svg = d3.select(svgId)
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", [-marginLeft, -marginTop, width, height])
-            .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+        const svg = d3.select('#'+domId)
+            .append('svg')
+              .attr("width", width)
+              .attr("height", height)
+              .attr("viewBox", [-marginLeft, -marginTop, width, height])
+              .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
       
         svg.append("g")
           .selectAll("g")
@@ -484,7 +490,7 @@ export const caseOptions = [
         z: d => d.species
       })
     }
-    evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+    evaluationFunc = function(data, domId, instance, efficiencyTest){
       return efficiencyTest
     }`
   },
@@ -504,8 +510,8 @@ export const caseOptions = [
   }
 }
 
-visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
-  var myChart = echartInstance;
+visFunc= function (data, domId, d3, echarts, visCharts) {
+  var myChart = echarts.init(document.getElementById(domId));
   var option;
 
   const schema = [
@@ -626,7 +632,7 @@ visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
   option && myChart.setOption(option);
   return myChart
 }
-evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+evaluationFunc = function(data, domId, instance, efficiencyTest){
   // data density
   // return data.length
 
@@ -686,8 +692,8 @@ evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
   // let dem = keys.length 
   // let sum = 0
   // for(let i=0;i<keys.length;i++){
-  //   var yMax = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[1];
-  //   var yMin = echartInstance.getModel().getComponent('parallelAxis',i).axis.scale._extent[0];
+  //   var yMax = instance.getModel().getComponent('parallelAxis',i).axis.scale._extent[1];
+  //   var yMin = instance.getModel().getComponent('parallelAxis',i).axis.scale._extent[0];
   //   let colData = data.map(v=>v[keys[i]])
   //   let dataMax = Math.max(...colData)
   //   let dataMin = Math.min(...colData)
@@ -712,32 +718,17 @@ evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
     "PM10": "Range(0,300) And FreqIf('<100',0.6)",
     "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And Distribution('normal', 50,30)",
-    "SO2": "Range(0,90) And Distribution('normal', 25,15)",
+    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Opt Distribution('normal', 60,10))",
+    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Opt Distribution('normal', 60,10))",
     "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
     "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
 }
 
-visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
-  var myChart = echartInstance;
+visFunc= function (data, domId, d3, echarts, visCharts) {
+  var myChart = echarts.init(document.getElementById(domId));
+
   var option;
-
-  // Schema:
-  // date,AQIindex,PM2.5,PM10,CO,NO2,SO2
-  const schema = [
-    { name: 'AQIindex', index: 1, text: 'AQI' },
-    { name: 'PM25', index: 2, text: 'PM 2.5' },
-    { name: 'PM10', index: 3, text: 'PM 10' },
-    { name: 'CO', index: 4, text: 'CO' },
-    { name: 'NO2', index: 5, text: 'NO₂' },
-    { name: 'SO2', index: 6, text: 'SO₂' },
-    { name: 'rank', index: 7, text: 'rank' }
-  ];
-
-  const rawData = data.map(v =>{
-    return [v['AQIindex'], v['PM25'], v['PM10'], v['CO'], v['NO2'], v['SO2'], v['rank'], v['city']]
-  })
 
   const CATEGORY_DIM_COUNT = 6;
   const GAP = 2;
@@ -828,7 +819,25 @@ visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
       series
     };
   }
+
+  // Schema:
+  // date,AQIindex,PM2.5,PM10,CO,NO2,SO2
+  const schema = [
+    { name: 'AQIindex', index: 1, text: 'AQI' },
+    { name: 'PM25', index: 2, text: 'PM 2.5' },
+    { name: 'PM10', index: 3, text: 'PM 10' },
+    { name: 'CO', index: 4, text: 'CO' },
+    { name: 'NO2', index: 5, text: 'NO₂' },
+    { name: 'SO2', index: 6, text: 'SO₂' },
+    { name: 'rank', index: 7, text: 'rank' }
+  ];
+
+  const rawData = data.map(v =>{
+    return [v['AQIindex'], v['PM25'], v['PM10'], v['CO'], v['NO2'], v['SO2'], v['rank'], v['city']]
+  })
+
   const gridOption = generateGrids();
+
   option = {
     animation: false,
     brush: {
@@ -929,22 +938,108 @@ visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
 
   option && myChart.setOption(option);
 }
-evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
-  return efficiencyTest
+evaluationFunc = function(data, domId, instance, efficiencyTest){
+  // Data intersect degree
+  let intersect = 0
+  let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
+  let len = data.length
+  let dem = keys.length 
+  for(let i=0; i<len;i++){
+    for(let j=0;j<len;j++){
+      if(i!=j){
+        for(let k=0; k<dem-1; k++){
+          let key1 = keys[k]
+          let key2 = keys[k+1]
+          if(data[i][key1]===data[j][key1] || 
+              data[i][key2]===data[j][key2] ||
+              (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
+              ){
+            intersect++
+          }
+        }
+      }
+    }
+  }
+  intersect = intersect/(dem-1)
+  intersect=intersect/(len*len)
+  return intersect
 }`
   },
   {
     id: 5,
     title: 'visChart case 1',
     content:  `data = {
-  "( Length(1)And Column(2) )": {
-    "real": "Enum('22') Opt Enum('+22') Opt Enum('-22') Opt Enum('ppp') Opt Empty(1)",
-    "simu": "Range(0,300)",
+  "( Length(8)And Column(2) )": {
+    "real": "Enum(['22']) Opt Enum(['+22']) Opt Enum(['-22']) Opt Enum(['ppp']) Opt Empty(4)",
+    "simu": "Range(0,300)"
   }
 }
 
-visFunc= function (data, svgId, echartInstance, d3, echarts, visCharts) {
+visFunc= function (data, domId, d3, echarts, visCharts) {
+  let chartDom = document.getElementById(domId)
+  data.forEach((item, index) => {
+    let grid = document.createElement('div')
+    grid.id = \`\${domId}-grid-\${index}\`
+    grid.style.width = 260 + 'px'
+    grid.style.height = 260 + 'px'
+    grid.style.display = 'inline-block'
+    grid.style.padding = 15+'px'
+    chartDom.appendChild(grid)
+    let itemData = Object.keys(item).map((k) => { return { type: k, value: item[k] } })
+    new visCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
+      title: '',
+      titleIsShow: false,
+      size:[260,260],
+      labelKey: 'type',
+      valueKey: 'value',
+      value: itemData,
+      // colorsField: 'type',
+      // colors: {
+      //   '真实': '#FF0000',
+      //   '模拟': '#00FF00'
+      // },
+      colors: ['#8DBCF4', '#00FF00'],
+    });
+  })
+}
+evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+  return efficiencyTest
+}`
+  },
+  {
+    id: 6,
+    title: 'visChart case 2',
+    content:  `data = {
+  "( Length(10) And Column(5) )": {
+    "time": "String Opt Range(1,12) And Distinct",
+    "start": "Range(1000,1500)",
+    "rangeLen": "Trend('linear', 200,500) Opt Trend('exponential', 1.2,500)",
+    "pre": "Range(2000,3000)",
+    "real": "Range(2500,3000)"
+  }
+}
 
+visFunc= function (data, domId, d3, echarts, visCharts) {
+  const gdpData = data.map(v => {
+    return {
+      ...v,
+      range: [v.start, v.start + v.rangeLen]
+    }
+  })
+  console.log(gdpData)
+
+  const chart1 = new visCharts.AreaRangeChart(domId, {
+    title: '',
+    size: [520, 520],
+    value: gdpData,
+    valueKey: 'range',
+    labelKey: 'time',
+    xAxisAttribute: 'time',
+    yAxisAttribute: ['pre', 'real'],
+    xAxisTitle: 'month',
+    yAxisTitle: 'GDP',
+    colors: ['#ff0000', '#00ff00']
+  })
 }
 evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
   return efficiencyTest
