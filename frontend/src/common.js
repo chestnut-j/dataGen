@@ -27,8 +27,8 @@ export const getBoxOption = function(name, data){
       }
     },
     grid: {
-      left: '15%',
-      right: '15%',
+      left: '25%',
+      right: '5%',
       bottom: '10%',
       top:'15%'
     },
@@ -47,7 +47,8 @@ export const getBoxOption = function(name, data){
       type: 'value',
       splitArea: {
         show: true
-      }
+      },
+      scale: true
     },
     series: [
       {
@@ -83,8 +84,8 @@ export const getLineOption = function(name, data) {
       }
     },
     grid: {
-      left: '15%',
-      right: '15%',
+      left: '25%',
+      right: '5%',
       bottom: '10%',
       top:'15%'
     },
@@ -125,8 +126,8 @@ export const getHistogramOption = function(name, data) {
     tooltip: {
     },
     grid: {
-      left: '15%',
-      right: '15%',
+      left: '25%',
+      right: '5%',
       bottom: '10%',
       top:'15%'
     },
@@ -168,8 +169,8 @@ export const getBarOption = function(name, data) {
     tooltip: {
     },
     grid: {
-      left: '15%',
-      right: '15%',
+      left: '25%',
+      right: '5%',
       bottom: '10%',
       top:'15%'
     },
@@ -224,8 +225,8 @@ export const getPieOption = function(name, data) {
           // position: 'center',
           formatter: '{b}\n({c})'
         },
-        left: '5%',
-        right: '5%',
+        left: '2%',
+        right: '2%',
         bottom: '5%',
         top:'5%',
       }
@@ -273,7 +274,7 @@ export const caseOptions = [
     id: 1,
     title: 'd3 case 1',
     content:  `data = {
-      "( (Length(50) Opt Length(80) Opt Length(100) Opt Length(150) )  And Column(8) )": {
+      "( (nRows(50) Prod nRows(80) Prod nRows(100) Prod nRows(150) )  And nCols(8) )": {
         "cname": "String",
         "economy(mpg)": "Real And Range(9,48)",
         "cylinders": "Real And Range(3,8)",
@@ -359,7 +360,7 @@ export const caseOptions = [
     id: 2,
     title: 'd3 case 2',
     content:  `data = {
-      "( (Length(50) Opt Length(20)) And Column(7) )": {
+      "( (nRows(50) Prod nRows(20)) And nCols(7) )": {
         "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
         "species": "Frequency('Adelie',0.3,'Chinstrap',0.4,'Gentoo',0.3)",
         "culmen_length_mm": "Real And Range(30,60)",
@@ -498,13 +499,13 @@ export const caseOptions = [
     id: 3,
     title: 'echart case 1',
     content:  `data = {
-  "( (Length(50) Opt Length(20)) And Column(8) )": {
+  "( (nRows(50) Prod nRows(20)) And nCols(8) )": {
     "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
-    "PM10": "Range(0,300) And (FreqIf('<100',0.6) Opt FreqIf('<100',0.2))",
+    "PM10": "Range(0,300) And (FreqIf('<100',0.6) Prod FreqIf('<100',0.2))",
     "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Opt Distribution('normal', 60,10))",
-    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Opt Distribution('normal', 50,20))",
+    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Prod Distribution('normal', 60,10))",
+    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Prod Distribution('normal', 50,20))",
     "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
     "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
@@ -713,13 +714,13 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     id: 4,
     title: 'echart case 2',
     content:  `data = {
-  "( (Length(50) Opt Length(20)) And Column(8) )": {
+  "( (nRows(50) Prod nRows(20)) And nCols(8) )": {
     "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
     "PM10": "Range(0,300) And FreqIf('<100',0.6)",
     "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Opt Distribution('normal', 60,10))",
-    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Opt Distribution('normal', 60,10))",
+    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Prod Distribution('normal', 60,10))",
+    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Prod Distribution('normal', 60,10))",
     "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
     "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
@@ -969,9 +970,9 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     id: 5,
     title: 'visChart case 1',
     content:  `data = {
-  "( Length(8)And Column(2) )": {
-    "real": "Enum(['22']) Opt Enum(['+22']) Opt Enum(['-22']) Opt Enum(['ppp']) Opt Empty(4)",
-    "simu": "Range(0,300)"
+  "( nRows(8) And nCols(2) )": {
+    "real": "Range(0,20) Prod Frequency('22',0.25,'-22',0.25, '+22',0.25, 'ppp', 0.25) Prod Empty(4)",
+    "simu": "Range(0,20) Prod Range(-50,-20) Prod Range(20,50)"
   }
 }
 
@@ -986,7 +987,7 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
     grid.style.padding = 15+'px'
     chartDom.appendChild(grid)
     let itemData = Object.keys(item).map((k) => { return { type: k, value: item[k] } })
-    new visCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
+    let itemChart = new visCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
       title: '',
       titleIsShow: false,
       size:[260,260],
@@ -1000,6 +1001,9 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
       // },
       colors: ['#8DBCF4', '#00FF00'],
     });
+    itemChart.$on('drag-bar', function(data){
+      console.log(data)
+    })
   })
 }
 evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
@@ -1010,10 +1014,10 @@ evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
     id: 6,
     title: 'visChart case 2',
     content:  `data = {
-  "( Length(10) And Column(5) )": {
-    "time": "String Opt Range(1,12) And Distinct",
+  "( nRows(10) And nCols(5) )": {
+    "time": "String Prod Range(1,120) And Distinct",
     "start": "Range(1000,1500)",
-    "rangeLen": "Trend('linear', 200,500) Opt Trend('exponential', 1.2,500)",
+    "rangeLen": "Trend('linear', 200,500) Prod Trend('exponential', 1.2,500)",
     "pre": "Range(2000,3000)",
     "real": "Range(2500,3000)"
   }
@@ -1049,7 +1053,7 @@ evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
     id: 8,
     title: 'draft',
     content:  `data = [{
-      "( (Length(20) Opt Length(35)) And Column(12) )": {
+      "( (nRows(20) Prod nRows(35)) And nCols(12) )": {
         "name": "Faker(name)",
         "gender": "Frequency('male', 0.6, 'female', 0.4)",
         "telephone": "Faker(phone_number) And Empty(2)",

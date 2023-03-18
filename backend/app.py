@@ -170,13 +170,13 @@ def parseConstraint(rawConstraint):
     # constraint = rawConstraint.replace(" ","")
     constraint = rawConstraint
 
-    if constraint.find('Opt') == -1:
+    if constraint.find('Prod') == -1:
       if isOuterrontParenthesis(constraint):
         constraint = constraint[1:len(constraint)-1]
       return [constraint]
             
     # # 根据option标识符的位置把constraint分割为多个部分
-    constraintList = findConstrain(rawConstraint, "Opt")
+    constraintList = findConstrain(rawConstraint, "Prod")
  
     [slotJson, slotContentList] = generateSlot(constraintList)
     optionResult = optionSoluntion(slotContentList)
@@ -542,10 +542,10 @@ def parseTable(allTables):
         # parse key
         constrainList = findConstrain(key, 'And')
         for cons in constrainList:
-          if cons.find('Length') != -1:
+          if cons.find('nRows') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['length'] = int(arg)
-          if cons.find('Column') != -1:
+          if cons.find('nCols') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['column'] = int(arg)
           if cons.find('Order') != -1:
@@ -641,7 +641,7 @@ def buildSolver(format):
 
     if 'max' in col:
       value = col['max']
-      if 'range' in col:
+      if 'range' in col and col['range'][1]>value:
         col['range'][1] = value
       else:
         col['range'] = [0,value]
@@ -655,7 +655,7 @@ def buildSolver(format):
 
     if 'min' in col:
       value = col['min']
-      if 'range' in col:
+      if 'range' in col and col['range'][0]<value:
         col['range'][0] = value
       else:
         col['range'] = [value,max(100,num_len)]

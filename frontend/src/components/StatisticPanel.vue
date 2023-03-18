@@ -1,10 +1,14 @@
 <template>
   <div v-if="!isGptMode" class="comp-data">
-    <!-- <div class="json-content">
-      <pre>{{origin}}
-      </pre>
-    </div> -->
-    <div class="statistic-panel">
+    <div v-show="!isAttrMode" class="data-panel">
+      <div class="data-content">
+        <a-table :dataSource="tableData" :columns="tableColumns" size="small"/>
+      </div>
+      <div class="json-content">
+        <pre>{{origin}}</pre>
+      </div>
+    </div>
+    <div v-show="isAttrMode" class="statistic-panel">
       <div class="column-content" 
       v-for="item in columns" 
       :key="item.name" >
@@ -42,6 +46,16 @@ export default {
     currentIndex(){
       return store.currentTableIndex
     },
+    tableColumns(){
+      return (store.totalInfo[this.currentIndex]?.config[0].children || []).map(v=>{
+                return {
+                  title: v.name,
+                  dataIndex: v.name,
+                  key:v.name,
+                  ellipsis: true,
+                }
+              })
+    },
     columns(){
       if(store.isGptMode) {
         return this.tableData.length?Object.keys(this.tableData[0]) :[]
@@ -56,6 +70,9 @@ export default {
     },
     isGptMode(){
       return store.isGptMode
+    },
+    isAttrMode(){
+      return store.isAttrMode
     },
     constraints(){
       const cols = store.totalInfo[this.currentIndex]?.origin[0]
@@ -81,9 +98,10 @@ export default {
           if(keys.includes('frequency')){
             config[item.name].push('pie-freq')
           }
-          if(item['type']==='Real' ||item['type']==='Int' || !keys.includes('type')  ){
+          if(keys.includes('distribution') ){
             config[item.name].push('histogram')
-          } else {
+          }
+          if(item['type']==='String'){
             config[item.name].push('bar')
           }
         })
@@ -301,9 +319,43 @@ export default {
   flex-flow: row;
   height: calc(100% - 40px);
 
+  .data-panel {
+    display: flex;
+    flex-flow: row;
+    .data-content {
+      height: 100%;
+      width: 68%;
+      margin-right:2%;
+      overflow: auto;
+      padding:5px;
+      &::-webkit-scrollbar {
+        height: 4px;
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgb(239, 239, 239);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #bfbfbf;
+        border-radius: 6px;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: #333;
+      }
+
+      &::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+    }
+  }
   .json-content {
     height: 100%;
     width: 30%;
+    padding: 10px 5px;
     // top: 0;
     // height: 100%;
     // display: inline-block;

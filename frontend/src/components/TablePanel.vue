@@ -22,9 +22,8 @@
     <!-- <div class="footer">
       {{ totalLen?currentIndex+1:0 }}/{{ totalLen }}
     </div> -->
-    
     <div v-if="totalLen" class="header">
-      <div class="validation-label">data Intersect</div>
+      <!-- <div class="validation-label">data Intersect</div> -->
       <div id="overview-chart"></div>
     </div>
   </div>
@@ -108,7 +107,7 @@ export default {
                 .attr("id",`chart-dom-${i}`)
                 .attr('class','chart-content')
                 .style('height','530px')
-                .style('width','1233px')
+                .style('width','1228px')
             // d3.select(`#chart-dom-${i}`)
             //   .append('svg').attr("id",`chart-${i}`)
             this.$nextTick(()=>{
@@ -209,13 +208,14 @@ export default {
   height: calc(100% - 25px);
   overflow: hidden;
   .header {
-    height: 100px;
+    height: 120px;
     border-top:1px solid #dcdada ;
     margin: 2px 10px;
-    display: flex;
-    align-items: end;
-    justify-content: flex-start;
+    // display: flex;
+    // align-items: end;
+    // justify-content: center;
     // background: rgba(207, 207, 207, 0.1);
+    bottom: 0;
   }
   .validation-label{
     width: 130px;
@@ -226,9 +226,9 @@ export default {
 
   }
   #overview-chart {
-    width: calc(100% - 260px);
-    height: 100px;
-    // margin: auto;
+    width: calc(100% - 20px);
+    height: 120px;
+    margin: auto;
   }
   .content {
     height: calc(100% - 130px);

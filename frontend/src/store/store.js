@@ -13,6 +13,7 @@ export const store = reactive({
   isGptMode: false,
   performArr: [],
   isPerformanceMode: false,
+  isAttrMode: true,
   setLoading(state){
     this.loading = state
   },
@@ -42,5 +43,8 @@ export const store = reactive({
   },
   setValidationMode(state){
     this.isPerformanceMode =state
+  },
+  setAttrMode(state){
+    this.isAttrMode = state
   }
 })

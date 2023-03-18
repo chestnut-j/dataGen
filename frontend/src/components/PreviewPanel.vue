@@ -6,6 +6,10 @@
            Data Attributes Panel  
           <span class="overview">{{ Object.keys(origin||{})[0] }}</span>
         </div>
+        <div class="switch-btn">
+          Attr mode
+          <a-switch :checked="isAttrMode" size="small" @change="handleModeChange"/>
+        </div>
       </div>
       <StatisticPanel/>
     </div>
@@ -38,12 +42,23 @@ export default {
   },
   props: {
   },
+  data(){
+    return {
+      isAttrMode: true,
+    }
+  },
   computed:{
     currentIndex(){
       return store.currentTableIndex
     },
     origin(){
       return store.totalInfo[this.currentIndex]?.origin[0]
+    },
+  },
+  methods:{
+    handleModeChange(checked){
+      this.isAttrMode = checked
+      store.setAttrMode(this.isAttrMode)
     },
   }
 }
@@ -53,21 +68,29 @@ export default {
 .preview-panel {
   .header {
     border-bottom: 1px solid #e6e6e6;
+    background: #ebebeb;
+    display: flex;
+    flex-flow: row;
+    justify-content: space-between;
+
     .title{
       height: 28px;
-      width: 100%;
+      // width: 100%;
       font-weight: bold;
       font-size: 16px;
       line-height: 18px;
       padding:4px;
       padding-left: 10px;
-      background: #ebebeb;
       text-align: left;
       .overview {
         font-size: 12px;
         font-weight: 400;
         margin-left: 8px;
       }
+    }
+
+    .switch-btn{
+      margin-right: 20px;;
     }
   }
   
