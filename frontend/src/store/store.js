@@ -52,8 +52,8 @@ export const store = reactive({
           data[colKey].forEach(op=>{
             out[colKey].push(op.find(e=>origin[key][colKey].indexOf(e)>-1))
           })
-          out[colKey]=out[colKey].join(',')
         }
+        out[colKey]=out[colKey].join(',')
       })
       this.optionList.push(out)
     })

@@ -104,7 +104,8 @@ export const getLineOption = function(name, data) {
       type: 'value',
       splitArea: {
         show: true
-      }
+      },
+      scale: true
     },
     series: [
       {
