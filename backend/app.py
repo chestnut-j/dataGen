@@ -11,6 +11,8 @@ import numpy as np
 import math
 
 fake = Faker()
+global output_option_list 
+output_option_list ={}
 
 # ================================语法解析=============================
 def findPosi(allStr, findStr):
@@ -165,7 +167,7 @@ def isOuterrontParenthesis(constraint):
   else:
     return False
 
-def parseConstraint(rawConstraint):
+def parseConstraint(rawConstraint, key):
 
     # constraint = rawConstraint.replace(" ","")
     constraint = rawConstraint
@@ -180,7 +182,8 @@ def parseConstraint(rawConstraint):
  
     [slotJson, slotContentList] = generateSlot(constraintList)
     optionResult = optionSoluntion(slotContentList)
-    
+    output_option_list[key] = slotContentList
+    print(output_option_list)
     finalJsonList = []
     for ri in optionResult:
         finalJsonList.append(slotJson.format(*ri))
@@ -506,10 +509,10 @@ def parseJson(origin):
     value_test = []
     key_test = []
     for key, value in format.items():
-      test = parseConstraint(key)
+      test = parseConstraint(key, 'table')
       remainValue = value
       for col_key, col_value in value.items():
-        value_test.append(parseConstraint(col_value))
+        value_test.append(parseConstraint(col_value, col_key))
         key_test.append(col_key)
     valueList = []
     valueList = product(*value_test)
@@ -1120,6 +1123,8 @@ import json
 
 app = Flask(__name__)
 
+# output_option_list = {}
+
 @app.route('/getInfo', methods=['GET'])
 def get_table_info():
   with open('./sampleData.json',"r") as f:
@@ -1134,10 +1139,16 @@ def get_table_info():
 
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_json_data():
+  
   data = json.loads(request.data)
   print('input',data['data'])
+  global output_option_list 
+  output_option_list = {}
   out = dataGen(data['data'])
-  return json.dumps(out, cls=NpEncoder)
+  print(output_option_list)
+  # out['optionList'] = output_option_list
+
+  return json.dumps({'data':out, 'optionList': output_option_list}, cls=NpEncoder)
 
 @app.route('/gptSubmit', methods=['GET', 'POST'])
 def submit_gpt_data():

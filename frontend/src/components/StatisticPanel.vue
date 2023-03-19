@@ -31,8 +31,7 @@
 import { store } from '../store/store.js'
 import { getBoxOption, getLineOption, getHistogramOption, getBarOption, getPieOption } from '../common.js'
 import * as echarts from 'echarts'
-import * as ecStat from 'echarts-stat';
-
+import * as ecStat from 'echarts-stat'
 export default {
   name: 'StatisticPanel',
   props: {
@@ -355,7 +354,7 @@ export default {
   .json-content {
     height: 100%;
     width: 30%;
-    padding: 10px 5px;
+    padding: 10px 5px 0 5px;
     // top: 0;
     // height: 100%;
     // display: inline-block;

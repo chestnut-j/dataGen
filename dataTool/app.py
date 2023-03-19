@@ -165,7 +165,7 @@ def isOuterrontParenthesis(constraint):
   else:
     return False
 
-def parseConstraint(rawConstraint):
+def parseConstraint(rawConstraint, key):
 
     # constraint = rawConstraint.replace(" ","")
     constraint = rawConstraint
@@ -180,6 +180,7 @@ def parseConstraint(rawConstraint):
  
     [slotJson, slotContentList] = generateSlot(constraintList)
     optionResult = optionSoluntion(slotContentList)
+    output_option_list[key] = slotContentList
     
     finalJsonList = []
     for ri in optionResult:
@@ -499,16 +500,19 @@ def parseJson(origin):
     value_test = []
     key_test = []
     for key, value in format.items():
-      test = parseConstraint(key)
+      test = parseConstraint(key,'key')
       remainValue = value
       for col_key, col_value in value.items():
-        value_test.append(parseConstraint(col_value))
+        value_test.append(parseConstraint(col_value, col_key))
         key_test.append(col_key)
     valueList = []
     valueList = product(*value_test)
+    print(value_test)
+    print(key_test)
 
     for value_op in valueList:
       for op in test:
+        print(op,value_op)
         parseFormat = []
         item = {}
         valueFormat = {}
@@ -1069,7 +1073,8 @@ def dataGen(json):
 # input_path = './codeTest.json'
 input_path = './newAttr.json'
 # input_path = './example.json'
-
+output_option_list = {}
 with open(input_path,"r") as f:
   origin = json.load(f)
 dataGen(origin)
+print(output_option_list)

@@ -258,12 +258,24 @@ export const getOverviewBarOption = function(name, data) {
     series: [
       {
         type: 'bar',
-        data: Object.values(data),
+        data: data,
         emphasis: {
             itemStyle: {
                 color: '#8DBCF4'
             },
         },
+        tooltip:{
+          formatter:(params)=>{
+            let html = ` 
+                        <pre>${JSON.stringify(params.data.info,null,2)}</pre>
+                        <span style="display:inline-block;margin-right:4px;
+                          border-radius:10px;width:10px;height:10px;
+                          background-color:#8dbcf4;"></span>
+                        <span>evaluation Index:  ${[params.data.value]}</span>
+                        `
+            return html
+          }
+        }
       },
     ]
   }

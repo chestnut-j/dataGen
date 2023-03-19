@@ -11,7 +11,7 @@
             v-show="`${index}`==`${currentIndex}`" 
             :id="`outer-${index}`">
           <div class="chart-content" :id="`chart-dom-${index}`" >
-            <svg :id="`chart-${index}`"></svg>
+            <!-- <svg :id="`chart-${index}`"></svg> -->
           </div>
         </div>
       </div>
@@ -112,12 +112,23 @@ export default {
             //   .append('svg').attr("id",`chart-${i}`)
             this.$nextTick(()=>{
               let start = +new Date()
-              this.drawChart(i)
+              // for(let j=0;j<10;j++){
+                this.drawChart(i)
+              // }
               let end = +new Date()
-              let efficiencyTest = end-start
+              let efficiencyTest = (end-start)
               const data = this.info[i]?.table || []
               let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
+
+              // d3.select(`#outer-${i}`).selectAll('*').remove()
+              // d3.select(`#outer-${i}`)
+              //   .append('div')
+              //     .attr("id",`chart-dom-${i}`)
+              //     .attr('class','chart-content')
+              //     .style('height','530px')
+              //     .style('width','1228px')
+              // this.drawChart(i)
             })
           } 
           
@@ -182,7 +193,14 @@ export default {
       }
       this.overviewChart = echarts.init(document.getElementById('overview-chart'));
       // 绘制图表
-      this.overviewChart.setOption(getOverviewBarOption('', store.performArr))
+      let data = store.performArr.map((v, i)=>{
+        return {
+          value: v,
+          info: store.optionList[i]
+        }
+      })
+      console.log(data)
+      this.overviewChart.setOption(getOverviewBarOption('', data))
       let that = this
       that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: this.currentIndex})
       this.overviewChart.on('click', 'series.bar', function (e) {

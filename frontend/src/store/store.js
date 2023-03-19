@@ -14,6 +14,7 @@ export const store = reactive({
   performArr: [],
   isPerformanceMode: false,
   isAttrMode: true,
+  optionList: undefined,
   setLoading(state){
     this.loading = state
   },
@@ -28,6 +29,35 @@ export const store = reactive({
   },
   setTotalInfo(data){
     this.totalInfo = data
+  },
+  setOptionList(data){
+    this.optionList = []
+    this.totalInfo.forEach(item=>{
+      let origin = item.origin[0]
+      let key = Object.keys(origin)[0]
+      // let columns = origin[key]
+      let out = {}
+      if(data['table']){
+        out['table'] = data['table'].find(e=>key.indexOf(e)>-1)
+      }
+      let colKeys = Object.keys(data)
+      colKeys.forEach(colKey=>{
+        if(colKey==='table'){
+          out[colKey] = []
+          data[colKey].forEach(op=>{
+            out[colKey].push(op.find(e=>key.indexOf(e)>-1))
+          })
+        } else{
+          out[colKey] = []
+          data[colKey].forEach(op=>{
+            out[colKey].push(op.find(e=>origin[key][colKey].indexOf(e)>-1))
+          })
+          out[colKey]=out[colKey].join(',')
+        }
+      })
+      this.optionList.push(out)
+    })
+    console.log(this.optionList)
   },
   setCurrentIndex(index){
     this.currentTableIndex = index

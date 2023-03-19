@@ -20,6 +20,7 @@
           </a-select-option>
         </a-select>
         <a-button class="run-btn" type="primary" @click="submit()">Run</a-button>
+        <a-button class="run-btn" type="primary" :disabled="!info" @click="download()">Download</a-button>
       </div>
     </div>
     <div v-if="!isGPTMode" class="content">
@@ -114,6 +115,9 @@ evaluationFunc = function(data, svgId, echartInstance,  efficiencyTest){
   computed: {
     options(){
       return this.isGPTMode? gptCaseOptions:caseOptions
+    },
+    info(){
+      return store.totalInfo
     }
   },
   methods:{
@@ -150,7 +154,8 @@ evaluationFunc = function(data, svgId, echartInstance,  efficiencyTest){
         store.setLoading(true)
         axios.post('/api/submit',{data: myJson}).then(res=>{
           console.log(res.data)
-          store.setTotalInfo(res.data)
+          store.setTotalInfo(res.data.data)
+          store.setOptionList(res.data.optionList)
           store.setVisFunction(myVisFunc)
           store.setevaluationFunction(myevaluationFunc)
           message.success('generate success')
@@ -242,13 +247,14 @@ evaluationFunc = function(data, svgId, echartInstance,  efficiencyTest){
     }
     .select-box {
       margin: 3px 5px;
-      margin-left: 15px;
+      // margin-left: 15px;
     }
     .run-btn{
       // margin: 5px;
       height: 24px;
       padding: auto;
       line-height: 13px;
+      margin-left: 10px;
     }
   }
   
