@@ -1,28 +1,39 @@
 <template>
-  <div v-if="!isGptMode" class="comp-data">
-    <div v-show="!isAttrMode" class="data-panel">
-      <div class="data-content">
-        <a-table :dataSource="tableData" :columns="tableColumns" size="small"/>
-      </div>
-      <div class="json-content">
-        <pre>{{origin}}</pre>
-      </div>
+  <div class="comp-data">
+    <div class="custom-slick-arrow" style="left: 10px" @click="toLast()">
+      <left-circle-outlined />
     </div>
-    <div v-show="isAttrMode" class="statistic-panel">
-      <div class="column-content" 
-      v-for="item in columns" 
-      :key="item.name" >
-      <div class="column-name">{{ item.name }}</div>
-      <div>
-        <div class="column-chart" 
-          v-for="chart in chartConfig[item.name]"
-          :key="item.name+chart"
-          :id="'column-'+item.name+chart">
+    <a-tabs v-model:activeKey="activeKey" size="small"  class="tab-panels">
+      <a-tab-pane key="1" tab="Attributes" class="tab-panel">
+        <div class="statistic-panel">
+          <div class="column-content" 
+          v-for="item in columns" 
+          :key="item.name" >
+          <div class="column-name">{{ item.name }}</div>
+          <div>
+            <div class="column-chart" 
+              v-for="chart in chartConfig[item.name]"
+              :key="item.name+chart"
+              :id="'column-'+item.name+chart">
+            </div>
+          </div>
+          <div class="constraint">{{ constraints[item.name]}}</div>
+          </div>
         </div>
-      </div>
-      <div class="constraint">{{ constraints[item.name]}}</div>
-      <!-- <div>{{ chartConfig[item.name]}}</div> -->
-      </div>
+      </a-tab-pane>
+      <a-tab-pane key="2" tab="Raw Data" class="tab-panel">
+        <div class="data-panel">
+          <div class="data-content">
+            <a-table :dataSource="tableData" :columns="tableColumns" size="small" :scroll="{ x: true, y: 190 }"/>
+          </div>
+          <div class="json-content">
+            <pre>{{origin}}</pre>
+          </div>
+        </div>
+      </a-tab-pane>
+    </a-tabs>
+    <div class="custom-slick-arrow" style="right: 10px" @click="toNext()">
+      <right-circle-outlined />
     </div>
   </div>
 </template>
@@ -30,20 +41,28 @@
 <script>
 import { store } from '../store/store.js'
 import { getBoxOption, getLineOption, getHistogramOption, getBarOption, getPieOption } from '../common.js'
+import { LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons-vue';
 import * as echarts from 'echarts'
 import * as ecStat from 'echarts-stat'
 export default {
   name: 'StatisticPanel',
-  props: {
-  },
+  props: ['overviewChart'],
   data(){
     return {
-      charts: {}
+      charts: {},
+      activeKey: '1'
     }
+  },
+  components:{
+    LeftCircleOutlined,
+    RightCircleOutlined,
   },
   computed: {
     currentIndex(){
       return store.currentTableIndex
+    },
+    totalLen() {
+      return store.totalInfo.length
     },
     tableColumns(){
       return (store.totalInfo[this.currentIndex]?.config[0].children || []).map(v=>{
@@ -66,12 +85,6 @@ export default {
     },
     origin(){
       return store.totalInfo[this.currentIndex]?.origin[0]
-    },
-    isGptMode(){
-      return store.isGptMode
-    },
-    isAttrMode(){
-      return store.isAttrMode
     },
     constraints(){
       const cols = store.totalInfo[this.currentIndex]?.origin[0]
@@ -108,13 +121,10 @@ export default {
     }
   },
   mounted(){
-    // this.initPlots()
-
   },
   watch: {
     tableData:{
       handler() {
-        // if(v.length) this.initPlots()
         this.$nextTick(()=>{this.initPlots()})
       },
       // 代表在wacth里声明了firstName这个方法之后立即先去执行handler方法
@@ -126,6 +136,20 @@ export default {
     this.initPlots()
   },
   methods:{
+    toLast(){
+      let index = (this.currentIndex - 1 + this.totalLen)%this.totalLen
+      this.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
+      store.setCurrentIndex(index)
+      console.log(index)
+
+      this.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: index});
+    },
+    toNext(){
+      let index = (this.currentIndex + 1)%this.totalLen
+      this.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
+      store.setCurrentIndex(index)
+      this.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: index});
+    },
     initPlots(){
       const that = this
       if(store.isGptMode){
@@ -174,21 +198,6 @@ export default {
             
           })
         })
-        // this.columns.forEach(item=>{
-        //   let keys = Object.keys(item)
-        //   if(keys.includes('range')&& !keys.includes('cluster') || keys.includes('max') || keys.includes('min') ||
-        //     keys.includes('quantile') ||keys.includes('mean')  ){
-        //       that.drawBox(item.name)
-        //   }
-        //   if(keys.includes('trend')){
-        //     that.drawLine(item.name)
-        //   }
-        //   if(item['type']==='Real' ||item['type']==='Int'  || keys.includes('cluster')  || !keys.includes('type')  ){
-        //     that.drawHistogram(item.name)
-        //   } else {
-        //     that.drawBar(item.name)
-        //   }
-        // })
       }
       
     },
@@ -316,17 +325,47 @@ export default {
 .comp-data {
   display: flex;
   flex-flow: row;
-  height: calc(100% - 40px);
+  // height: 100%;
+  overflow: hidden;
+  align-items: center;
+  padding: 0 5px;
+
+  .custom-slick-arrow {
+    width: 25px;
+    height: 25px;
+    font-size: 22px;
+    color: rgb(0, 0, 0);
+    // background-color: rgba(31, 45, 61, 0.11);
+    opacity: 0.3;
+  }
+  .custom-slick-arrow:before {
+    display: none;
+  }
+  .custom-slick-arrow:hover {
+    opacity: 0.5;
+  }
+  .tab-panels {
+    width:calc(100% - 60px);
+    height: 100%;
+    .tab-panel {
+      height: 100%;
+    }
+  }
 
   .data-panel {
     display: flex;
     flex-flow: row;
+    height: 100%;
+    overflow: hidden;
+
     .data-content {
       height: 100%;
       width: 68%;
       margin-right:2%;
       overflow: auto;
       padding:5px;
+      flex:1;
+
       &::-webkit-scrollbar {
         height: 4px;
         width: 4px;
@@ -355,9 +394,6 @@ export default {
     height: 100%;
     width: 30%;
     padding: 10px 5px 0 5px;
-    // top: 0;
-    // height: 100%;
-    // display: inline-block;
 
     pre{
       height: 100%;
@@ -392,25 +428,28 @@ export default {
 
   .statistic-panel {
     height: 100%;
-    margin: 0 20px;
-    padding: 8px 0;
+    // margin: 0 20px;
+    padding: 4px 0;
     overflow-x: auto;
     white-space: nowrap;
-    border-top: 1px solid #e6e6e6;
+    flex:1;
+    // border-top: 1px solid #e6e6e6;
     .column-content{
       margin-right: 20px;
       display: inline-block;
       text-align: center;
       border: 1px solid #eeeeee;
-      padding:5px 10px;
+      padding:0 10px;
+      padding-bottom: 4px;
       .column-name {
         font-weight:600;
         padding-top:0px;
+        margin-bottom: -14px;
       }
       .column-chart {
         display: inline-block;
         width:200px;
-        height: 200px;
+        height: 180px;
         margin:auto;
       }
       .constraint {
@@ -444,6 +483,34 @@ export default {
       background: transparent;
     }
 
+  }
+
+  :deep(.ant-tabs-nav) {
+    margin: 0;
+  }
+  :deep(.ant-table-body) {
+    &::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgb(239, 239, 239);
+      border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #bfbfbf;
+      border-radius: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #333;
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
 
 }

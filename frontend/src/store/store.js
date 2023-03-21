@@ -6,6 +6,7 @@ export const store = reactive({
   config: [],
   totalInfo: [],
   currentTableIndex: 0,
+  dataSpec: undefined,
   visFunction: null,
   evaluationFunction: null,
   d3:d3,
@@ -15,6 +16,10 @@ export const store = reactive({
   isPerformanceMode: false,
   isAttrMode: true,
   optionList: undefined,
+  currentCase: undefined,
+  setCurrentCase(val){
+    this.currentCase = val
+  },
   setLoading(state){
     this.loading = state
   },
@@ -61,6 +66,9 @@ export const store = reactive({
   },
   setCurrentIndex(index){
     this.currentTableIndex = index
+  },
+  setDataSpec(val){
+    this.dataSpec = val
   },
   setVisFunction(func){
     this.visFunction = func

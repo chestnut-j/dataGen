@@ -1,6 +1,6 @@
 <template>
   <div class="preview-panel">
-    <div class="data-panel">
+    <!-- <div class="data-panel">
       <div class="header">
         <div class="title">
            Data Attributes Panel  
@@ -12,7 +12,7 @@
         </div>
       </div>
       <StatisticPanel/>
-    </div>
+    </div> -->
     <div class="chart-panel">
       <div class="header">
         <div class="title">
@@ -32,13 +32,13 @@
 
 <script>
 import TablePanel from './TablePanel.vue'
-import StatisticPanel from './StatisticPanel.vue'
+// import StatisticPanel from './StatisticPanel.vue'
 import { store }from '@/store/store'
 export default {
   name: 'PreviewPanel',
   components: {
     TablePanel,
-    StatisticPanel,
+    // StatisticPanel,
   },
   props: {
   },
@@ -95,7 +95,7 @@ export default {
   }
   
   .chart-panel{
-    height:67%;
+    height:calc(100% - 20px);
   }
 
   .data-panel {

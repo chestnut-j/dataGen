@@ -1,31 +1,158 @@
 <template>
   <div class="homepage">
-    <!-- <div class="header">
-      <div>VisArena</div>
-    </div> -->
     <a-spin :spinning="loading">
       <div class="content">
-        <JsonPanel  class="left-panel"/>
-        <PreviewPanel class="right-panel"/>
+        <div class="comp-header">
+          Data Attibutes Panel
+          <a-select
+            class="select-box"
+            ref="select"
+            v-model:value="currentCase"
+            size="small"
+            :style="{'width': '140px', 'height':'20px'}"
+            @change="handleCaseChange"
+          >
+            <a-select-option v-for="item in options" :key="item.id" :value="item.id">
+              {{item.title}}
+            </a-select-option>
+          </a-select>
+          <a-button class="run-btn" type="primary" @click="submit()">Run</a-button>
+          <a-button class="download-btn" type="primary" :disabled="!info" @click="download()">Download</a-button>
+        </div>
+        
+        <div class="data-panel">
+          <DataSpecCode  class="left-panel"/>
+          <StatisticPanel :overviewChart="overviewChart"  class="right-panel"/>
+        </div>
+        <div class="comp-header">
+          Visualization Panel
+        </div>
+        <div class="vis-panel">
+          <VisualizationCode  class="left-panel"/>
+          <VisualizationPanel class="right-panel"/>
+        </div>
+        <div class="comp-header">
+          Evaluation Panel
+        </div>
+        <div class="evaluation-panel">
+          <EvaluationCode  class="left-panel"/>
+          <div class="right-panel">
+            <div id="overview-chart"></div>
+          </div>
+        </div>
       </div>
     </a-spin>
   </div>
 </template>
 
 <script>
-import JsonPanel from '../components/JsonPanel.vue'
-import PreviewPanel from '../components/PreviewPanel.vue'
-import {store} from '@/store/store'
+import VisualizationCode from '../components/VisualizationCode.vue'
+import DataSpecCode from '../components/DataSpecCode.vue'
+import EvaluationCode from '../components/EvaluationCode.vue'
+import VisualizationPanel from '../components/VisualizationPanel.vue'
+import StatisticPanel from '../components/StatisticPanel.vue'
+
+import {store} from '@/store/store.js'
+import * as echarts from 'echarts'
+import { caseOptions, getOverviewBarOption } from '../common'
+import axios from 'axios'
+import { message } from 'ant-design-vue'
 
 export default {
   name: 'HomePage',
   components: {
-    JsonPanel,
-    PreviewPanel,
+    DataSpecCode,
+    VisualizationCode,
+    EvaluationCode,
+    VisualizationPanel,
+    StatisticPanel,
+  },
+  data(){
+    return {
+      overviewChart: null,
+    }
   },
   computed:{
     loading(){
       return store.loading
+    },
+    totalLen() {
+      return store.totalInfo.length
+    },
+    chartData() {
+      return store.performArr
+    },
+    currentIndex(){
+      return store.currentTableIndex
+    },
+    options(){
+      return caseOptions
+    },
+    info(){
+      return store.totalInfo
+    },
+    currentCase(){
+      return store.currentCase
+    }
+  },
+  watch:{
+    chartData:{
+      handler() {
+        if(this.chartData){
+          this.$nextTick(()=>{this.drawOverviewChart()})
+        }
+      },
+      immediate: true,
+      deep: true,
+    }
+  },
+  methods:{
+    handleCaseChange(val){
+      store.setCurrentCase(val)
+    },
+    submit(){
+      let myJson = store.dataSpec
+      store.setLoading(true)
+      axios.post('/api/submit',{data: myJson}).then(res=>{
+        console.log(res.data)
+        store.setTotalInfo(res.data.data)
+        store.setOptionList(res.data.optionList)
+        message.success('generate success')
+        store.setLoading(false)
+      })
+      .catch(err=>{
+        console.log(err)
+        message.error('generate failed')
+        store.setLoading(false)
+      })
+    },
+    drawOverviewChart(){
+      if (this.overviewChart != null && this.overviewChart != "" && this.overviewChart != undefined) {
+        this.overviewChart.dispose();
+      }
+      this.overviewChart = echarts.init(document.getElementById('overview-chart'));
+      // 绘制图表
+      let data = store.performArr.map((v, i)=>{
+        return {
+          value: v,
+          info: store.optionList[i]
+        }
+      })
+      console.log(data)
+      this.overviewChart.setOption(getOverviewBarOption('', data))
+      let that = this
+      that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: this.currentIndex})
+      this.overviewChart.on('click', 'series.bar', function (e) {
+        
+          console.log(e);
+          if(e.dataIndex != this.currentIndex){
+              //没用选中的取消高亮
+              that.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
+          }
+          //选中某一条高亮
+          store.setCurrentIndex(e.dataIndex)
+          that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: e.dataIndex});
+      });
     }
   }
 }
@@ -35,32 +162,81 @@ export default {
 <style lang="less" scoped>
 .homepage {
   width: 100%;
-  height: calc(100vh - 40px);
+  height: calc(100vh - 30px);
   // padding: 8px;
-  .header{
-    height: 40px;
-    font-size: 26px;
-    font-weight: 600;
-    color: #fff;
-    background: #000;
-    line-height: 40px;
-    padding-left: 20px;
+  .comp-header{
+    width:100%;
+    height: 28px;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgb(0, 0, 0);
+    background: rgb(220, 220, 220);
+    line-height: 28px;
+    padding-left: 15px;
     text-align: left;
+    .select-box {
+      margin-left: 120px;
+      // vertical-align: middle;
+    }
+    .run-btn{
+      // margin: 5px;
+      height: 24px;
+      padding: auto;
+      line-height: 13px;
+      margin: 1px 10px;
+    }
+    .download-btn{
+      // margin: 5px;
+      height: 24px;
+      padding: auto;
+      line-height: 13px;
+      right:15px;
+      top:4px;
+      position: absolute;
+    }
+  }
+
+  #overview-chart {
+    width: calc(100% - 20px);
+    height: 120px;
+    margin: auto;
   }
   .content {
     display: flex;
-    flex-flow: row;
+    flex-flow: column;
     justify-content: space-between;
-    height:calc(100vh - 45px);
+    height:calc(100vh - 30px);
     flex:1;
+    overflow: hidden;
+
+    .data-panel {
+      display: flex;
+      flex-flow: row;
+      height:28%;
+      overflow: hidden;
+    }
+
+    .vis-panel {
+      display: flex;
+      flex-flow: row;
+      overflow: hidden;
+    }
+
+    .evaluation-panel {
+      display: flex;
+      flex-flow: row;
+      height:14%;
+      overflow: hidden;
+    }
+
 
     .left-panel {
-      width:30%;
+      width:26%;
       border: 1px solid #eeeeee;
       margin: 5px;
     }
     .right-panel {
-      width:69%;
+      width:73%;
       border: 1px solid #eeeeee;
       margin: 5px;
     }

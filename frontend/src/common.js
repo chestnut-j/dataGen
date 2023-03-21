@@ -275,7 +275,9 @@ export const getOverviewBarOption = function(name, data) {
                         <span>evaluation Index:  ${[params.data.value]}</span>
                         `
             return html
-          }
+          },
+          extraCssText: "z-index: 999999;",
+          confine: true,
         }
       },
     ]
@@ -983,8 +985,8 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     id: 5,
     title: 'visChart case 1',
     content:  `data = {
-  "( nRows(8) And nCols(2) )": {
-    "real": "Range(0,20) Prod Frequency('22',0.25,'-22',0.25, '+22',0.25, 'ppp', 0.25) Prod Empty(4)",
+  "( nRows(10) And nCols(2) )": {
+    "real": "Range(0,20) Prod Frequency('22',0.5, 'ppp', 0.5) Prod Frequency('-22',0.5, '+22',0.5) Prod Empty(4)",
     "simu": "Range(0,20) Prod Range(-50,-20) Prod Range(20,50)"
   }
 }
@@ -1019,7 +1021,7 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
     })
   })
 }
-evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+evaluationFunc = function(data, domId, instance, efficiencyTest){
   return efficiencyTest
 }`
   },
@@ -1058,7 +1060,7 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
     colors: ['#ff0000', '#00ff00']
   })
 }
-evaluationFunc = function(data, svgId, echartInstance, efficiencyTest){
+evaluationFunc = function(ddata, domId, instance, efficiencyTest){
   return efficiencyTest
 }`
   },
