@@ -151,10 +151,10 @@ export const getHistogramOption = function(name, data) {
         type: 'bar',
         data: data,
         barWidth: '99.3%',
-        label: {
-            show: true,
-            position: 'top'
-        },
+        // label: {
+        //     show: true,
+        //     position: 'top'
+        // },
       },
     ]
   }
@@ -289,7 +289,8 @@ export const caseOptions = [
     id: 1,
     title: 'd3 case 1',
     content:  `data = {
-      "( (nRows(50) Prod nRows(80) Prod nRows(100) Prod nRows(150) )  And nCols(8) )": {
+      "table":"Set(nRows(50),nRows(80),nRows(100),nRows(150)) And nCols(8)",
+      "columns": {
         "cname": "String",
         "economy(mpg)": "Real And Range(9,48)",
         "cylinders": "Real And Range(3,8)",
@@ -375,7 +376,8 @@ export const caseOptions = [
     id: 2,
     title: 'd3 case 2',
     content:  `data = {
-      "( (nRows(50) Prod nRows(20)) And nCols(7) )": {
+      "table":"Set(nRows(50) Prod nRows(20)) And nCols(7)",
+      "columns": {
         "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
         "species": "Frequency('Adelie',0.3,'Chinstrap',0.4,'Gentoo',0.3)",
         "culmen_length_mm": "Real And Range(30,60)",
@@ -514,13 +516,14 @@ export const caseOptions = [
     id: 3,
     title: 'echart case 1',
     content:  `data = {
-  "( (nRows(50) Prod nRows(20)) And nCols(8) )": {
+  "table":"Set(nRows(50),nRows(20)) And nCols(8)",
+  "columns": {
     "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
-    "PM10": "Range(0,300) And (FreqIf('<100',0.6) Prod FreqIf('<100',0.2))",
+    "PM10": "Range(0,300) And Set(FreqIf('<100',0.6),FreqIf('<100',0.2))",
     "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Prod Distribution('normal', 60,10))",
-    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Prod Distribution('normal', 50,20))",
+    "NO2": "Range(0,150) And Set(Distribution('normal', 50,30),Distribution('normal', 60,10))",
+    "SO2": "Range(0,90) And Set(Distribution('normal', 25,15),Distribution('normal', 50,20))",
     "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
     "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
@@ -729,13 +732,14 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     id: 4,
     title: 'echart case 2',
     content:  `data = {
-  "( (nRows(50) Prod nRows(20)) And nCols(8) )": {
+  "table":"Set(nRows(50),nRows(20)) And nCols(8)",
+  "columns": {
     "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
     "PM10": "Range(0,300) And FreqIf('<100',0.6)",
-    "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And (Distribution('normal', 50,30) Prod Distribution('normal', 60,10))",
-    "SO2": "Range(0,90) And (Distribution('normal', 25,15) Prod Distribution('normal', 60,10))",
+    "CO": "Real() And Range(0,6) And FreqIf('<2',0.8)",
+    "NO2": "Range(0,150) And Set(Distribution('normal', 50,30),Distribution('normal', 60,10))",
+    "SO2": "Range(0,90) And Set(Distribution('normal', 25,15),Distribution('normal', 60,10))",
     "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
     "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
   }
@@ -985,14 +989,16 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     id: 5,
     title: 'visChart case 1',
     content:  `data = {
-  "( nRows(10) And nCols(2) )": {
-    "real": "Range(0,20) Prod Frequency('22',0.5, 'ppp', 0.5) Prod Frequency('-22',0.5, '+22',0.5) Prod Empty(4)",
-    "simu": "Range(0,20) Prod Range(-50,-20) Prod Range(20,50)"
+  "table":"nRows(10) And nCols(2)",
+  "columns": {
+    "real": "Set(Distribution('uniform',0,20),Frequency('22',0.5, 'ppp', 0.5),Frequency('-22',0.5, '+22',0.5),Empty(4))",
+    "simu": "Set(Distribution('uniform',0,20),Distribution('uniform',-50,-20),Distribution('uniform',20,50))"
   }
 }
 
 visFunc= function (data, domId, d3, echarts, visCharts) {
   let chartDom = document.getElementById(domId)
+  let instanceArr = []
   data.forEach((item, index) => {
     let grid = document.createElement('div')
     grid.id = \`\${domId}-grid-\${index}\`
@@ -1009,17 +1015,14 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
       labelKey: 'type',
       valueKey: 'value',
       value: itemData,
-      // colorsField: 'type',
-      // colors: {
-      //   '真实': '#FF0000',
-      //   '模拟': '#00FF00'
-      // },
       colors: ['#8DBCF4', '#00FF00'],
     });
     itemChart.$on('drag-bar', function(data){
       console.log(data)
     })
+    instanceArr.push(itemChart)
   })
+  return instanceArr
 }
 evaluationFunc = function(data, domId, instance, efficiencyTest){
   return efficiencyTest
@@ -1029,12 +1032,13 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     id: 6,
     title: 'visChart case 2',
     content:  `data = {
-  "( nRows(10) And nCols(5) )": {
-    "time": "String Prod Range(1,120) And Distinct",
-    "start": "Range(1000,1500)",
-    "rangeLen": "Trend('linear', 200,500) Prod Trend('exponential', 1.2,500)",
-    "pre": "Range(2000,3000)",
-    "real": "Range(2500,3000)"
+  "table":"nRows(10) And nCols(5)",
+  "columns": {
+    "time": "Set(String(),Range(1,120) And Distinct)",
+    "start": "Distribution('uniform',1000,1500)",
+    "rangeLen": "Set(Trend('linear', 200,500),Trend('exponential', 1.2,500))",
+    "pre": "Distribution('uniform',2000,3000)",
+    "real": "Distribution('uniform',2500,3000)"
   }
 }
 
@@ -1059,6 +1063,68 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
     yAxisTitle: 'GDP',
     colors: ['#ff0000', '#00ff00']
   })
+}
+evaluationFunc = function(ddata, domId, instance, efficiencyTest){
+  return efficiencyTest
+}`
+  },
+  {
+    id: 7,
+    title: 'heatMap case',
+    content:  `data = {
+  "table":"Set(nRows(50),nRows(100),nRows(200),nRows(400),nRows(800),nRows(1600)) And nCols(3)",
+  "columns": {
+    "x": "Int() And Distribution('uniform', 0, 100)",
+    "y": "Int() And Distribution('uniform', 0, 100)",
+    "value": "Distribution('normal', 40,20)"
+  }
+}
+
+visFunc = function (data, domId, d3, echarts, visCharts) {
+  var myChart = echarts.init(document.getElementById(domId));
+  let xData = new Array(100).fill(0).map((v,i)=>i+1)
+
+  option = {
+    tooltip: {
+      position: 'top'
+    },
+    grid: {
+      height: '78%',
+      top: '5%'
+    },
+    xAxis: {
+      type: 'category',
+      data: xData,
+    },
+    yAxis: {
+      type: 'category',
+      data: xData,
+    },
+    visualMap: {
+      min: 0,
+      max: 80,
+      calculable: true,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: '2%'
+    },
+    series: [
+      {
+        name: '',
+        type: 'heatmap',
+        data: data.map(v=>Object.values(v)),
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  };
+
+  option && myChart.setOption(option);
+  return myChart
 }
 evaluationFunc = function(ddata, domId, instance, efficiencyTest){
   return efficiencyTest

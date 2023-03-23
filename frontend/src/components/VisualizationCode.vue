@@ -31,7 +31,8 @@ export default {
         value: defaultValue,
         readOnly: false, // 是否可编辑
         language: 'javascript', // 语言类型
-        theme: 'vs-light' // 编辑器主题
+        theme: 'vs-light', // 编辑器主题
+        wordWrap: true,
       },
     }
   },

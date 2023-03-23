@@ -5,19 +5,24 @@
     </div>
     <a-tabs v-model:activeKey="activeKey" size="small"  class="tab-panels">
       <a-tab-pane key="1" tab="Attributes" class="tab-panel">
-        <div class="statistic-panel">
-          <div class="column-content" 
-          v-for="item in columns" 
-          :key="item.name" >
-          <div class="column-name">{{ item.name }}</div>
-          <div>
-            <div class="column-chart" 
-              v-for="chart in chartConfig[item.name]"
-              :key="item.name+chart"
-              :id="'column-'+item.name+chart">
+        <div class="data-panel">
+          <div class="statistic-panel">
+            <div class="column-content" 
+            v-for="item in columns" 
+            :key="item.name" >
+            <div class="column-name">{{ item.name }}</div>
+            <div>
+              <div class="column-chart" 
+                v-for="chart in chartConfig[item.name]"
+                :key="item.name+chart"
+                :id="'column-'+item.name+chart">
+              </div>
+            </div>
+            <div class="constraint">{{ constraints[item.name]}}</div>
             </div>
           </div>
-          <div class="constraint">{{ constraints[item.name]}}</div>
+          <div class="json-content">
+            <pre>{{origin}}</pre>
           </div>
         </div>
       </a-tab-pane>
@@ -107,7 +112,7 @@ export default {
           if(keys.includes('freqIf')){
             config[item.name].push(`pie-freqIf,${item['freqIf'][0]}`)
           }
-          if(keys.includes('frequency')){
+          if(keys.includes('frequency')||keys.includes('enum')){
             config[item.name].push('pie-freq')
           }
           if(keys.includes('distribution') ){

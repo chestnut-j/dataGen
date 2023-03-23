@@ -58,15 +58,18 @@ export default {
                 .attr('class','chart-content')
                 .style('height','520px')
                 .style('width','1380px')
-            // d3.select(`#chart-dom-${i}`)
+            // d3.select(`#chart-dom-${i}`) 
             //   .append('svg').attr("id",`chart-${i}`)
+            Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientWidth',{get:function(){return 1380;}})
+            Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientHeight',{get:function(){return 520;}})
+    
             this.$nextTick(()=>{
               let start = +new Date()
-              // for(let j=0;j<10;j++){
+              for(let j=0;j<20;j++){
                 this.drawChart(i)
-              // }
+              }
               let end = +new Date()
-              let efficiencyTest = (end-start)
+              let efficiencyTest = (end-start)/20
               const data = this.info[i]?.table || []
               let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
@@ -78,7 +81,9 @@ export default {
               //     .attr('class','chart-content')
               //     .style('height','530px')
               //     .style('width','1228px')
-              // this.drawChart(i)
+              // Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientWidth',{get:function(){return 1380;}})
+              // Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientHeight',{get:function(){return 520;}})
+              // this.$nextTick(()=>{this.drawChart(i)})
             })
           } 
           
@@ -105,13 +110,9 @@ export default {
     async drawChart(index){
       const data = this.info[index]?.table || []
       if(data.length){
-          // const chartDom = document.getElementById(`chart-dom-${index}`)
-          // if (this.echartsList[index] != null && this.echartsList[index] != "" && this.echartsList[index] != undefined) {
-          //   this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts)
-          // }else{
-          //   const myChart = echarts.init(chartDom);
-          //   this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts )
-          // }
+        if (this.echartsList[index]) {
+          echarts.dispose(document.getElementById(`chart-dom-${index}`))
+        }
         this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts )
       }
     },
