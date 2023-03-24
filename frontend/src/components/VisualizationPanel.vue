@@ -19,6 +19,8 @@ import {store} from '../store/store.js'
 import * as d3 from 'd3';
 import * as echarts from 'echarts'
 import * as visCharts from '@zjlabvis/vis-charts'  
+import 'echarts/extension/bmap/bmap';
+import 'echarts-extension-amap';
 
 export default {
   name: 'VisualizationPanel',
@@ -30,7 +32,7 @@ export default {
     return {
       currentTab: 0,
       overviewChart: null,
-      echartsList:[]
+      echartsList:[],
     }
   },
   computed:{
@@ -58,18 +60,21 @@ export default {
                 .attr('class','chart-content')
                 .style('height','520px')
                 .style('width','1380px')
+                .style('display','block')
             // d3.select(`#chart-dom-${i}`) 
             //   .append('svg').attr("id",`chart-${i}`)
             Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientWidth',{get:function(){return 1380;}})
             Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientHeight',{get:function(){return 520;}})
-    
+            document.getElementById(`outer-${i}`).style.display = 'block';
+
             this.$nextTick(()=>{
               let start = +new Date()
-              for(let j=0;j<20;j++){
+              for(let j=0;j<10;j++){ 
+
                 this.drawChart(i)
               }
-              let end = +new Date()
-              let efficiencyTest = (end-start)/20
+              let end = +new Date() 
+              let efficiencyTest = (end-start)/10
               const data = this.info[i]?.table || []
               let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
@@ -84,7 +89,11 @@ export default {
               // Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientWidth',{get:function(){return 1380;}})
               // Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientHeight',{get:function(){return 520;}})
               // this.$nextTick(()=>{this.drawChart(i)})
+              if(i>0){
+              document.getElementById(`outer-${i}`).style.display = 'none';
+              }
             })
+
           } 
           
           this.$nextTick(()=>{
@@ -113,7 +122,7 @@ export default {
         if (this.echartsList[index]) {
           echarts.dispose(document.getElementById(`chart-dom-${index}`))
         }
-        this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts )
+        this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts)
       }
     },
   }
@@ -171,6 +180,12 @@ export default {
     &::-webkit-scrollbar-corner {
       background: transparent;
     }
+  }
+  :deep(.ec-extension-amap){
+    position: relative !important;
+    height: 110%;
+    width: 100%;
+    display: block;
   }
 }
 </style>

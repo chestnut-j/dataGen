@@ -191,7 +191,7 @@ function onSaveSvg() { // 保存svg
 
 function drawTree(svgId, dataPath) {
   // set the dimensions and margins of the graph
-  const margin = {top: 40, right: 40, bottom: 60, left: 180},
+  const margin = {top: 40, right: 40, bottom: 60, left: 220},
       width = 640 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom;
 
@@ -212,7 +212,7 @@ function drawTree(svgId, dataPath) {
             (data);
     console.log(root)
     root.sort((a, b) => a.id>b.id?1:-1);
-    const dx = 14;
+    const dx = 34;
   const dy = width / (root.height+3);
   tree.nodeSize([dx, dy])(root);
     let nodes = root.descendants()
@@ -225,9 +225,9 @@ function drawTree(svgId, dataPath) {
                 .append('path')
                 .attr('class','link')
                 .attr("fill", "none")
-                .attr("stroke", "#666666")
+                .attr("stroke", "#BBD7F8")
                 .attr("stroke-width", 1)
-                .attr('d', d3.linkHorizontal()
+                .attr('d', d3.linkVertical()
                             .x(function(d) { return d.x; })
                             .y(function(d) { return d.y; }));
                 
@@ -240,10 +240,10 @@ function drawTree(svgId, dataPath) {
                 .attr('transform', function(d){
                   return "translate("+d.x+","+d.y+")";
                 })
-    let color = ['#333333','#444444','#555555','#666666','#777777']
+    let color = ['#EAF2F8','#246EC7','#83A9D7','#C2D5EB','#ABABAB']
     node.append('circle')
-        .attr('r',function(d){
-          return ['root','L1','L2','L3'].includes(d.id)?6:5})
+        .attr('r', 6)
+          // return ['root','L1','L2','L3'].includes(d.id)?8:8})
         .attr("fill",function(d){
           console.log(d)
           return color[d.depth]})
@@ -252,10 +252,11 @@ function drawTree(svgId, dataPath) {
         .attr("dx", function(d){return d.children?-15:15})
         .attr("dy",10)
         .style("text-anchor",function(d){return d.children?"end":"start"})
+        .style("font-size",'24px')
         .attr('class','text')
         .attr('transform',"translate(15,-20)")
         .text(function(d){
-          return ['root','L1','L2','L3'].includes(d.id)?d.id:''})
+          return ['root','L1','L2'].includes(d.id)?d.id:''})
   })
   // let tree = d3.tree()
   //   .size([width,height-200])

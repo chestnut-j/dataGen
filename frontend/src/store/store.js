@@ -39,7 +39,7 @@ export const store = reactive({
     this.optionList = []
     this.totalInfo.forEach(item=>{
       let origin = item.origin[0]
-      let key = Object.keys(origin)[0]
+      let key = origin['table']
       // let columns = origin[key]
       let out = {}
       if(data['table']){
@@ -55,7 +55,7 @@ export const store = reactive({
         } else{
           out[colKey] = []
           data[colKey].forEach(op=>{
-            out[colKey].push(op.find(e=>origin[key][colKey].indexOf(e)>-1))
+            out[colKey].push(op.find(e=>origin['columns'][colKey].indexOf(e)>-1))
           })
         }
         out[colKey]=out[colKey].join(',')

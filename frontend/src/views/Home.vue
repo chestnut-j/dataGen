@@ -133,7 +133,7 @@ export default {
       this.overviewChart = echarts.init(document.getElementById('overview-chart'));
       // 绘制图表
       let data = store.performArr.map((v, i)=>{
-        return {
+        return { 
           value: v,
           info: store.optionList[i]
         }

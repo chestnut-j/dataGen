@@ -1025,7 +1025,17 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
   return instanceArr
 }
 evaluationFunc = function(data, domId, instance, efficiencyTest){
-  return efficiencyTest
+  let cnt = 0
+  instance.forEach(item => {
+    let data = item.realChart.chart.geometries[0].data
+    data.forEach(el => {
+      let v = el.value
+      if (v === null || Number.isNaN(v) || !Number.isFinite(v)) {
+        cnt++
+      }
+    })
+  })
+  return cnt
 }`
   },
   {
@@ -1072,57 +1082,58 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
     id: 7,
     title: 'heatMap case',
     content:  `data = {
-  "table":"Set(nRows(50),nRows(100),nRows(200),nRows(400),nRows(800),nRows(1600)) And nCols(3)",
+  "table":"Set(nRows(500),nRows(1000),nRows(1500),nRows(2500),nRows(3500),nRows(4500)) And nCols(3)",
   "columns": {
-    "x": "Int() And Distribution('uniform', 0, 100)",
-    "y": "Int() And Distribution('uniform', 0, 100)",
-    "value": "Distribution('normal', 40,20)"
+    "x": "Distribution('normal', 120.13066322374, 0.02)",
+    "y": "Distribution('normal', 30.240018034923, 0.01)",
+    "value": "Enum([1])"
   }
 }
 
 visFunc = function (data, domId, d3, echarts, visCharts) {
   var myChart = echarts.init(document.getElementById(domId));
-  let xData = new Array(100).fill(0).map((v,i)=>i+1)
-
-  option = {
-    tooltip: {
-      position: 'top'
-    },
-    grid: {
-      height: '78%',
-      top: '5%'
-    },
-    xAxis: {
-      type: 'category',
-      data: xData,
-    },
-    yAxis: {
-      type: 'category',
-      data: xData,
-    },
-    visualMap: {
-      min: 0,
-      max: 80,
-      calculable: true,
-      orient: 'horizontal',
-      left: 'center',
-      bottom: '2%'
-    },
-    series: [
-      {
-        name: '',
-        type: 'heatmap',
-        data: data.map(v=>Object.values(v)),
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
+  option = { 
+      animation: false,
+      amap: {
+        center: [120.13066322374, 30.240018034923],
+        zoom:14,
+        lang: "en"
+      },
+      // bmap: {
+      //   key: 'hGWVSQ2IsQmRKn9hgH93FTqYrYiksHu7',
+      //   center: [-74.13066322374, 40.240018034923],
+      //   zoom: 10,
+      //   // roam: true
+      // },
+      // gmap: {
+      //   center: [120.13066322374, 30.240018034923],
+      //   zoom: 13,
+      //   // 移动过程中实时渲染。默认为 true。如数据量较大，建议置为 false。
+      //   // renderOnMoving: true,
+      //   echartsLayerZIndex: 2019,
+      //   roam: true
+      // },
+      visualMap: {
+        show: false,
+        top: 'top',
+        min: 0,
+        max: 5,
+        seriesIndex: 0,
+        calculable: true,
+        inRange: {
+          color: ['blue', 'blue', 'green', 'yellow', 'red']
         }
-      }
-    ]
-  };
-
+      },
+      series: [
+        {
+          type: 'heatmap',
+          coordinateSystem: 'amap',
+          data: data.map(v=>Object.values(v)),
+          pointSize: 5,
+          blurSize: 6
+        }
+      ]
+    }
   option && myChart.setOption(option);
   return myChart
 }
@@ -1132,26 +1143,70 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
   },
   {
     id: 8,
-    title: 'draft',
-    content:  `data = [{
-      "( (nRows(20) Prod nRows(35)) And nCols(12) )": {
-        "name": "Faker(name)",
-        "gender": "Frequency('male', 0.6, 'female', 0.4)",
-        "telephone": "Faker(phone_number) And Empty(2)",
-        "height": "Range(155.0,200.0) And FreqIf('>180', 0.4) And Mean(170)",
-        "weight": "Range(35.0,100.0) And Max(88.8) And Quantile(50,50)",
-        "score": "Distribution('normal',80,15)",
-        "doubleScore": "Correlation('score','linear',2) ",
-        "comment": "Repeat('goodcomment',2)",
-        "trend": "Trend('exponential',1.4)",
-        "cluster": "Int And Cluster(4) And Range(0,300)"
+    title: 'heatMap d3',
+    content:  `data = {
+      "table":"nRows(800) And nCols(2)",
+      "columns": {
+        "x": "Set(Distribution('normal', 15, 0.5),Distribution('normal', 15, 1),Distribution('normal', 15, 2),Distribution('normal', 15, 3),Distribution('normal', 15, 4),Distribution('normal', 15, 5))",
+        "y": "Distribution('normal', 10, 5)"
       }
-    }]
-    
-    visFunc= function (a, b) {
-      console.log('args:', a, b)
     }
-    evaluationFunc = function(svgId, echartInstance, data, efficiencyTest){
+    
+    visFunc = function (data, domId, d3, echarts, visCharts) {
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 30, bottom: 30, left: 60},
+    width = 1350 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#"+domId)
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+  // Add X axis
+  var x = d3.scaleLinear()
+    .domain([0, 30])
+    .range([ margin.left, width - margin.right ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 20])
+    .range([ height - margin.bottom, margin.top ]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+
+
+  // compute the density data
+  var densityData = d3.contourDensity()
+    .x(function(d) { return x(d.x); })
+    .y(function(d) { return y(d.y); })
+    .size([width, height])
+    .bandwidth(10) 
+    (data)
+
+  let minData = Math.min(...densityData.map(v=>v.value))
+  let maxData = Math.max(...densityData.map(v=>v.value))
+  // Prepare a color palette
+  var color = d3.scaleLinear()
+      .domain([minData, maxData]) // Points per square pixel.
+      .range(["#F7FBFC", "#69a3b2"])
+
+  // show the shape!
+  // svg.insert("g", "g")
+  //   .selectAll("path")
+  //   .data(densityData)
+  //   .enter().append("path")
+  //     .attr("d", d3.geoPath()) 
+  //     .attr("fill", function(d) { return color(d.value); })
+    }
+    evaluationFunc = function(data, domId, instance, efficiencyTest){
       return efficiencyTest
     }`
   },

@@ -165,20 +165,66 @@ def isOuterrontParenthesis(constraint):
   else:
     return False
 
+
+# def parseConstraint(rawConstraint, key):
+
+#     # constraint = rawConstraint.replace(" ","")
+#     constraint = rawConstraint
+
+#     if constraint.find('Opt') == -1:
+#       if isOuterrontParenthesis(constraint):
+#         constraint = constraint[1:len(constraint)-1]
+#       return [constraint]
+            
+#     # # 根据option标识符的位置把constraint分割为多个部分
+#     constraintList = findConstrain(rawConstraint, "Opt")
+ 
+#     [slotJson, slotContentList] = generateSlot(constraintList)
+#     print(slotJson, slotContentList)
+#     optionResult = optionSoluntion(slotContentList)
+#     output_option_list[key] = slotContentList
+#     finalJsonList = []
+#     for ri in optionResult:
+#         finalJsonList.append(slotJson.format(*ri))
+        
+#     return finalJsonList
 def parseConstraint(rawConstraint, key):
 
-    # constraint = rawConstraint.replace(" ","")
-    constraint = rawConstraint
+    constraint = rawConstraint.replace("),",")|")
+    # constraint = rawConstraint
 
-    if constraint.find('Opt') == -1:
+    if constraint.find('Set') == -1:
       if isOuterrontParenthesis(constraint):
         constraint = constraint[1:len(constraint)-1]
       return [constraint]
             
     # # 根据option标识符的位置把constraint分割为多个部分
-    constraintList = findConstrain(rawConstraint, "Opt")
- 
-    [slotJson, slotContentList] = generateSlot(constraintList)
+    posList = findPosi(constraint, "Set")
+    print(posList)
+    slotContentList=[]
+    slotJson = ''
+    index = 0
+    for pos in posList:
+      leftCnt = 0
+      rightCnt = 0
+      slotJson = slotJson+constraint[index:pos]+'{'
+
+      index = pos+3
+      while leftCnt==0 or leftCnt!=rightCnt:
+        if constraint[index]=='(':
+          leftCnt=leftCnt+1
+        elif constraint[index]==')':
+          rightCnt=rightCnt+1
+        index = index+1
+      slotJson = slotJson+"}"
+      setCons = constraint[pos+4:index-1]
+      slotContentList.append(setCons.split('|'))
+    slotJson = slotJson+constraint[index:]
+    # [slotJson, slotContentList] = generateSlot(constraintList)
+#  slotJson  slotContentList
+#  {} And Column(6) [['Length(50) ', ' Length(20)']]
+# {} [['Range(50,80) ', ' Range(0,100)']]
+
     optionResult = optionSoluntion(slotContentList)
     output_option_list[key] = slotContentList
     
@@ -499,20 +545,24 @@ def parseJson(origin):
     remainValue = {}
     value_test = []
     key_test = []
-    for key, value in format.items():
-      test = parseConstraint(key,'key')
-      remainValue = value
-      for col_key, col_value in value.items():
-        value_test.append(parseConstraint(col_value, col_key))
-        key_test.append(col_key)
+
+    # for key, value in format.items():
+    #   test = parseConstraint(key,'key')
+    #   remainValue = value
+    #   for col_key, col_value in value.items():
+    #     value_test.append(parseConstraint(col_value, col_key))
+    #     key_test.append(col_key)
+    test = parseConstraint(format['table'],'key')
+    remainValue = format['columns']
+    for col_key, col_value in format['columns'].items():
+      value_test.append(parseConstraint(col_value, col_key))
+      key_test.append(col_key)
+
     valueList = []
     valueList = product(*value_test)
-    print(value_test)
-    print(key_test)
 
     for value_op in valueList:
       for op in test:
-        print(op,value_op)
         parseFormat = []
         item = {}
         valueFormat = {}
@@ -521,9 +571,15 @@ def parseJson(origin):
             valueFormat[key_test[i]] = removeOrOp(value_op[i])
           else:
             valueFormat[key_test[i]] = value_op[i] 
-        item[op] = valueFormat
+        # item[op] = valueFormat
+        item = {
+          "table": op,
+          "columns": valueFormat
+        }
         parseFormat.append(item)
         allTables.append(parseFormat)
+
+        print(parseFormat)
   return allTables
 
 # 单表映射
@@ -532,7 +588,9 @@ def parseTable(allTables):
   for table in allTables:
     tableParse = []
     for element in table:
-      for key,value in element.items():
+      # for key,value in element.items():
+        key = element['table']
+        value = element['columns']
         format = {
           'children': []
         }
@@ -1074,7 +1132,30 @@ def dataGen(json):
 input_path = './newAttr.json'
 # input_path = './example.json'
 output_option_list = {}
-with open(input_path,"r") as f:
-  origin = json.load(f)
+# with open(input_path,"r") as f:
+#   origin = json.load(f)
+
+origin = [
+  {
+    "table":"Set(Length(50),Length(20)) And Set(Column(6),Column(7))",
+    "columns": {
+      "name": "String",
+      "switch": "Set(Range(50,80),Range(0,100))",
+    }
+  }
+]
+
+# origin = [
+#   {
+#     "( (Length(50) Opt Length(20)) And Column(6))": {
+#       "name": "String",
+#       "switch": "Range(50,80) Opt Range(0,100)",
+#     }
+#   }
+# ]
+# allTables = parseJson(origin)
+# print(allTables)
+# tables = parseTable(allTables)
+# print(tables)
 dataGen(origin)
 print(output_option_list)
