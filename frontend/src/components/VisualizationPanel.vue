@@ -79,16 +79,16 @@ export default {
               let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
 
-              // d3.select(`#outer-${i}`).selectAll('*').remove()
-              // d3.select(`#outer-${i}`)
-              //   .append('div')
-              //     .attr("id",`chart-dom-${i}`)
-              //     .attr('class','chart-content')
-              //     .style('height','530px')
-              //     .style('width','1228px')
-              // Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientWidth',{get:function(){return 1380;}})
-              // Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientHeight',{get:function(){return 520;}})
-              // this.$nextTick(()=>{this.drawChart(i)})
+              d3.select(`#outer-${i}`).selectAll('*').remove()
+              d3.select(`#outer-${i}`)
+                .append('div')
+                  .attr("id",`chart-dom-${i}`)
+                  .attr('class','chart-content')
+                  .style('height','520px')
+                  .style('width','1380px')
+              Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientWidth',{get:function(){return 1380;}})
+              Object.defineProperty(document.getElementById(`chart-dom-${i}`),'clientHeight',{get:function(){return 520;}})
+              this.$nextTick(()=>{this.drawChart(i)})
               if(i>0){
               document.getElementById(`outer-${i}`).style.display = 'none';
               }

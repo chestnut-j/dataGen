@@ -65,7 +65,16 @@ export default {
     getJsonData(data){
       let json = data.slice(data.indexOf("=")+1,data.indexOf('visFunc'))
       json = '['+json+']'
-      console.log(json,JSON.parse(json))
+      json = json.replace("Random('categorical, categories=['-22','+22'], weights=[0.5, 0.5]')","Frequency('-22',0.5, '+22',0.5)")
+        .replace("Random('categorical, categories=['22','ppp'], weights=[0.5, 0.5]')","Frequency('22',0.5, 'ppp', 0.5)")
+        .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
+        .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
+        .replace("Random('uniform, min=-50, max=-20')","Distribution('uniform',-50,-20)")
+        .replace("Random('uniform, min=20, max=50')","Distribution('uniform',20,50)")
+        .replace("Random('normal, loc=120.13, scale=0.02')","Distribution('normal', 120.13, 0.02)")
+        .replace("Random('normal, loc=30.24, scale=0.01')","Distribution('normal', 30.24, 0.01)")
+        .replace("Random('categorical, categories=[1]')","Enum([1])")
+        console.log(json,JSON.parse(json))
       return JSON.parse(json)
     },
     changeValue (val) {

@@ -1009,6 +1009,10 @@ def buildSolver(format):
           random_list.append(col['if'][2])
           if len(col['if'])>3:
             random_list.append(col['if'][3])
+      others[col['name']]=random_list
+
+      if len(col.keys())<=3 and 'distribution' in col:
+        continue
 
     if 'cluster' in col:
       part = col['cluster']
@@ -1093,6 +1097,7 @@ def dataGen(json):
     print(table)
     res = []
     for format in table:
+      # testCode
       try:
         [solver, d, others] = buildSolver(format)
       except Exception as e:
@@ -1108,19 +1113,27 @@ def dataGen(json):
       
       output = []
       cnt = 0
+      # testCode
       while solver.check()!=z3.sat and cnt<10:
         print('try :', cnt)
         [solver, d, others] = buildSolver(format)
         cnt+=1
 
+      # testCode
       if solver.check()==z3.sat:
         m = solver.model()
+      # if True:
+        
 
         #json list mode [{a:1,b:2},{a:2},{b:2}...]
         for i in range(num_len):
           data = {}
-          
+
+          # testCode
           for col in columns:
+            if len(col.keys())<=3 and 'distribution' in col:
+              data[col['name']] = round(others[col['name']][i],5)
+              continue
             if 'type' in col:
               if col['type'] == 'Int':
                 data[col['name']] = None if 'empty_index' in col and list(col['empty_index']).count(i)>0 else m[d[col['name']][i]].as_long()
@@ -1141,6 +1154,17 @@ def dataGen(json):
                 data[col['name']] = others[col['name']][i]
             else:
               data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)
+          
+
+          # testCode
+          # for col in columns:
+          #   if col['name']=='x':
+          #     data[col['name']]=np.random.normal(120.13066322374,0.02)
+          #   if col['name']=='y':
+          #     data[col['name']]=np.random.normal(30.240018034923,0.01)
+          #   if col['name']=='value':
+          #     data[col['name']]=1
+
           output.append(data)
           # print(data)
         print('========  write to csv:  ','"./data/test'+str(index)+'.csv"  ========')

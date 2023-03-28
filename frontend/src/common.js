@@ -262,7 +262,7 @@ export const getOverviewBarOption = function(name, data) {
         data: data,
         emphasis: {
             itemStyle: {
-                color: '#8DBCF4'
+                color: '#FB9620'
             },
         },
         tooltip:{
@@ -991,8 +991,8 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     content:  `data = {
   "table":"nRows(10) And nCols(2)",
   "columns": {
-    "real": "Set(Distribution('uniform',0,20),Frequency('22',0.5, 'ppp', 0.5),Frequency('-22',0.5, '+22',0.5),Empty(4))",
-    "simu": "Set(Distribution('uniform',0,20),Distribution('uniform',-50,-20),Distribution('uniform',20,50))"
+    "real": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['22','ppp'], weights=[0.5, 0.5]'),Random('categorical, categories=['-22','+22'], weights=[0.5, 0.5]'),Empty(4))",
+    "simu": "Set(Random('uniform, min=0, max=20'),Random('uniform, min=-50, max=-20'),Random('uniform, min=20, max=50'))"
   }
 }
 
@@ -1082,11 +1082,11 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
     id: 7,
     title: 'heatMap case',
     content:  `data = {
-  "table":"Set(nRows(500),nRows(1000),nRows(1500),nRows(2500),nRows(3500),nRows(4500)) And nCols(3)",
+  "table":"Set(nRows(40000),nRows(36000),nRows(32000),nRows(28000),nRows(24000),nRows(20000),nRows(16000),nRows(12000),nRows(8000),nRows(4000)) And nCols(3)",
   "columns": {
-    "x": "Distribution('normal', 120.13066322374, 0.02)",
-    "y": "Distribution('normal', 30.240018034923, 0.01)",
-    "value": "Enum([1])"
+    "x": "Random('normal, loc=120.13, scale=0.02')",
+    "y": "Random('normal, loc=30.24, scale=0.01')",
+    "value": "Random('categorical, categories=[1]')"
   }
 }
 
@@ -1095,24 +1095,10 @@ visFunc = function (data, domId, d3, echarts, visCharts) {
   option = { 
       animation: false,
       amap: {
-        center: [120.13066322374, 30.240018034923],
+        center: [120.13, 30.24],
         zoom:14,
         lang: "en"
       },
-      // bmap: {
-      //   key: 'hGWVSQ2IsQmRKn9hgH93FTqYrYiksHu7',
-      //   center: [-74.13066322374, 40.240018034923],
-      //   zoom: 10,
-      //   // roam: true
-      // },
-      // gmap: {
-      //   center: [120.13066322374, 30.240018034923],
-      //   zoom: 13,
-      //   // 移动过程中实时渲染。默认为 true。如数据量较大，建议置为 false。
-      //   // renderOnMoving: true,
-      //   echartsLayerZIndex: 2019,
-      //   roam: true
-      // },
       visualMap: {
         show: false,
         top: 'top',
@@ -1121,7 +1107,7 @@ visFunc = function (data, domId, d3, echarts, visCharts) {
         seriesIndex: 0,
         calculable: true,
         inRange: {
-          color: ['blue', 'blue', 'green', 'yellow', 'red']
+          color: ['#ffffcc', '#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026']
         }
       },
       series: [

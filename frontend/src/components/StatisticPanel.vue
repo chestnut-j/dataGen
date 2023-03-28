@@ -55,7 +55,8 @@ export default {
   data(){
     return {
       charts: {},
-      activeKey: '1'
+      activeKey: '1',
+      parseOrigin: []
     }
   },
   components:{
@@ -89,11 +90,31 @@ export default {
       return store.totalInfo[this.currentIndex]?.table || []
     },
     origin(){
-      return store.totalInfo[this.currentIndex]?.origin[0]
+      let pre = store.totalInfo[this.currentIndex]?.origin[0] || ''
+      pre=JSON.stringify(pre)
+      pre = pre.replace("Frequency('-22',0.5, '+22',0.5)","Random('categorical, categories=['-22','+22'], weights=[0.5, 0.5]')")
+        .replace("Frequency('22',0.5, 'ppp', 0.5)","Random('categorical, categories=['22','ppp'], weights=[0.5, 0.5]')")
+        .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
+        .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
+        .replace("Distribution('uniform',-50,-20)","Random('uniform, min=-50, max=-20')")
+        .replace("Distribution('uniform',20,50)","Random('uniform, min=20, max=50')")
+        .replace("Distribution('normal', 120.13, 0.02)","Random('normal, loc=120.13, scale=0.02')")
+        .replace("Distribution('normal', 30.24, 0.01)","Random('normal, loc=30.24, scale=0.01')")
+        .replace("Enum([1])","Random('categorical, categories=[1]')")
+      // pre = pre.replace("Distribution('uniform',0,20)","Distribution('uniform',min=0,max=20)")
+      // pre = pre.replace("Distribution('uniform',0,20)","Distribution('uniform',min=0,max=20)")
+      // pre = pre.replace("Distribution('uniform',-50,-20)","Distribution('uniform',min=-50,max=-20)")
+      // pre = pre.replace("Distribution('uniform',20,50)","Distribution('uniform',min=20,max=50)")
+      // pre = pre.replace("Frequency('-22',0.5, '+22',0.5)","Frequency(['-22','+22'],[0.5, 0.5])")
+      // pre = pre.replace("Frequency('22',0.5, 'ppp', 0.5)","Frequency(['22','ppp'],[0.5,0.5])")
+      // pre = pre.replace("Distribution('normal', 120.13, 0.02)","Distribution('normal', mean=120.13, std=0.02)")
+      // pre = pre.replace("Distribution('normal', 30.24, 0.01)","Distribution('normal', mean=30.24, std=0.01)")
+      return JSON.parse(pre)
     },
     constraints(){
-      const cols = store.totalInfo[this.currentIndex]?.origin[0]
-      return Object.values(cols)[0]
+      const cols = this.origin
+      console.log(cols)
+      return this.origin['columns']
     },
     chartConfig(){
       const config = {}
@@ -330,7 +351,7 @@ export default {
 .comp-data {
   display: flex;
   flex-flow: row;
-  // height: 100%;
+  height: 100%;
   overflow: hidden;
   align-items: center;
   padding: 0 5px;
@@ -353,7 +374,7 @@ export default {
     width:calc(100% - 60px);
     height: 100%;
     .tab-panel {
-      height: 100%;
+      // height: 100%;
     }
   }
 
