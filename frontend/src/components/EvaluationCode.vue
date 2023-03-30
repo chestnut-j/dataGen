@@ -5,7 +5,7 @@
         ref="monaco"
         :opts="opts"
         @change="changeValue"
-        :height="180"
+        :height="220"
       ></monaco>
     </div>
   </div>
@@ -33,10 +33,14 @@ export default {
         readOnly: false, // 是否可编辑
         language: 'javascript', // 语言类型
         theme: 'vs-light', // 编辑器主题
+        fontSize: '17px',
         minimap: {
           enabled: false
         },
-        wordWrap: true,
+        scrollbar: {
+          vertical: 'visible',
+        },
+        // wordWrap: true,
         wrappingStrategy: 'advanced',
       },
     }
@@ -91,7 +95,8 @@ export default {
   
   .content {
     text-align: left;
-    height: calc(100% - 100px);
+    overflow: hidden;
+
     .monaco-editor {
       height: 100%;
     }

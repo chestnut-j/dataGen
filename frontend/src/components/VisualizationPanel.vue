@@ -18,7 +18,7 @@
 import {store} from '../store/store.js'
 import * as d3 from 'd3';
 import * as echarts from 'echarts'
-import * as visCharts from '@zjlabvis/vis-charts'  
+import * as zCharts from '@zjlabvis/vis-charts'  
 import 'echarts/extension/bmap/bmap';
 import 'echarts-extension-amap';
 
@@ -69,12 +69,12 @@ export default {
 
             this.$nextTick(()=>{
               let start = +new Date()
-              for(let j=0;j<10;j++){ 
+              for(let j=0;j<1;j++){ 
 
                 this.drawChart(i)
               }
               let end = +new Date() 
-              let efficiencyTest = (end-start)/10
+              let efficiencyTest = (end-start)/1
               const data = this.info[i]?.table || []
               let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)
@@ -122,7 +122,7 @@ export default {
         if (this.echartsList[index]) {
           echarts.dispose(document.getElementById(`chart-dom-${index}`))
         }
-        this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, visCharts)
+        this.echartsList[index]=store.visFunction(data, `chart-dom-${index}`, d3, echarts, zCharts)
       }
     },
   }
@@ -144,7 +144,7 @@ export default {
   }
   .panel-content {
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
     text-align: center;
     width: 100%;
     .item-outer{
@@ -156,7 +156,7 @@ export default {
       height: 100%;
       width:100%;
       text-align: center;
-      margin:auto;
+      margin:hidden;
     }
     &::-webkit-scrollbar {
       height: 4px;

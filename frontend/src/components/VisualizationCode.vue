@@ -5,7 +5,7 @@
         ref="monaco"
         :opts="opts"
         @change="changeValue"
-        :height="520"
+        :height="515"
       ></monaco>
     </div>
   </div>
@@ -17,7 +17,7 @@ import monaco from '@/components/monaco/index.vue'
 import { caseOptions } from '@/common.js'
 //test data
 const defaultValue= `// vis function
-visFunc = function(data, domId, d3, echarts, visCharts){
+visFunc = function(data, domId, d3, echarts, zCharts){
   
 }`
 export default {
@@ -32,7 +32,11 @@ export default {
         readOnly: false, // 是否可编辑
         language: 'javascript', // 语言类型
         theme: 'vs-light', // 编辑器主题
-        wordWrap: true,
+        fontSize: '17px',
+        // wordWrap: true,
+        scrollbar: {
+          vertical: 'visible',
+        },
       },
     }
   },
@@ -86,7 +90,8 @@ export default {
   
   .content {
     text-align: left;
-    height: calc(100% - 100px);
+    overflow: hidden;
+
     .monaco-editor {
       height: 100%;
     }

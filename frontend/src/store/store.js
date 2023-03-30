@@ -55,7 +55,17 @@ export const store = reactive({
         } else{
           out[colKey] = []
           data[colKey].forEach(op=>{
-            out[colKey].push(op.find(e=>origin['columns'][colKey].indexOf(e)>-1))
+            let item = op.find(e=>origin['columns'][colKey].indexOf(e)>-1)
+            let pre = item.replace("Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)","Random('categorical, categories=['+12','12','18','+18']')")
+                    .replace("Frequency('-10',0.3,'-20',0.3,'-30',0.4)","Random('categorical, categories=['-10','-20','-30']')")
+                    .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
+                    .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
+                    .replace("Distribution('uniform',-50,-20)","Random('uniform, min=-50, max=-20')")
+                    .replace("Distribution('uniform',20,50)","Random('uniform, min=20, max=50')")
+                    .replace("Distribution('normal', 120.13, 0.02)","Random('normal, loc=120.13, scale=0.02')")
+                    .replace("Distribution('normal', 30.24, 0.01)","Random('normal, loc=30.24, scale=0.01')")
+                    .replace("Enum([1])","Random('categorical, categories=[1]')")
+            out[colKey].push(pre)
           })
         }
         out[colKey]=out[colKey].join(',')

@@ -1,3 +1,4 @@
+const myColor = ['#cbd5e8','#fdcdac','#f4cae4','#e6f5c9','#fff2ae','#f1e2cc','#b3e2cd']
 export const getBoxOption = function(name, data){
   return {
     title: {
@@ -72,6 +73,7 @@ export const getBoxOption = function(name, data){
 
 export const getLineOption = function(name, data) {
   return {
+    color: myColor,
     title: {
       // top: '5%',
       // left: '5%',
@@ -119,6 +121,7 @@ export const getLineOption = function(name, data) {
 
 export const getHistogramOption = function(name, data) {
   return {
+    color: myColor,
     title: {
       // top: '5%',
       // left: '5%',
@@ -127,10 +130,10 @@ export const getHistogramOption = function(name, data) {
     tooltip: {
     },
     grid: {
-      left: '25%',
+      left: '15%',
       right: '5%',
-      bottom: '10%',
-      top:'15%'
+      bottom: '15%',
+      top:'28%'
     },
     xAxis: {
       type: 'category',
@@ -143,25 +146,46 @@ export const getHistogramOption = function(name, data) {
       // splitLine: {
       //   show: false
       // }
+      axisLabel:{
+        fontSize: 16,
+      }
     },
     yAxis: {
+      name: 'frequency',
+      nameTextStyle:{
+        fontSize: 16,
+      },
+      axisLabel:{
+        fontSize: 16,
+      },
+      splitNumber:4,
     },
     series: [
       {
         type: 'bar',
         data: data,
-        barWidth: '99.3%',
+        // barWidth: '99.3%',
         // label: {
         //     show: true,
         //     position: 'top'
         // },
       },
+      // {
+      //   type: 'line',
+      //   data: lineData,
+      //   // barWidth: '99.3%',
+      //   // label: {
+      //   //     show: true,
+      //   //     position: 'top'
+      //   // },
+      // },
     ]
   }
 }
 
-export const getBarOption = function(name, data) {
+export const getBarOption = function(name, data ,showLabel=true) {
   return {
+    color: myColor,
     title: {
       // top: '5%',
       // left: '5%',
@@ -170,14 +194,18 @@ export const getBarOption = function(name, data) {
     tooltip: {
     },
     grid: {
-      left: '25%',
+      left: '15%',
       right: '5%',
-      bottom: '10%',
-      top:'15%'
+      bottom: '15%',
+      top:'28%'
     },
     xAxis: {
       type: 'category',
       data: Object.keys(data),
+      axisLabel:{
+        show: showLabel,
+        fontSize: 16,
+      }
       // nameGap: 30,
       // scale: true,
       // splitArea: {
@@ -189,6 +217,14 @@ export const getBarOption = function(name, data) {
     },
     yAxis: {
       type:'value',
+      name: 'frequency',
+      nameTextStyle:{
+        fontSize: 16,
+      },
+      axisLabel:{
+        fontSize: 16,
+      },
+      splitNumber:4,
     },
     series: [
       {
@@ -201,19 +237,24 @@ export const getBarOption = function(name, data) {
 
 export const getPieOption = function(name, data) {
   return {
+    color: myColor,
     title: {
     },
     tooltip: {
       trigger: 'item'
     },
     legend: {
+      show: false,
       orient: 'horizontal',
       bottom: 'bottom',
+      textStyle: {
+        fontSize: 15,
+      }
     },
     series: [
       {
         type: 'pie',
-        radius: '50%',
+        radius: '70%',
         data: data,
         emphasis: {
           itemStyle: {
@@ -223,13 +264,18 @@ export const getPieOption = function(name, data) {
           }
         },
         label:{
-          // position: 'center',
-          formatter: '{b}\n({c})'
+          position: 'inside',
+          formatter: '{b}\n({c})',
+          fontSize: 16,
+          show: true,
         },
-        left: '2%',
-        right: '2%',
-        bottom: '5%',
-        top:'5%',
+        labelLine:{
+          show: false,
+        },
+        left: '-5%',
+        right: '-5%',
+        bottom: '-10%',
+        top:'-5%',
       }
     ]
   }
@@ -250,11 +296,18 @@ export const getOverviewBarOption = function(name, data) {
     xAxis: {
       type: 'category',
       data: Object.keys(data).map(v=>+v+1),
+      axisLabel:{
+        fontSize: 16,
+      }
     },
     yAxis: {
       type:'value',
       // interval: 1,
-      interval: 'function(value){ return Math.ceil(value.max); }'
+      // interval: 'function(value){ return Math.ceil(value.max); }',
+      splitNumber:3,
+      axisLabel:{
+        fontSize: 16,
+      }
     },
     series: [
       {
@@ -268,13 +321,16 @@ export const getOverviewBarOption = function(name, data) {
         tooltip:{
           formatter:(params)=>{
             let html = ` 
-                        <pre>${JSON.stringify(params.data.info,null,2)}</pre>
+                        <pre style="font-size:16px;">${JSON.stringify(params.data.info,null,2)}</pre>
                         <span style="display:inline-block;margin-right:4px;
-                          border-radius:10px;width:10px;height:10px;
+                          border-radius:10px;width:10px;height:10px;font-size:16px;
                           background-color:#8dbcf4;"></span>
                         <span>evaluation Index:  ${[params.data.value]}</span>
                         `
             return html
+          },
+          textStyle:{
+            fontSize:16,
           },
           extraCssText: "z-index: 999999;",
           confine: true,
@@ -302,7 +358,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (data, domId, d3, echarts, visCharts) {
+    visFunc= function (data, domId, d3, echarts, zCharts) {
       keys = [
         "economy(mpg)",
         "cylinders",
@@ -388,7 +444,7 @@ export const caseOptions = [
       }
     }
     
-    visFunc= function (data, domId, d3, echarts, visCharts) {
+    visFunc= function (data, domId, d3, echarts, zCharts) {
       function ScatterplotMatrix(data, {
         columns = data.columns, // array of column names, or accessor functions
         x = columns, // array of x-accessors
@@ -529,7 +585,7 @@ export const caseOptions = [
   }
 }
 
-visFunc= function (data, domId, d3, echarts, visCharts) {
+visFunc= function (data, domId, d3, echarts, zCharts) {
   var myChart = echarts.init(document.getElementById(domId));
   var option;
 
@@ -745,7 +801,7 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
   }
 }
 
-visFunc= function (data, domId, d3, echarts, visCharts) {
+visFunc= function (data, domId, d3, echarts, zCharts) {
   var myChart = echarts.init(document.getElementById(domId));
 
   var option;
@@ -987,41 +1043,78 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
   },
   {
     id: 5,
-    title: 'visChart case 1',
-    content:  `data = {
+    title: 'diffBar',
+    content:  `{
   "table":"nRows(10) And nCols(2)",
   "columns": {
-    "real": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['22','ppp'], weights=[0.5, 0.5]'),Random('categorical, categories=['-22','+22'], weights=[0.5, 0.5]'),Empty(4))",
-    "simu": "Set(Random('uniform, min=0, max=20'),Random('uniform, min=-50, max=-20'),Random('uniform, min=20, max=50'))"
+    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','18','+18']'),Random('categorical, categories=['-10','-20','-30']'),String(),Empty(4))",
+    "current": "Set(Random('uniform, min=-50, max=-20'),Random('uniform, min=0, max=20'),Random('uniform, min=20, max=50'))"
   }
 }
 
-visFunc= function (data, domId, d3, echarts, visCharts) {
+visFunc= function (data, domId, d3, echarts, zCharts) {
   let chartDom = document.getElementById(domId)
   let instanceArr = []
   data.forEach((item, index) => {
     let grid = document.createElement('div')
     grid.id = \`\${domId}-grid-\${index}\`
-    grid.style.width = 260 + 'px'
-    grid.style.height = 260 + 'px'
+    grid.style.width = 262 + 'px'
+    grid.style.height = 240 + 'px'
     grid.style.display = 'inline-block'
-    grid.style.padding = 15+'px'
+    grid.style.marginLeft = 13+'px'
     chartDom.appendChild(grid)
     let itemData = Object.keys(item).map((k) => { return { type: k, value: item[k] } })
-    let itemChart = new visCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
+    let itemChart = new zCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
       title: '',
       titleIsShow: false,
-      size:[260,260],
+      size:[262,240],
+      padding: [0,0,0,0],
       labelKey: 'type',
       valueKey: 'value',
       value: itemData,
-      colors: ['#8DBCF4', '#00FF00'],
+      colors: ['#8c6bb1', '#e0e0e0'],
+      xAxisFontSize: 16,
+      yAxisFontSize: 16,
+      labelFontSize: 16,
+      tooltipFontSzie: 16,
+      legendIsShow: false,
     });
     itemChart.$on('drag-bar', function(data){
       console.log(data)
     })
     instanceArr.push(itemChart)
   })
+
+  let keys = ['diff','baseline','current']
+  const color = d3.scaleOrdinal()
+      .domain(keys)
+      .range(['#E7E7E7','#BAACCF','#8D76B1'])
+  let svg = d3.select("#"+domId)
+    .append('svg')
+    .attr("width", 400)
+    .attr("height", 40)
+
+  svg.selectAll("mycircles")
+    .data(keys)
+    .enter()
+    .append("circle")
+      .attr("cy", 10) 
+      .attr("cx", function(d,i){ return i===2? 71 + i*110 : 71 + i*100})
+      .attr("r", 5)
+      .style("fill", function(d){ return color(d)})
+
+  // Add one dot in the legend for each name.
+  svg.selectAll("mylabels")
+    .data(keys)
+    .enter()
+    .append("text")
+      .attr("y", 10)
+      .attr("x", function(d,i){ return i===2? 80 + i*110 : 80 + i*100})
+      .style("fill",'#222222')
+      .text(function(d){ return d})
+      .attr("text-anchor", "left")
+      .style("font-size", "16px")
+      .style("alignment-baseline", "middle")
   return instanceArr
 }
 evaluationFunc = function(data, domId, instance, efficiencyTest){
@@ -1040,8 +1133,8 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
   },
   {
     id: 6,
-    title: 'visChart case 2',
-    content:  `data = {
+    title: 'zCharts case 2',
+    content:  `{
   "table":"nRows(10) And nCols(5)",
   "columns": {
     "time": "Set(String(),Range(1,120) And Distinct)",
@@ -1052,7 +1145,7 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
   }
 }
 
-visFunc= function (data, domId, d3, echarts, visCharts) {
+visFunc= function (data, domId, d3, echarts, zCharts) {
   const gdpData = data.map(v => {
     return {
       ...v,
@@ -1061,7 +1154,7 @@ visFunc= function (data, domId, d3, echarts, visCharts) {
   })
   console.log(gdpData)
 
-  const chart1 = new visCharts.AreaRangeChart(domId, {
+  const chart1 = new zCharts.AreaRangeChart(domId, {
     title: '',
     size: [520, 520],
     value: gdpData,
@@ -1080,22 +1173,22 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
   },
   {
     id: 7,
-    title: 'heatMap case',
-    content:  `data = {
+    title: 'heatMap',
+    content:  `{
   "table":"Set(nRows(40000),nRows(36000),nRows(32000),nRows(28000),nRows(24000),nRows(20000),nRows(16000),nRows(12000),nRows(8000),nRows(4000)) And nCols(3)",
   "columns": {
-    "x": "Random('normal, loc=120.13, scale=0.02')",
-    "y": "Random('normal, loc=30.24, scale=0.01')",
+    "x": "Random('normal, loc=-74.01, scale=0.02')",
+    "y": "Random('normal, loc=40.71, scale=0.01')",
     "value": "Random('categorical, categories=[1]')"
   }
 }
 
-visFunc = function (data, domId, d3, echarts, visCharts) {
+visFunc = function (data, domId, d3, echarts, zCharts) {
   var myChart = echarts.init(document.getElementById(domId));
   option = { 
       animation: false,
       amap: {
-        center: [120.13, 30.24],
+        center: [-74.01, 40.71],
         zoom:14,
         lang: "en"
       },
@@ -1138,7 +1231,7 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
       }
     }
     
-    visFunc = function (data, domId, d3, echarts, visCharts) {
+    visFunc = function (data, domId, d3, echarts, zCharts) {
 // set the dimensions and margins of the graph
 var margin = {top: 20, right: 30, bottom: 30, left: 60},
     width = 1350 - margin.left - margin.right,

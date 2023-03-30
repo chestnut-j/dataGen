@@ -17,9 +17,11 @@ import monaco from '@/components/monaco/index.vue'
 import { caseOptions } from '@/common.js'
 
 //test data
-const defaultValue= `// data definition
-data = {
-
+const defaultValue= `{
+  "table":"",
+  "columns": {
+    
+  }
 }`
 export default {
   name: 'DataSpecCode',
@@ -31,10 +33,14 @@ export default {
       opts: {
         value: defaultValue,
         readOnly: false, // 是否可编辑
-        language: 'javascript', // 语言类型
+        language: 'json', // 语言类型
         theme: 'vs-light', // 编辑器主题
+        fontSize: '17px',
         minimap: {
           enabled: false
+        },
+        scrollbar: {
+          vertical: 'visible',
         },
         wordWrap: true,
       },
@@ -63,10 +69,10 @@ export default {
   },
   methods:{
     getJsonData(data){
-      let json = data.slice(data.indexOf("=")+1,data.indexOf('visFunc'))
+      let json = data.slice(data.indexOf("{"),data.indexOf('visFunc'))
       json = '['+json+']'
-      json = json.replace("Random('categorical, categories=['-22','+22'], weights=[0.5, 0.5]')","Frequency('-22',0.5, '+22',0.5)")
-        .replace("Random('categorical, categories=['22','ppp'], weights=[0.5, 0.5]')","Frequency('22',0.5, 'ppp', 0.5)")
+      json = json.replace("Random('categorical, categories=['+12','12','18','+18']')","Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)")
+        .replace("Random('categorical, categories=['-10','-20','-30']')","Frequency('-10',0.3,'-20',0.3,'-30',0.4)")
         .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
         .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
         .replace("Random('uniform, min=-50, max=-20')","Distribution('uniform',-50,-20)")
@@ -95,7 +101,8 @@ export default {
   position: relative;
   .content {
     text-align: left;
-    height: calc(100% - 100px);
+    // height: calc(100% - 100px);
+    overflow: hidden;
     .monaco-editor {
       height: 100%;
     }

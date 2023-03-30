@@ -9,15 +9,15 @@
             ref="select"
             v-model:value="currentCase"
             size="small"
-            :style="{'width': '140px', 'height':'20px'}"
+            :style="{'width': '140px'}"
             @change="handleCaseChange"
           >
             <a-select-option v-for="item in options" :key="item.id" :value="item.id">
               {{item.title}}
             </a-select-option>
           </a-select>
-          <a-button class="run-btn" type="primary" @click="submit()">Run</a-button>
-          <a-button class="download-btn" type="primary" :disabled="!info" @click="download()">Download</a-button>
+          <a-button class="run-btn" type="secondary" @click="submit()">Run</a-button>
+          <a-button class="download-btn" type="secondary" :disabled="!info" @click="download()">Download</a-button>
         </div>
         
         <div class="data-panel">
@@ -162,28 +162,42 @@ export default {
 <style lang="less" scoped>
 .homepage {
   width: 100%;
-  height: calc(100vh - 30px);
+  height: 100vh;
   // padding: 8px;
   .comp-header{
     width:100%;
-    height: 28px;
-    font-size: 16px;
+    height: 40px;
+    font-size: 22px;
     font-weight: 500;
     color: rgb(0, 0, 0);
-    background: rgb(220, 220, 220);
-    line-height: 28px;
+    // background: rgb(220, 220, 220);
+    border-bottom: 1.5px solid #acacac;
+    line-height: 40px;
     padding-left: 15px;
     text-align: left;
     .select-box {
-      margin-left: 120px;
+      margin-left: calc(18% - 280px);
       // vertical-align: middle;
+      // margin-top: auto;
+      // line-height: 28px;
+      position: absolute;
+      font-size: 18px;
+      top: 9px;
+      box-shadow: 0 0 2px rgb(119, 119, 119);
+
     }
     .run-btn{
       // margin: 5px;
       height: 24px;
       padding: auto;
       line-height: 13px;
-      margin: 1px 10px;
+      font-size: 18px;
+      margin: auto 10px;
+      position: absolute;
+      top: 9px;
+      margin-left: calc(18% - 120px);
+      box-shadow: 0 0 2px rgb(119, 119, 119);
+
     }
     .download-btn{
       // margin: 5px;
@@ -191,28 +205,31 @@ export default {
       padding: auto;
       line-height: 13px;
       right:15px;
-      top:4px;
+      font-size: 18px;
+      top:9px;
       position: absolute;
+      box-shadow: 0 0 2px rgb(119, 119, 119);
+
     }
   }
 
   #overview-chart {
     width: calc(100% - 20px);
-    height: 120px;
+    height: 225px;
     margin: auto;
   }
   .content {
     display: flex;
     flex-flow: column;
     justify-content: space-between;
-    height:calc(100vh - 30px);
+    height:100vh;
     flex:1;
     overflow: hidden;
 
     .data-panel {
       display: flex;
       flex-flow: row;
-      height:28%;
+      height:25%;
       overflow: hidden;
     }
 
@@ -225,7 +242,7 @@ export default {
     .evaluation-panel {
       display: flex;
       flex-flow: row;
-      height:14%;
+      height:20%;
       overflow: hidden;
     }
 
@@ -240,6 +257,8 @@ export default {
       border: 1px solid #eeeeee;
       margin: 5px;
     }
+  }
+  .ant-btn{
   }
 }
 </style>

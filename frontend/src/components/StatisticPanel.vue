@@ -22,7 +22,12 @@
             </div>
           </div>
           <div class="json-content">
-            <pre>{{origin}}</pre>
+            <!-- <pre>{{origin}}</pre> -->
+            <monaco
+                ref="monaco1"
+                :opts="opts"
+                :height="275"
+              ></monaco>
           </div>
         </div>
       </a-tab-pane>
@@ -32,7 +37,12 @@
             <a-table :dataSource="tableData" :columns="tableColumns" size="small" :scroll="{ x: true, y: 190 }"/>
           </div>
           <div class="json-content">
-            <pre>{{origin}}</pre>
+            <!-- <pre>{{origin}}</pre> -->
+              <monaco
+                ref="monaco2"
+                :opts="opts"
+                :height="275"
+              ></monaco>
           </div>
         </div>
       </a-tab-pane>
@@ -47,6 +57,8 @@
 import { store } from '../store/store.js'
 import { getBoxOption, getLineOption, getHistogramOption, getBarOption, getPieOption } from '../common.js'
 import { LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons-vue';
+import monaco from '@/components/monaco/index.vue'
+
 import * as echarts from 'echarts'
 import * as ecStat from 'echarts-stat'
 export default {
@@ -56,12 +68,28 @@ export default {
     return {
       charts: {},
       activeKey: '1',
-      parseOrigin: []
+      parseOrigin: [],
+      opts: {
+        value: '',
+        readOnly: true, // 是否可编辑
+        language: 'json', // 语言类型
+        theme: 'vs-light', // 编辑器主题
+        fontSize: '16px',
+        minimap: {
+          enabled: false
+        },
+        scrollbar: {
+          vertical: 'hidden',
+        },
+        wordWrap: true,
+        lineNumbers: "off",
+      },
     }
   },
   components:{
     LeftCircleOutlined,
     RightCircleOutlined,
+    monaco,
   },
   computed: {
     currentIndex(){
@@ -92,8 +120,8 @@ export default {
     origin(){
       let pre = store.totalInfo[this.currentIndex]?.origin[0] || ''
       pre=JSON.stringify(pre)
-      pre = pre.replace("Frequency('-22',0.5, '+22',0.5)","Random('categorical, categories=['-22','+22'], weights=[0.5, 0.5]')")
-        .replace("Frequency('22',0.5, 'ppp', 0.5)","Random('categorical, categories=['22','ppp'], weights=[0.5, 0.5]')")
+      pre = pre.replace("Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)","Random('categorical, categories=['+12','12','18','+18']')")
+        .replace("Frequency('-10',0.3,'-20',0.3,'-30',0.4)","Random('categorical, categories=['-10','-20','-30']')")
         .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
         .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
         .replace("Distribution('uniform',-50,-20)","Random('uniform, min=-50, max=-20')")
@@ -101,14 +129,6 @@ export default {
         .replace("Distribution('normal', 120.13, 0.02)","Random('normal, loc=120.13, scale=0.02')")
         .replace("Distribution('normal', 30.24, 0.01)","Random('normal, loc=30.24, scale=0.01')")
         .replace("Enum([1])","Random('categorical, categories=[1]')")
-      // pre = pre.replace("Distribution('uniform',0,20)","Distribution('uniform',min=0,max=20)")
-      // pre = pre.replace("Distribution('uniform',0,20)","Distribution('uniform',min=0,max=20)")
-      // pre = pre.replace("Distribution('uniform',-50,-20)","Distribution('uniform',min=-50,max=-20)")
-      // pre = pre.replace("Distribution('uniform',20,50)","Distribution('uniform',min=20,max=50)")
-      // pre = pre.replace("Frequency('-22',0.5, '+22',0.5)","Frequency(['-22','+22'],[0.5, 0.5])")
-      // pre = pre.replace("Frequency('22',0.5, 'ppp', 0.5)","Frequency(['22','ppp'],[0.5,0.5])")
-      // pre = pre.replace("Distribution('normal', 120.13, 0.02)","Distribution('normal', mean=120.13, std=0.02)")
-      // pre = pre.replace("Distribution('normal', 30.24, 0.01)","Distribution('normal', mean=30.24, std=0.01)")
       return JSON.parse(pre)
     },
     constraints(){
@@ -139,7 +159,9 @@ export default {
           if(keys.includes('distribution') ){
             config[item.name].push('histogram')
           }
-          if(item['type']==='String'){
+          if(item['type']==='String' && !keys.includes('frequency')){
+            config[item.name].push('bar-str')
+          }else if (item['type']==='String'){
             config[item.name].push('bar')
           }
         })
@@ -154,6 +176,19 @@ export default {
         this.$nextTick(()=>{this.initPlots()})
       },
       // 代表在wacth里声明了firstName这个方法之后立即先去执行handler方法
+      immediate: true,
+      deep: true,
+    },
+    origin: {
+      handler() {
+        if(this.origin){
+          this.$nextTick(()=>{
+              this.$refs.monaco1?.setVal(JSON.stringify(this.origin, null, 2))
+              this.$refs.monaco2?.setVal(JSON.stringify(this.origin, null, 2))
+          })
+        
+        }
+      },
       immediate: true,
       deep: true,
     }
@@ -207,6 +242,9 @@ export default {
                 case 'bar':
                     that.drawBar(key, id)
                     break
+                case 'bar-str':
+                    that.drawBar(key, id, false)
+                    break
                 case 'pie-empty':
                     that.drawPie(key, id, 'empty')
                     break
@@ -251,15 +289,16 @@ export default {
       let data = this.tableData.map(item=>+item[col])
       if(data.length){
         let bins = ecStat.histogram(data)
+        let myRegression = ecStat.regression('polynomial', bins.data)
         if (this.charts[chart] != null && this.charts[chart] != "" && this.charts[chart] != undefined) {
           this.charts[chart].dispose();
         }
         this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
         // 绘制图表
-        this.charts[chart].setOption(getHistogramOption(col, bins.data))
+        this.charts[chart].setOption(getHistogramOption(col, bins.data, myRegression.points))
       }
     },
-    drawBar(col, chart){
+    drawBar(col, chart, showLabel=true){
       let data = this.extraData(col)
       let bins = this.getBins(data)
       if (this.charts[chart] != null && this.charts[chart] != "" && this.charts[chart] != undefined) {
@@ -267,7 +306,7 @@ export default {
       }
       this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
       // 绘制图表
-      this.charts[chart].setOption(getBarOption(col, bins))
+      this.charts[chart].setOption(getBarOption(col, bins, showLabel))
     },
     drawPie(col, chart, type, condition=null){
       let data = this.extraData(col)
@@ -351,7 +390,7 @@ export default {
 .comp-data {
   display: flex;
   flex-flow: row;
-  height: 100%;
+  // height: 100%;
   overflow: hidden;
   align-items: center;
   padding: 0 5px;
@@ -371,7 +410,7 @@ export default {
     opacity: 0.5;
   }
   .tab-panels {
-    width:calc(100% - 60px);
+    width:calc(100% - 50px);
     height: 100%;
     .tab-panel {
       // height: 100%;
@@ -418,14 +457,17 @@ export default {
   }
   .json-content {
     height: 100%;
-    width: 30%;
-    padding: 10px 5px 0 5px;
+    width: 35%;
+    padding: 5px 0 0 10px;
+    font-size: 16px;
+    border-left: 1px dashed #999999;
 
     pre{
       height: 100%;
-      font-size: 12px;
+      // font-size: 12px;
       text-align: left;
-      overflow: auto;
+      word-wrap: break-word;
+      white-space: pre-wrap;
 
       &::-webkit-scrollbar {
         height: 4px;
@@ -461,20 +503,21 @@ export default {
     flex:1;
     // border-top: 1px solid #e6e6e6;
     .column-content{
-      margin-right: 20px;
+      margin-right: 10px;
       display: inline-block;
       text-align: center;
-      border: 1px solid #eeeeee;
+      // border: 1px solid #eeeeee;
       padding:0 10px;
       padding-bottom: 4px;
       .column-name {
         font-weight:600;
         padding-top:0px;
         margin-bottom: -14px;
+        font-size: 18px;
       }
       .column-chart {
         display: inline-block;
-        width:200px;
+        width:250px;
         height: 180px;
         margin:auto;
       }
@@ -483,6 +526,7 @@ export default {
         background: rgba(238, 238, 238,0.35);
         padding: 2px 10px;
         margin-top:5px;
+        font-size: 18px;
       }
     }
     // background: #e6e6e6;
@@ -513,6 +557,11 @@ export default {
 
   :deep(.ant-tabs-nav) {
     margin: 0;
+    margin-top: -6px;
+    padding: 0px;
+  }
+  :deep(.ant-tabs-tab-btn){
+    font-size: 16px;
   }
   :deep(.ant-table-body) {
     &::-webkit-scrollbar {

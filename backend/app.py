@@ -1144,7 +1144,7 @@ def dataGen(json):
                 else:
                   data[col['name']] = float(m[d[col['name']][i]].numerator_as_long())/float(m[d[col['name']][i]].denominator_as_long())  
               elif col['type'] == 'String':
-                data[col['name']] = None if 'empty_index' in col and list(col['empty_index']).count(i)>0 else eval(str(m[d[col['name']][i]]))
+                data[col['name']] = None if 'empty_index' in col and list(col['empty_index']).count(i)>0 else eval(str(m[d[col['name']][i]]))[0:4]
               elif col['type'] == 'Date':
                 if i < len(others[col['name']]):
                   data[col['name']] = others[col['name']][i]

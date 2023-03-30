@@ -1,8 +1,8 @@
 <template>
   <div class="homepage">
-    <div class="header">
+    <!-- <div class="header">
       <div>VisArena</div>
-    </div>
+    </div> -->
     <router-view/>
   </div>
   <!-- <HomePage/> -->
