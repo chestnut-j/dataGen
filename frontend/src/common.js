@@ -1177,8 +1177,8 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
     content:  `{
   "table":"Set(nRows(40000),nRows(36000),nRows(32000),nRows(28000),nRows(24000),nRows(20000),nRows(16000),nRows(12000),nRows(8000),nRows(4000)) And nCols(3)",
   "columns": {
-    "x": "Random('normal, loc=-74.01, scale=0.02')",
-    "y": "Random('normal, loc=40.71, scale=0.01')",
+    "x": "Random('normal, loc=120.13, scale=0.02')",
+    "y": "Random('normal, loc=30.24, scale=0.01')",
     "value": "Random('categorical, categories=[1]')"
   }
 }
@@ -1188,7 +1188,7 @@ visFunc = function (data, domId, d3, echarts, zCharts) {
   option = { 
       animation: false,
       amap: {
-        center: [-74.01, 40.71],
+        center: [120.13, 30.24],
         zoom:14,
         lang: "en"
       },
