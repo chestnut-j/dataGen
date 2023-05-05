@@ -9,6 +9,7 @@ import json
 import csv
 import numpy as np
 import math
+import random
 
 fake = Faker()
 global output_option_list 
@@ -385,7 +386,7 @@ def parseCons(cons, col):
     if 'distribution' in col:
       raise Exception('Repeat setting the constraints on the distribution')
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['distribution'] =  [eval(x) for x in args]
+    col['distribution'] =  [eval(x) for x in args] 
 
   if cons.find('Correlation')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -404,6 +405,13 @@ def parseCons(cons, col):
       col['type'] = 'Int'
     elif isinstance(content,str) and 'type' not in col:
       col['type'] = 'String'
+
+  if cons.find('Random')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')].replace("'","\'")
+    col['random'] = "random={}".format(args[1:-1])
+  if cons.find('Sequence')!= -1:
+    args = cons[cons.find('(')+1:cons.find(')')]
+    col['sequence'] = "sequence, {}".format(args[1:-1])
 
 def date_format_match(format):
   if format == 'YYYY-MM-DD':
@@ -498,60 +506,96 @@ def solveGPT(config, length):
   
   return data
 
-def generate_code_prompt(semantics, len):
-  return """
-    show me a python function to generate a list containing satisfying {} with length {} ,
-    and assign the list to the global variable temp_res['data'], 
-    and do not declare this variable temp_res and temp_res['data'] in the function
-    import any library used
-  """.format(semantics, len)
+def generate_code_prompt(semantics, length):
+  # return """
+  #   show me a python function to generate a list containing satisfying {} with length {} ,
+  #   and assign the list to the global variable temp_res['data'], 
+  #   and do not declare this variable temp_res and temp_res['data'] in the function
+  #   import any library used
+  # """.format(semantics, len)
+  return "length={}, {}".format(length, semantics)
 
-def solve_gpt_code(config, length):
+def handler(signum, frame):
+    raise TimeoutError("Timeout")
+
+def get_code(semantics, length):
   import openai
+  import time
+  time.sleep(30)
   openai.api_key = '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'
   openai.Model.list()
-  print(config,length)
-  response = openai.Completion.create(
-    # model="text-curie-001",
-    model="text-davinci-003",
-    prompt=generate_code_prompt(config['content'], length), 
-    temperature=0.5,
-    max_tokens=2000,
+  system_content="""You are a python code master. 
+      You will help me deal with list generation tasks.
+      Once I give you a description about a list,
+      You output the python code that can generate the list.
+      The list is named by 'result'. 
+      Do not write any explanation. Do not write example usage. Do not forget to import libs."""
+  # try:
+  response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo",
+      messages=[
+          {"role": "system", "content": system_content},
+          {"role": "user", "content": generate_code_prompt(semantics, length)},
+      ],
   )
-  text_data = response.choices[0].text
-  # print(response.choices[0])
-  print(text_data)
+  if len(response.choices) > 0:
+      text_block = response.choices[0].message.content.split("```")
+      if len(text_block) >= 3:
+          return "#" + text_block[1]
+  else:
+      return None
+  # except TimeoutError:
+  #   print("It takes too much time.")
+  #   return None
+  # except Exception:
+  #   print("Something wrong with the request.")
+  #   return None
 
-  global temp_res
-  temp_res = {}
-  exec(text_data)
-  print(temp_res)
-  data = temp_res['data']
-  unselected_index = np.arange(length)
-  if 'repeat' in config and 'trend' not in config:
-    times = config['repeat'][0]
-    repeat_index = np.random.choice(unselected_index, times, replace=False)
-    for index in repeat_index:
-      data[index] = data[repeat_index[0]]
-    unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-
-  if 'frequency' in config and 'trend' not in config:
-    for i in range(int(len(config['frequency'])/2)):
-      content = config['frequency'][2*i]
-      times = int(config['frequency'][2*i+1] * length)
-      repeat_index = np.random.choice(unselected_index, times, replace=False)
-      for index in repeat_index:
-        data[index] = content
-      unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-    
-    
-  if 'empty' in config and 'trend' not in config:
-    times = config['empty']
-    empty_index = np.random.choice(unselected_index, times, replace=False)
-    for index in empty_index:
-      data[index] = None
+def solve_gpt_code(semantics, length):
+  code = get_code(semantics, length)
   
-  return data
+  # openai.Model.list()
+  # print(config,length)
+  # response = openai.Completion.create(
+  #   # model="text-curie-001",
+  #   model="text-davinci-003",
+  #   prompt=generate_code_prompt(config['content'], length), 
+  #   temperature=0.5,
+  #   max_tokens=2000,
+  # )
+  # text_data = response.choices[0].text
+  # # print(response.choices[0])
+  # print(text_data)
+
+  # global result
+  data = {"result": []}
+  exec(code, data)
+  # data = result['data']
+  # unselected_index = np.arange(length)
+  # if 'repeat' in config and 'trend' not in config:
+  #   times = config['repeat'][0]
+  #   repeat_index = np.random.choice(unselected_index, times, replace=False)
+  #   for index in repeat_index:
+  #     data[index] = data[repeat_index[0]]
+  #   unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+
+  # if 'frequency' in config and 'trend' not in config:
+  #   for i in range(int(len(config['frequency'])/2)):
+  #     content = config['frequency'][2*i]
+  #     times = int(config['frequency'][2*i+1] * length)
+  #     repeat_index = np.random.choice(unselected_index, times, replace=False)
+  #     for index in repeat_index:
+  #       data[index] = content
+  #     unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
+    
+    
+  # if 'empty' in config and 'trend' not in config:
+  #   times = config['empty']
+  #   empty_index = np.random.choice(unselected_index, times, replace=False)
+  #   for index in empty_index:
+  #     data[index] = None
+  
+  return data['result']
 
 # 拆分表格
 def parseJson(origin):
@@ -648,8 +692,8 @@ def parseTable(allTables):
             consList.append(col_value)
           for cons in consList:
               parseCons(cons, col)
-          if 'type' not in col:
-            col['type'] = 'Real'
+          # if 'type' not in col:
+          #   col['type'] = 'Real'
           format['children'].append(col)
         
         # 补充其余列
@@ -662,6 +706,8 @@ def parseTable(allTables):
     tables.append(tableParse)
 
   return tables
+
+
 
 def buildSolver(format):
   num_len = format['length']
@@ -678,6 +724,7 @@ def buildSolver(format):
     random_list = []
     empty_index = []
     nonempty_index = range(num_len)
+
     #define type
     if 'type' in col:
       col_type = col['type'] 
@@ -697,13 +744,36 @@ def buildSolver(format):
       if col_type == 'GPT':
         others[col['name']] = solveGPT(col,num_len)
         continue
-      if col_type == 'GPTCode':
-        others[col['name']] = solve_gpt_code(col,num_len)
-        continue
+      # if col_type == 'GPTCode':
+      #   others[col['name']] = solve_gpt_code(col,num_len)
+      #   continue
     else:
-      d[col['name']] = [z3.Int(f"{col['name']}_{i}") for i in range(num_len)]
+      d[col['name']] = [z3.Real(f"{col['name']}_{i}") for i in range(num_len)]
+
+    if 'type' not in col and 'random' not in col and 'sequence' not in col:
+      col['type'] = 'Real'
+
     
+    # generator
+    if 'random' in col:
+      print(col['random'])
+      random_list = solve_gpt_code(col['random'],num_len)
+      others[col['name']]=random_list
+      print(random_list)
+    elif 'sequence' in col:
+      random_list = solve_gpt_code(col['sequence'],num_len)
+      others[col['name']]=random_list
+    elif col['type'] == 'String':
+      random_list = [fake.pystr() for i in range(3*num_len)]
+    elif col['type'] == 'Int' or col['type'] == 'Real':
+      if 'range' in col:
+        col_range = col['range']
+        random_list = np.random.uniform(col_range[0],col_range[1], 3*num_len)
+      else:
+        random_list = np.random.uniform(0, 500, 3*num_len)
+
     unselected_index = np.arange(num_len)
+    
     
     if 'empty' in col:
       times = col['empty']
@@ -712,6 +782,7 @@ def buildSolver(format):
       col['empty_index'] = empty_index
       unselected_index = [elem for elem in unselected_index if elem not in empty_index]
       nonempty_index = [elem for elem in range(num_len) if elem not in empty_index]
+      print(col)
 
     if 'max' in col:
       value = col['max']
@@ -968,69 +1039,71 @@ def buildSolver(format):
       if col_type == 'Int' or col_type == 'Real':
         range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1])  for i in nonempty_index]
         solver.add(range_c) 
-      if col_type == 'Int' or col_type=='Real':
-        if 'distribution' in col:
-          args = col['distribution']
-          if args[0]=='normal':
-            random_list = np.random.normal(args[1],args[2],temp_len)
-          elif args[0]=='uniform':
-            random_list = np.random.uniform(args[1],args[2],temp_len)
-          elif args[0]=='exponential':
-            temp_list = np.random.exponential(args[1],temp_len)
-            max_value = max(temp_list)
-            min_value = min(temp_list)
-            target_len = col_range[1] - col_range[0]
-            current_len = max_value - min_value
-            random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
-        else:
-          random_list = np.random.uniform(col_range[0],col_range[1],temp_len)
+      # if col_type == 'Int' or col_type=='Real':
+      #   if 'distribution' in col:
+      #     args = col['distribution']
+      #     if args[0]=='normal':
+      #       random_list = np.random.normal(args[1],args[2],temp_len)
+      #     elif args[0]=='uniform':
+      #       random_list = np.random.uniform(args[1],args[2],temp_len)
+      #     elif args[0]=='exponential':
+      #       temp_list = np.random.exponential(args[1],temp_len)
+      #       max_value = max(temp_list)
+      #       min_value = min(temp_list)
+      #       target_len = col_range[1] - col_range[0]
+      #       current_len = max_value - min_value
+      #       random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
+      #   else:
+      #     random_list = np.random.uniform(col_range[0],col_range[1],temp_len)
       # elif col_type == 'Real':
       #   random_list = np.random.uniform(col_range[0],col_range[1], temp_len)
-    else:
-      if col_type == 'Int' or col_type == 'Real':
-        if 'distribution' in col:
-          args = col['distribution']
-          if args[0]=='normal':
-            random_list = np.random.normal(args[1],args[2],temp_len)
-          elif args[0]=='uniform':
-            random_list = np.random.uniform(args[1],args[2],temp_len)
-          elif args[0]=='exponential':
-            temp_list = np.random.exponential(args[1],temp_len)
-            max_value = max(temp_list)
-            min_value = min(temp_list)
-            target_len = max(100,num_len)
-            current_len = max_value - min_value
-            random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
-        else:
-          random_list = np.random.uniform(0,max(100,num_len), temp_len)
-      elif col_type == 'String':
-        random_list = [fake.pystr() for i in range(3*num_len)]
-        if 'if' in col:
-          random_list.append(col['if'][2])
-          if len(col['if'])>3:
-            random_list.append(col['if'][3])
-      others[col['name']]=random_list
+    # else:
+    #   if col_type == 'Int' or col_type == 'Real':
+    #     if 'distribution' in col:
+    #       args = col['distribution']
+    #       if args[0]=='normal':
+    #         random_list = np.random.normal(args[1],args[2],temp_len)
+    #       elif args[0]=='uniform':
+    #         random_list = np.random.uniform(args[1],args[2],temp_len)
+    #       elif args[0]=='exponential':
+    #         temp_list = np.random.exponential(args[1],temp_len)
+    #         max_value = max(temp_list)
+    #         min_value = min(temp_list)
+    #         target_len = max(100,num_len)
+    #         current_len = max_value - min_value
+    #         random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
+    #     else:
+    #       random_list = np.random.uniform(0,max(100,num_len), temp_len)
+    #   elif col_type == 'String':
+    #     random_list = [fake.pystr() for i in range(3*num_len)]
+    #     if 'if' in col:
+    #       random_list.append(col['if'][2])
+    #       if len(col['if'])>3:
+    #         random_list.append(col['if'][3])
+    #   others[col['name']]=random_list
 
-      if len(col.keys())<=3 and 'distribution' in col:
-        continue
+    if len(col.keys())<=3 and 'random' in col:
+      continue
 
-    if 'cluster' in col:
-      part = col['cluster']
-      part_num = num_len // part
-      random_list = []
-      if 'range' in col:
-        range_len = col['range'][1]-col['range'][0]
-        part_mid = range_len//(part-1)
-        part_len = range_len//(2*part)
-        for p in range(part):
-          random_list.extend(np.random.uniform(max(col['range'][0]+part_mid*p-part_len,col['range'][0]),min(col['range'][0]+part_mid*p+part_len,col['range'][1]), part_num))
-        random_list.extend(np.random.uniform(col['range'][0],col['range'][1], 2*part_len))
-      else:
-        part_mid = max(100,num_len)//(part-1)
-        part_len = max(100,num_len)//(2*part)
-        for p in range(part):
-          random_list.extend(np.random.uniform(part_mid*p-part_len,part_mid*p+part_len,part_num))
-        random_list.extend(np.random.uniform(0,max(100,num_len), 2*part_len))
+    # if 'cluster' in col:
+    #   part = col['cluster']
+    #   part_num = num_len // part
+    #   random_list = []
+    #   if 'range' in col:
+    #     range_len = col['range'][1]-col['range'][0]
+    #     part_mid = range_len//(part-1)
+    #     part_len = range_len//(2*part)
+    #     for p in range(part):
+    #       random_list.extend(np.random.uniform(max(col['range'][0]+part_mid*p-part_len,col['range'][0]),min(col['range'][0]+part_mid*p+part_len,col['range'][1]), part_num))
+    #     random_list.extend(np.random.uniform(col['range'][0],col['range'][1], 2*part_len))
+    #   else:
+    #     part_mid = max(100,num_len)//(part-1)
+    #     part_len = max(100,num_len)//(2*part)
+    #     for p in range(part):
+    #       random_list.extend(np.random.uniform(part_mid*p-part_len,part_mid*p+part_len,part_num))
+    #     random_list.extend(np.random.uniform(0,max(100,num_len), 2*part_len))
+
+
     # # 随机数
     if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and 'trend' not in col and 'correlation' not in col and 'enum' not in col and 'if' not in col:
       # print(random_num,random_list)
@@ -1131,8 +1204,8 @@ def dataGen(json):
 
           # testCode
           for col in columns:
-            if len(col.keys())<=3 and 'distribution' in col:
-              data[col['name']] = round(others[col['name']][i],5)
+            if len(col.keys())<=3 and 'random' in col:
+              data[col['name']] = others[col['name']][i]
               continue
             if 'type' in col:
               if col['type'] == 'Int':
@@ -1153,7 +1226,10 @@ def dataGen(json):
               elif col['type'] == 'Faker' or col['type'] == 'GPT' or col['type'] == 'GPTCode':
                 data[col['name']] = others[col['name']][i]
             else:
-              data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)
+              if 'empty_index' in col and list(col['empty_index']).count(i)>0:
+                data[col['name']] = None
+              else:
+                data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)
           
 
           # testCode

@@ -69,17 +69,18 @@ export default {
   },
   methods:{
     getJsonData(data){
-      let json = data.slice(data.indexOf("{"),data.indexOf('visFunc'))
+      // let json = data.slice(data.indexOf("{"),data.indexOf('visFunc'))
+      let json = data
       json = '['+json+']'
-      json = json.replace("Random('categorical, categories=['+12','12','18','+18']')","Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)")
-        .replace("Random('categorical, categories=['-10','-20','-30']')","Frequency('-10',0.3,'-20',0.3,'-30',0.4)")
-        .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
-        .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
-        .replace("Random('uniform, min=-50, max=-20')","Distribution('uniform',-50,-20)")
-        .replace("Random('uniform, min=20, max=50')","Distribution('uniform',20,50)")
-        .replace("Random('normal, loc=120.13, scale=0.02')","Distribution('normal', 120.13, 0.02)")
-        .replace("Random('normal, loc=30.24, scale=0.01')","Distribution('normal', 30.24, 0.01)")
-        .replace("Random('categorical, categories=[1]')","Enum([1])")
+      // json = json.replace("Random('categorical, categories=['+12','12','18','+18']')","Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)")
+      //   .replace("Random('categorical, categories=['-10','-20','-30']')","Frequency('-10',0.3,'-20',0.3,'-30',0.4)")
+      //   .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
+      //   .replace("Random('uniform, min=0, max=20')","Distribution('uniform',0,20)")
+      //   .replace("Random('uniform, min=-50, max=-20')","Distribution('uniform',-50,-20)")
+      //   .replace("Random('uniform, min=20, max=50')","Distribution('uniform',20,50)")
+      //   .replace("Random('normal, loc=120.13, scale=0.02')","Distribution('normal', 120.13, 0.02)")
+      //   .replace("Random('normal, loc=30.24, scale=0.01')","Distribution('normal', 30.24, 0.01)")
+      //   .replace("Random('categorical, categories=[1]')","Enum([1])")
         console.log(json,JSON.parse(json))
       return JSON.parse(json)
     },

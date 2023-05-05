@@ -1047,8 +1047,8 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
     content:  `{
   "table":"nRows(10) And nCols(2)",
   "columns": {
-    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','18','+18']'),Random('categorical, categories=['-10','-20','-30']'),String(),Empty(4))",
-    "current": "Set(Random('uniform, min=-50, max=-20'),Random('uniform, min=0, max=20'),Random('uniform, min=20, max=50'))"
+    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','18','+18']'),String(),Empty(4))",
+    "current": "Random('uniform, min=20, max=50')"
   }
 }
 

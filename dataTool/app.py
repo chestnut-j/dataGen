@@ -262,6 +262,15 @@ def parseCons(cons, col):
   # parse type
   if ['Int','Real','String','Date'].count(cons)>0:
     col['type'] = cons
+
+  if cons.find('Int')!= -1:
+    col['type'] = 'Int'
+  elif cons.find('Real')!= -1:
+    col['type'] = 'Real'
+  elif cons.find('String')!= -1:
+    col['type'] = 'String'
+  elif cons.find('Date')!= -1:
+    col['type'] = 'Date'
   
   if cons.find('DateData')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -552,8 +561,8 @@ def parseJson(origin):
     #   for col_key, col_value in value.items():
     #     value_test.append(parseConstraint(col_value, col_key))
     #     key_test.append(col_key)
-    test = parseConstraint(format['table'],'key')
-    remainValue = format['columns']
+    test = parseConstraint(format['table'],'table')
+    # remainValue = format['columns']
     for col_key, col_value in format['columns'].items():
       value_test.append(parseConstraint(col_value, col_key))
       key_test.append(col_key)
@@ -597,10 +606,10 @@ def parseTable(allTables):
         # parse key
         constrainList = findConstrain(key, 'And')
         for cons in constrainList:
-          if cons.find('Length') != -1:
+          if cons.find('nRows') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['length'] = int(arg)
-          if cons.find('Column') != -1:
+          if cons.find('nCols') != -1:
             arg = cons[cons.find('(')+1:cons.find(')')]
             format['column'] = int(arg)
           if cons.find('Order') != -1:
@@ -918,7 +927,7 @@ def buildSolver(format):
       if col_trend == 'exponential':
         # 指数
         base = col['trend'][1]
-        a = np.random.random()+1
+        a = 1.5
         exp_c = [d[col['name']][i]==math.pow(base,i)+a for i in nonempty_index]
         solver.add(exp_c)
       if col_trend == 'periodic':
@@ -1129,21 +1138,28 @@ def dataGen(json):
 
 
 # input_path = './codeTest.json'
-input_path = './newAttr.json'
-# input_path = './example.json'
+# input_path = './depth.json'
+# # input_path = './example.json'
 output_option_list = {}
 # with open(input_path,"r") as f:
 #   origin = json.load(f)
 
-origin = [
-  {
-    "table":"Set(Length(50),Length(20)) And Set(Column(6),Column(7))",
-    "columns": {
-      "name": "String",
-      "switch": "Set(Range(50,80),Range(0,100))",
-    }
+origin=[{
+  "table":"Set(nRows(25),nRows(50),nRows(75),nRows(100),nRows(125),nRows(150),nRows(175),nRows(200)) And nCols(2)",
+  "columns": {
+    "name": "String() And Distinct()",
+    "parent": "Random('categorical,categories=['root']')",
   }
-]
+}]
+# origin = [
+#   {
+#     "table":"Set(Length(50),Length(20)) And Set(Column(6),Column(7))",
+#     "columns": {
+#       "name": "String",
+#       "switch": "Set(Range(50,80),Range(0,100))",
+#     }
+#   }
+# ]
 
 # origin = [
 #   {
@@ -1158,4 +1174,4 @@ origin = [
 # tables = parseTable(allTables)
 # print(tables)
 dataGen(origin)
-print(output_option_list)
+# print(output_option_list)

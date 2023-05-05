@@ -69,12 +69,12 @@ export default {
 
             this.$nextTick(()=>{
               let start = +new Date()
-              for(let j=0;j<1;j++){ 
+              for(let j=0;j<10;j++){ 
 
                 this.drawChart(i)
               }
               let end = +new Date() 
-              let efficiencyTest = (end-start)/1
+              let efficiencyTest = (end-start)/10
               const data = this.info[i]?.table || []
               let arg = store.evaluationFunction(data, `chart-dom-${i}`, this.echartsList[i], efficiencyTest)
               perfArr.push(arg)

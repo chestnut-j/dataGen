@@ -21,14 +21,7 @@
             <div class="constraint">{{ constraints[item.name]}}</div>
             </div>
           </div>
-          <div class="json-content">
-            <!-- <pre>{{origin}}</pre> -->
-            <monaco
-                ref="monaco1"
-                :opts="opts"
-                :height="275"
-              ></monaco>
-          </div>
+          
         </div>
       </a-tab-pane>
       <a-tab-pane key="2" tab="Raw Data" class="tab-panel">
@@ -36,17 +29,24 @@
           <div class="data-content">
             <a-table :dataSource="tableData" :columns="tableColumns" size="small" :scroll="{ x: true, y: 190 }"/>
           </div>
-          <div class="json-content">
-            <!-- <pre>{{origin}}</pre> -->
+          <!-- <div class="json-content">
               <monaco
                 ref="monaco2"
                 :opts="opts"
                 :height="275"
               ></monaco>
-          </div>
+          </div> -->
         </div>
       </a-tab-pane>
     </a-tabs>
+    <div class="json-content">
+      <!-- <pre>{{origin}}</pre> -->
+      <monaco
+          ref="monaco1"
+          :opts="opts"
+          :height="275"
+        ></monaco>
+    </div>
     <div class="custom-slick-arrow" style="right: 10px" @click="toNext()">
       <right-circle-outlined />
     </div>
@@ -120,15 +120,15 @@ export default {
     origin(){
       let pre = store.totalInfo[this.currentIndex]?.origin[0] || ''
       pre=JSON.stringify(pre)
-      pre = pre.replace("Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)","Random('categorical, categories=['+12','12','18','+18']')")
-        .replace("Frequency('-10',0.3,'-20',0.3,'-30',0.4)","Random('categorical, categories=['-10','-20','-30']')")
-        .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
-        .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
-        .replace("Distribution('uniform',-50,-20)","Random('uniform, min=-50, max=-20')")
-        .replace("Distribution('uniform',20,50)","Random('uniform, min=20, max=50')")
-        .replace("Distribution('normal', 120.13, 0.02)","Random('normal, loc=120.13, scale=0.02')")
-        .replace("Distribution('normal', 30.24, 0.01)","Random('normal, loc=30.24, scale=0.01')")
-        .replace("Enum([1])","Random('categorical, categories=[1]')")
+      // pre = pre.replace("Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)","Random('categorical, categories=['+12','12','18','+18']')")
+      //   .replace("Frequency('-10',0.3,'-20',0.3,'-30',0.4)","Random('categorical, categories=['-10','-20','-30']')")
+      //   .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
+      //   .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
+      //   .replace("Distribution('uniform',-50,-20)","Random('uniform, min=-50, max=-20')")
+      //   .replace("Distribution('uniform',20,50)","Random('uniform, min=20, max=50')")
+      //   .replace("Distribution('normal', 120.13, 0.02)","Random('normal, loc=120.13, scale=0.02')")
+      //   .replace("Distribution('normal', 30.24, 0.01)","Random('normal, loc=30.24, scale=0.01')")
+      //   .replace("Enum([1])","Random('categorical, categories=[1]')")
       return JSON.parse(pre)
     },
     constraints(){
@@ -144,7 +144,7 @@ export default {
           if(keys.includes('max') || keys.includes('min') ||  keys.includes('quantile') ||keys.includes('mean')  || keys.includes('range')){
               config[item.name].push('box')
           }
-          if(keys.includes('trend')){
+          if(keys.includes('sequence')){
             config[item.name].push('line')
           }
           if(keys.includes('empty')){
@@ -153,13 +153,13 @@ export default {
           if(keys.includes('freqIf')){
             config[item.name].push(`pie-freqIf,${item['freqIf'][0]}`)
           }
-          if(keys.includes('frequency')||keys.includes('enum')){
+          if(keys.includes('random')&&item['random'].indexOf('categorical')>-1||keys.includes('enum')){
             config[item.name].push('pie-freq')
           }
-          if(keys.includes('distribution') ){
+          if(keys.includes('random')&&item['random'].indexOf('categorical')===-1){
             config[item.name].push('histogram')
           }
-          if(item['type']==='String' && !keys.includes('frequency')){
+          if(item['type']==='String' && !keys.includes('random')){
             config[item.name].push('bar-str')
           }else if (item['type']==='String'){
             config[item.name].push('bar')
@@ -457,7 +457,7 @@ export default {
   }
   .json-content {
     height: 100%;
-    width: 35%;
+    width: 40%;
     padding: 5px 0 0 10px;
     font-size: 16px;
     border-left: 1px dashed #999999;

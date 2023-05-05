@@ -1,10 +1,11 @@
 [{
-  "( Length(60) And Column(23) )": {
-    "Name": "Faker(name)",
+  "table":"nRows(60) And nCols(23)",
+  "columns": {
+    "name": "String() And Distinct()",
     "parent": "Frequency('root', 1)",
     "1": "Trend('exponential',1)",
     "2": "Trend('exponential',1.01)",
-    "3": "Trend('exponential',1.01)",
+    "3": "Trend('exponential',1.02)",
     "4": "Trend('exponential',1.03)",
     "5": "Trend('exponential',1.04)",
     "6": "Trend('exponential',1.05)",

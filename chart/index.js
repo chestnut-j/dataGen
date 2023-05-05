@@ -17,7 +17,7 @@ const parse = function(v){
 
 const drawLineChart = function(svgId, dataPath) {
   // set the dimensions and margins of the graph
-  const margin = {top: 40, right: 40, bottom: 72, left: 100},
+  const margin = {top: 40, right: 40, bottom: 82, left: 110},
       width = 640 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom;
 
@@ -51,24 +51,24 @@ const drawLineChart = function(svgId, dataPath) {
       .attr("transform", `translate(0, ${height})`)
       .call(
         d3.axisBottom(x)
-        .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i%3===0))
-        // .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i))
+        // .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i%3===0))
+        .tickValues([0,...data.columns.slice(1)].filter((v,i)=>i))
         
       );
 
     // Add Y axis
-    const y = d3.scaleLinear()
-        .domain([0,1])
-    // const y = d3.scaleLog()
-    //   .domain([0.1,3100])
+    // const y = d3.scaleLinear()
+    //     .domain([0,1])
+    const y = d3.scaleLog()
+      .domain([0.1,3100])
       .range([ height, 0 ])
     svg.append("g")
       .attr("class", "axis")
       .call(
         d3.axisLeft(y)
-          // .tickValues([0.1, 1,10,100,1000])
+          .tickValues([0.1, 1,10,100,1000])
           .tickFormat(i=>i)
-          .tickValues([0,0.2,0.4,0.6,0.8,1])
+          // .tickValues([0,0.2,0.4,0.6,0.8,1])
           // .ticks(10)
       )
     
@@ -87,9 +87,9 @@ const drawLineChart = function(svgId, dataPath) {
         .attr("y", height + margin.top+30)
         .attr("font-size", '29px')
         .attr("font-family", "Microsoft YaHei")
-        .text("Growth Rate")
+        // .text("Growth Rate")
         // .text("Number of Leaf Nodes")
-        // .text("Depth")
+        .text("Depth")
 
 
     // Y axis label:
@@ -101,8 +101,8 @@ const drawLineChart = function(svgId, dataPath) {
         .attr("font-size", '29px')
         .attr("font-family", "Microsoft YaHei")
         // .text("Average Aspect Ratio");
-        .text("Median Aspect Ratio");
-        // .text("Running Time (ms)");
+        // .text("Median Aspect Ratio");
+        .text("Running Time (ms)");
 
 
     // let lines = [{x1: 0, x2: 1.2, y1: 0.5, y2: 0.5},{x1: 1.06, x2: 1.06, y1: 0, y2: 1}]
@@ -297,12 +297,12 @@ function drawTree(svgId, dataPath) {
 }
     
 
-// drawLineChart('#plot','./data/acsAvg.csv')
-// drawLineChart('#plot','./data/acsMedian.csv')
-// drawLineChart('#plot','./data/desAvg.csv')
-// drawLineChart('#plot','./data/desMedian.csv')
-// drawLineChart('#plot','./data/randomAvg.csv')
-// drawLineChart('#plot','./data/randomMedian.csv')
-// drawLineChart('#plot','./data/depth.csv')
+// drawLineChart('#plot','./data2/acsAvg.csv')
+// drawLineChart('#plot','./data2/acsMedian.csv')
+// drawLineChart('#plot','./data2/desAvg.csv')
+// drawLineChart('#plot','./data2/desMedian.csv')
+// drawLineChart('#plot','./data2/randomAvg.csv')
+// drawLineChart('#plot','./data2/randomMedian.csv')
+drawLineChart('#plot','./data/depth.csv')
 // drawLineChart('#plot','./data/scale.csv')
-drawTree('#plot','./data/depth-3.csv')
+// drawTree('#plot','./data/depth-3.csv')
