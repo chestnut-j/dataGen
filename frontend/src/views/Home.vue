@@ -57,6 +57,7 @@ import * as echarts from 'echarts'
 import { caseOptions, getOverviewBarOption } from '../common'
 import axios from 'axios'
 import { message } from 'ant-design-vue'
+import { saveAs } from 'file-saver';
 
 export default {
   name: 'HomePage',
@@ -153,6 +154,28 @@ export default {
           store.setCurrentIndex(e.dataIndex)
           that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: e.dataIndex});
       });
+    },
+    download(){
+      let tablelist = store.totalInfo.map(item=>item.table)
+      let JSZip = require("jszip")
+      let zip = new JSZip()
+
+      console.log(tablelist)
+      let heads = Object.keys(tablelist[0][0])
+      tablelist.forEach((table, index)=>{
+        let str = heads.join(',')+'\n'
+        for(let item of table) {
+          for(let head of heads) {
+            str += item[head]+','
+          }
+          str+='\n'
+        }
+        zip.file(`table${index}.csv`,str)
+      })
+      console.log(zip)
+      zip.generateAsync({type:'blob'}).then(function(content){
+        saveAs(content,'test.zip')
+      })
     }
   }
 }

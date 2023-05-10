@@ -159,10 +159,8 @@ export default {
           if(keys.includes('random')&&item['random'].indexOf('categorical')===-1){
             config[item.name].push('histogram')
           }
-          if(item['type']==='String' && !keys.includes('random')){
-            config[item.name].push('bar-str')
-          }else if (item['type']==='String'){
-            config[item.name].push('bar')
+          if(keys.includes('type') && keys.length<3){
+            config[item.name].push(item['type']==='String' ?'bar-str':'bar')
           }
         })
       return config
