@@ -1151,7 +1151,7 @@ def parse2csv(data_list,path, sort_config):
     my_list = json.loads(json.dumps(my_list))
   return my_list
 # ================================================================
-# ====================生成主流程==================================
+# ====================data generation==================================
 def dataGen(json):
   origin = json
   allTables = parseJson(origin)
@@ -1196,8 +1196,6 @@ def dataGen(json):
       if solver.check()==z3.sat:
         m = solver.model()
       # if True:
-        
-
         #json list mode [{a:1,b:2},{a:2},{b:2}...]
         for i in range(num_len):
           data = {}
@@ -1231,50 +1229,28 @@ def dataGen(json):
               else:
                 data[col['name']] = round(np.random.uniform(0,max(100,num_len)),2)
           
-
-          # testCode
-          # for col in columns:
-          #   if col['name']=='x':
-          #     data[col['name']]=np.random.normal(120.13066322374,0.02)
-          #   if col['name']=='y':
-          #     data[col['name']]=np.random.normal(30.240018034923,0.01)
-          #   if col['name']=='value':
-          #     data[col['name']]=1
-
           output.append(data)
           # print(data)
-        print('========  write to csv:  ','"./data/test'+str(index)+'.csv"  ========')
         res.extend(output)
       else:
         print('无解')
         res.extend([])
-    # res=parse2csv(res,'./data/test'+str(index)+'.csv', sort_config)
+    # sort part 
+    if len(sort_config)>0:
+      col_name = sort_config[0]
+      is_reverse = sort_config[1] == 'des'
+      res.sort(key=lambda x:x[col_name],reverse=is_reverse)
+
     response_item['table']=res
     response_data.append(response_item)
     AllRes.append(res)
   return response_data
 # =================================================
 
-# ====================gpt数据生成======================
-def gptDataGen(description):
-  import openai
-  openai.api_key = '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'
-  openai.Model.list()
 
-  response = openai.Completion.create(
-    # model="text-curie-001",
-    model="text-davinci-003",
-    prompt="""{}
-    output format as [{{"key1": value1,"key2":value2}},{{"key1": value1,"key2":value2}}……]
-    """.format(description), 
-    temperature=0.2,
-    max_tokens=2000,
-  )
-  text_data = response.choices[0].text
-  data=json.loads(text_data.replace(' ','').replace('\n',''))
-
-  print(text_data, data)
-  return data
+# =======================backend==============================
+from flask import Flask, jsonify, request
+import json
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -1287,26 +1263,7 @@ class NpEncoder(json.JSONEncoder):
         else:
             return super(NpEncoder, self).default(obj)
 
-
-# =======================后端接口部分==============================
-from flask import Flask, jsonify, request
-import json
-
 app = Flask(__name__)
-
-# output_option_list = {}
-
-@app.route('/getInfo', methods=['GET'])
-def get_table_info():
-  with open('./sampleData.json',"r") as f:
-    table = json.load(f)
-  with open('./sampleConfig.json',"r") as f:
-    config = json.load(f)
-  data = jsonify({
-    "table": table,
-    "config": config
-  })
-  return data
 
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_json_data():
@@ -1317,16 +1274,8 @@ def submit_json_data():
   output_option_list = {}
   out = dataGen(data['data'])
   print(output_option_list)
-  # out['optionList'] = output_option_list
 
   return json.dumps({'data':out, 'optionList': output_option_list}, cls=NpEncoder)
-
-@app.route('/gptSubmit', methods=['GET', 'POST'])
-def submit_gpt_data():
-  data = json.loads(request.data)
-  print('input',data['data'])
-  out = gptDataGen(data['data'])
-  return json.dumps(out, cls=NpEncoder)
 
 if __name__ == '__main__':
   app.run()
