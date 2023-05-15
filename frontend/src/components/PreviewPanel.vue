@@ -1,18 +1,5 @@
 <template>
   <div class="preview-panel">
-    <!-- <div class="data-panel">
-      <div class="header">
-        <div class="title">
-           Data Attributes Panel  
-          <span class="overview">{{ Object.keys(origin||{})[0] }}</span>
-        </div>
-        <div class="switch-btn">
-          Attr mode
-          <a-switch :checked="isAttrMode" size="small" @change="handleModeChange"/>
-        </div>
-      </div>
-      <StatisticPanel/>
-    </div> -->
     <div class="chart-panel">
       <div class="header">
         <div class="title">
@@ -21,24 +8,16 @@
       </div>
       <TablePanel/>
     </div>
-    
-    
-<!--     
-    <div class="content">
-      <StatisticPanel/>
-    </div> -->
   </div>
 </template>
 
 <script>
 import TablePanel from './TablePanel.vue'
-// import StatisticPanel from './StatisticPanel.vue'
 import { store }from '@/store/store'
 export default {
   name: 'PreviewPanel',
   components: {
     TablePanel,
-    // StatisticPanel,
   },
   props: {
   },

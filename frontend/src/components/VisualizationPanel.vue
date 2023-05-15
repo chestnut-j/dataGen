@@ -70,7 +70,6 @@ export default {
             this.$nextTick(()=>{
               let start = +new Date()
               for(let j=0;j<10;j++){ 
-
                 this.drawChart(i)
               }
               let end = +new Date() 

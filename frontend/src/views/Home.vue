@@ -132,7 +132,7 @@ export default {
         this.overviewChart.dispose();
       }
       this.overviewChart = echarts.init(document.getElementById('overview-chart'));
-      // 绘制图表
+      // draw chart
       let data = store.performArr.map((v, i)=>{
         return { 
           value: v,
@@ -147,10 +147,10 @@ export default {
         
           console.log(e);
           if(e.dataIndex != this.currentIndex){
-              //没用选中的取消高亮
+              // remove highlight
               that.overviewChart.dispatchAction({type: 'downplay', seriesIndex: 0, dataIndex: this.currentIndex});
           }
-          //选中某一条高亮
+          // highlight selected one
           store.setCurrentIndex(e.dataIndex)
           that.overviewChart.dispatchAction({type: 'highlight',seriesIndex: 0,dataIndex: e.dataIndex});
       });

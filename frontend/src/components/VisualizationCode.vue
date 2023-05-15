@@ -29,9 +29,9 @@ export default {
       jsCode: {},
       opts: {
         value: defaultValue,
-        readOnly: false, // 是否可编辑
-        language: 'javascript', // 语言类型
-        theme: 'vs-light', // 编辑器主题
+        readOnly: false,
+        language: 'javascript', 
+        theme: 'vs-light', 
         fontSize: '17px',
         // wordWrap: true,
         scrollbar: {

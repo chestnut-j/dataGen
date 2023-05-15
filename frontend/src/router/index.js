@@ -8,11 +8,6 @@ const routes = [
     name: 'Home',
     component: Home
   },
-  {
-    path: '/task',
-    name: 'Task',
-    component: () => import(/* webpackChunkName: "about" */ '../views/Task.vue')
-  },
 ]
 
 const router = createRouter({

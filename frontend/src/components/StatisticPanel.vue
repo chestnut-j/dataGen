@@ -6,8 +6,7 @@
     <a-tabs v-model:activeKey="activeKey" size="small"  class="tab-panels">
       <a-tab-pane key="1" tab="Attributes" class="tab-panel">
         <div class="data-panel">
-          <div class="statistic-panel">
-            <div class="column-content" 
+          <div class="column-content" 
             v-for="item in columns" 
             :key="item.name" >
             <div class="column-name">{{ item.name }}</div>
@@ -19,28 +18,16 @@
               </div>
             </div>
             <div class="constraint">{{ constraints[item.name]}}</div>
-            </div>
-          </div>
-          
+          </div>      
         </div>
       </a-tab-pane>
       <a-tab-pane key="2" tab="Raw Data" class="tab-panel">
-        <div class="data-panel">
-          <div class="data-content">
-            <a-table :dataSource="tableData" :columns="tableColumns" size="small" :scroll="{ x: true, y: 190 }"/>
-          </div>
-          <!-- <div class="json-content">
-              <monaco
-                ref="monaco2"
-                :opts="opts"
-                :height="275"
-              ></monaco>
-          </div> -->
+        <div class="data-panel hidden">
+          <a-table :dataSource="tableData" :columns="tableColumns" size="small" :scroll="{ x: true, y: 190 }"/>
         </div>
       </a-tab-pane>
     </a-tabs>
     <div class="json-content">
-      <!-- <pre>{{origin}}</pre> -->
       <monaco
           ref="monaco1"
           :opts="opts"
@@ -109,9 +96,6 @@ export default {
               })
     },
     columns(){
-      if(store.isGptMode) {
-        return this.tableData.length?Object.keys(this.tableData[0]) :[]
-      }
       return store.totalInfo[this.currentIndex]?.config[0].children || []
     },
     tableData(){
@@ -119,17 +103,8 @@ export default {
     },
     origin(){
       let pre = store.totalInfo[this.currentIndex]?.origin[0] || ''
-      pre=JSON.stringify(pre)
-      // pre = pre.replace("Frequency('+12',0.2,'12',0.3,'18',0.2,'+18',0.3)","Random('categorical, categories=['+12','12','18','+18']')")
-      //   .replace("Frequency('-10',0.3,'-20',0.3,'-30',0.4)","Random('categorical, categories=['-10','-20','-30']')")
-      //   .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
-      //   .replace("Distribution('uniform',0,20)","Random('uniform, min=0, max=20')")
-      //   .replace("Distribution('uniform',-50,-20)","Random('uniform, min=-50, max=-20')")
-      //   .replace("Distribution('uniform',20,50)","Random('uniform, min=20, max=50')")
-      //   .replace("Distribution('normal', 120.13, 0.02)","Random('normal, loc=120.13, scale=0.02')")
-      //   .replace("Distribution('normal', 30.24, 0.01)","Random('normal, loc=30.24, scale=0.01')")
-      //   .replace("Enum([1])","Random('categorical, categories=[1]')")
-      return JSON.parse(pre)
+      // pre=JSON.stringify(pre)
+      return pre
     },
     constraints(){
       const cols = this.origin
@@ -159,9 +134,13 @@ export default {
           if(keys.includes('random')&&item['random'].indexOf('categorical')===-1){
             config[item.name].push('histogram')
           }
+
           if(keys.includes('type') && keys.length<3){
             config[item.name].push(item['type']==='String' ?'bar-str':'bar')
+          }else if(keys.includes('type') && item['type']==='String' && !keys.includes('random')){
+            config[item.name].push('bar-str')
           }
+          
         })
       return config
     }
@@ -211,57 +190,48 @@ export default {
     },
     initPlots(){
       const that = this
-      if(store.isGptMode){
-        console.log('table',this.tableData)
-        console.log('columns',this.columns)
-        this.columns.forEach(item=>{
-          that.drawBar(item)
-        })
-      }else{
-        const keys = Object.keys(this.chartConfig)
-        keys.forEach(key=>{
-          const items = this.chartConfig[key]
-          items.forEach(chart=>{
-            const id = key+chart
-            if(chart.indexOf('freqIf')>-1){
-              let condition = chart.split(',')[1]
-              that.drawPie(key, id,'freqIf',condition)
-            }else{
-              switch(chart){
-                case 'box': 
-                    that.drawBox(key, id)
-                    break
-                case 'line': 
-                    that.drawLine(key, id)
-                    break
-                case 'histogram': 
-                    that.drawHistogram(key, id)
-                    break
-                case 'bar':
-                    that.drawBar(key, id)
-                    break
-                case 'bar-str':
-                    that.drawBar(key, id, false)
-                    break
-                case 'pie-empty':
-                    that.drawPie(key, id, 'empty')
-                    break
-                case 'pie-freqIf':
-                    that.drawPie(key, id,'freqIf')
-                    break
-                case 'pie-freq':
-                    that.drawPie(key, id, 'freq')
-                    break
-                default:
-                    that.drawBar(key, id)
-                    break
-              }
+      const keys = Object.keys(this.chartConfig)
+      keys.forEach(key=>{
+        const items = this.chartConfig[key]
+        items.forEach(chart=>{
+          const id = key+chart
+          if(chart.indexOf('freqIf')>-1){
+            let condition = chart.split(',')[1]
+            that.drawPie(key, id,'freqIf',condition)
+          }else{
+            switch(chart){
+              case 'box': 
+                  that.drawBox(key, id)
+                  break
+              case 'line': 
+                  that.drawLine(key, id)
+                  break
+              case 'histogram': 
+                  that.drawHistogram(key, id)
+                  break
+              case 'bar':
+                  that.drawBar(key, id)
+                  break
+              case 'bar-str':
+                  that.drawBar(key, id, false)
+                  break
+              case 'pie-empty':
+                  that.drawPie(key, id, 'empty')
+                  break
+              case 'pie-freqIf':
+                  that.drawPie(key, id,'freqIf')
+                  break
+              case 'pie-freq':
+                  that.drawPie(key, id, 'freq')
+                  break
+              default:
+                  that.drawBar(key, id)
+                  break
             }
-            
-          })
+          }
+          
         })
-      }
-      
+      })
     },
     drawBox(col, chart){
       let data = this.extraData(col)
@@ -270,7 +240,7 @@ export default {
         this.charts[chart].dispose();
       }
       this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
-      // 绘制图表
+      // draw chart
       this.charts[chart].setOption(getBoxOption(col, data))
     },
     drawLine(col, chart){
@@ -279,7 +249,7 @@ export default {
         this.charts[chart].dispose();
       }
       this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
-      // 绘制图表
+      // draw chart
       this.charts[chart].setOption(getLineOption(col, data))
     },
     drawHistogram(col, chart){
@@ -292,7 +262,7 @@ export default {
           this.charts[chart].dispose();
         }
         this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
-        // 绘制图表
+        // draw chart
         this.charts[chart].setOption(getHistogramOption(col, bins.data, myRegression.points))
       }
     },
@@ -303,7 +273,7 @@ export default {
         this.charts[chart].dispose();
       }
       this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
-      // 绘制图表
+      // draw chart
       this.charts[chart].setOption(getBarOption(col, bins, showLabel))
     },
     drawPie(col, chart, type, condition=null){
@@ -318,7 +288,7 @@ export default {
         this.charts[chart].dispose();
       }
       this.charts[chart] = echarts.init(document.getElementById('column-'+chart));
-      // 绘制图表
+      // draw chart
       this.charts[chart].setOption(getPieOption(col, myData))
     },
     extraData(colName) {
@@ -356,7 +326,6 @@ export default {
     getBinsFreqIf(data, condition){
       let satisfiedCount = 0
       let notSatisfiedCount = 0 
-      console.log(condition)
       data.forEach(item=>{
         if(eval(item+condition)){
           satisfiedCount++
@@ -408,26 +377,47 @@ export default {
     opacity: 0.5;
   }
   .tab-panels {
-    width:calc(100% - 50px);
+    min-width:60%;
+    width:60%;
     height: 100%;
     .tab-panel {
-      // height: 100%;
+      height: calc(100% - 40px);
+      overflow: hidden;
     }
   }
-
   .data-panel {
-    display: flex;
-    flex-flow: row;
-    height: 100%;
-    overflow: hidden;
-
-    .data-content {
-      height: 100%;
-      width: 68%;
-      margin-right:2%;
-      overflow: auto;
-      padding:5px;
-      flex:1;
+    overflow: auto;
+    margin-right:5px;
+    padding:5px;
+    flex:1;
+    white-space: nowrap;
+    .column-content{
+      margin-right: 10px;
+      display: inline-block;
+      text-align: center;
+      // border: 1px solid #eeeeee;
+      padding:0 10px;
+      padding-bottom: 4px;
+      .column-name {
+        font-weight:600;
+        padding-top:0px;
+        margin-bottom: -14px;
+        font-size: 18px;
+      }
+      .column-chart {
+        display: inline-block;
+        width:250px;
+        height: 175px;
+        margin:auto;
+      }
+      .constraint {
+        width: 100%;
+        background: rgba(238, 238, 238,0.35);
+        padding: 2px 10px;
+        margin-top:5px;
+        font-size: 18px;
+      }
+    }
 
       &::-webkit-scrollbar {
         height: 4px;
@@ -451,8 +441,11 @@ export default {
       &::-webkit-scrollbar-corner {
         background: transparent;
       }
-    }
   }
+  .hidden {
+    overflow: hidden;
+  }
+
   .json-content {
     height: 100%;
     width: 40%;
@@ -492,66 +485,7 @@ export default {
     }
   }
 
-  .statistic-panel {
-    height: 100%;
-    // margin: 0 20px;
-    padding: 4px 0;
-    overflow-x: auto;
-    white-space: nowrap;
-    flex:1;
-    // border-top: 1px solid #e6e6e6;
-    .column-content{
-      margin-right: 10px;
-      display: inline-block;
-      text-align: center;
-      // border: 1px solid #eeeeee;
-      padding:0 10px;
-      padding-bottom: 4px;
-      .column-name {
-        font-weight:600;
-        padding-top:0px;
-        margin-bottom: -14px;
-        font-size: 18px;
-      }
-      .column-chart {
-        display: inline-block;
-        width:250px;
-        height: 180px;
-        margin:auto;
-      }
-      .constraint {
-        width: 100%;
-        background: rgba(238, 238, 238,0.35);
-        padding: 2px 10px;
-        margin-top:5px;
-        font-size: 18px;
-      }
-    }
-    // background: #e6e6e6;
-    &::-webkit-scrollbar {
-      height: 8px;
-      width: 4px;
-    }
 
-    &::-webkit-scrollbar-track {
-      background: rgb(239, 239, 239);
-      border-radius: 2px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #bfbfbf;
-      border-radius: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: #333;
-    }
-
-    &::-webkit-scrollbar-corner {
-      background: transparent;
-    }
-
-  }
 
   :deep(.ant-tabs-nav) {
     margin: 0;

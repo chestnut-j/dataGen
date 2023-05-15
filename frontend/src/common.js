@@ -164,11 +164,6 @@ export const getHistogramOption = function(name, data) {
       {
         type: 'bar',
         data: data,
-        // barWidth: '99.3%',
-        // label: {
-        //     show: true,
-        //     position: 'top'
-        // },
       },
       // {
       //   type: 'line',
@@ -343,104 +338,156 @@ export const getOverviewBarOption = function(name, data) {
 export const caseOptions = [
   {
     id: 1,
-    title: 'd3 case 1',
-    content:  `data = {
-      "table":"Set(nRows(50),nRows(80),nRows(100),nRows(150)) And nCols(8)",
-      "columns": {
-        "cname": "String",
-        "economy(mpg)": "Real And Range(9,48)",
-        "cylinders": "Real And Range(3,8)",
-        "displacement(cc)": "Range(60, 460)",
-        "power(hp)": "Range(50,230)",
-        "weight(lb)": "Range(1500,5200)",
-        "0-60 mph(s)": "Real And Range(8,25)",
-        "year": "Range(70,82)"
+    title: 'diffBar',
+    content:  `{
+  "table":"nRows(10) And nCols(2)",
+  "columns": {
+    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','18','+18']'),String(),Empty(4))",
+    "current": "Random('uniform, min=20, max=50')"
+  }
+}
+
+visFunc= function (data, domId, d3, echarts, zCharts) {
+  let chartDom = document.getElementById(domId)
+  let instanceArr = []
+  data.forEach((item, index) => {
+    let grid = document.createElement('div')
+    grid.id = \`\${domId}-grid-\${index}\`
+    grid.style.width = 262 + 'px'
+    grid.style.height = 240 + 'px'
+    grid.style.display = 'inline-block'
+    grid.style.marginLeft = 13+'px'
+    chartDom.appendChild(grid)
+    let itemData = Object.keys(item).map((k) => { return { type: k, value: item[k] } })
+    let itemChart = new zCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
+      title: '',
+      titleIsShow: false,
+      size:[262,240],
+      padding: [0,0,0,0],
+      labelKey: 'type',
+      valueKey: 'value',
+      value: itemData,
+      colors: ['#8c6bb1', '#e0e0e0'],
+      xAxisFontSize: 16,
+      yAxisFontSize: 16,
+      labelFontSize: 16,
+      tooltipFontSzie: 16,
+      legendIsShow: false,
+    });
+    itemChart.$on('drag-bar', function(data){
+      console.log(data)
+    })
+    instanceArr.push(itemChart)
+  })
+
+  let keys = ['diff','baseline','current']
+  const color = d3.scaleOrdinal()
+      .domain(keys)
+      .range(['#E7E7E7','#BAACCF','#8D76B1'])
+  let svg = d3.select("#"+domId)
+    .append('svg')
+    .attr("width", 400)
+    .attr("height", 40)
+
+  svg.selectAll("mycircles")
+    .data(keys)
+    .enter()
+    .append("circle")
+      .attr("cy", 10) 
+      .attr("cx", function(d,i){ return i===2? 71 + i*110 : 71 + i*100})
+      .attr("r", 5)
+      .style("fill", function(d){ return color(d)})
+
+  // Add one dot in the legend for each name.
+  svg.selectAll("mylabels")
+    .data(keys)
+    .enter()
+    .append("text")
+      .attr("y", 10)
+      .attr("x", function(d,i){ return i===2? 80 + i*110 : 80 + i*100})
+      .style("fill",'#222222')
+      .text(function(d){ return d})
+      .attr("text-anchor", "left")
+      .style("font-size", "16px")
+      .style("alignment-baseline", "middle")
+  return instanceArr
+}
+evaluationFunc = function(data, domId, instance, efficiencyTest){
+  let cnt = 0
+  instance.forEach(item => {
+    let data = item.realChart.chart.geometries[0].data
+    data.forEach(el => {
+      let v = el.value
+      if (v === null || Number.isNaN(v) || !Number.isFinite(v)) {
+        cnt++
       }
-    }
-    
-    visFunc= function (data, domId, d3, echarts, zCharts) {
-      keys = [
-        "economy(mpg)",
-        "cylinders",
-        "displacement(cc)",
-        "power(hp)",
-        "weight(lb)",
-        "0-60 mph(s)",
-        "year"
-      ]
-
-      keyz = "economy(mpg)"
-      margin = ({top: 20, right: 10, bottom: 20, left: 10})
-      width = keys.length * 100
-
-      height = 900
-
-      y = new Map(Array.from(keys, key => [key, d3.scaleLinear(d3.extent(data, d => d[key]), [margin.left, width - margin.right])]))
-      x = d3.scalePoint(keys, [margin.top, height - margin.bottom])
-      z = d3.scaleSequential(y.get(keyz).domain(), t => d3.interpolateBrBG(1 - t))
-
-
-      line = d3.line()
-        .defined(([, value]) => value != null)
-        .y(([key, value]) => y.get(key)(value))
-        .x(([key]) => x(key))
-      
-      
-
-      const svg = d3.select('#'+domId)
-          .append('svg')
-            .attr('height',height)
-            .attr('width',width)
-            .attr("viewBox", [0, 0, width, height]);
-
-      svg.append("g")
-          .attr("fill", "none")
-          .attr("stroke-width", 1.5)
-          .attr("stroke-opacity", 0.4)
-        .selectAll("path")
-        .data(data.slice().sort((a, b) => d3.ascending(a[keyz], b[keyz])))
-        .join("path")
-          .attr("stroke", d => z(d[keyz]))
-          .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])))
-        .append("title")
-          .text(d => d.name);
-
-      svg.append("g")
-        .selectAll("g")
-        .data(keys)
-        .join("g")
-          .attr("transform", d => \`translate(\${x(d)},0)\`)
-          .each(function(d) { d3.select(this).call(d3.axisLeft(y.get(d))); })
-          .call(g => g.append("text")
-            .attr("y", margin.left)
-            .attr("x", -6)
-            .attr("text-anchor", "start")
-            .attr("fill", "currentColor")
-            .text(d => d))
-          .call(g => g.selectAll("text")
-            .clone(true).lower()
-            .attr("fill", "none")
-            .attr("stroke-width", 5)
-            .attr("stroke-linejoin", "round")
-            .attr("stroke", "white"));
-    }
-    evaluationFunc = function(data, domId, instance, efficiencyTest){
-      return efficiencyTest
-    }`
+    })
+  })
+  return cnt
+}`
   },
   {
     id: 2,
-    title: 'd3 case 2',
-    content:  `data = {
-      "table":"Set(nRows(50) Prod nRows(20)) And nCols(7)",
+    title: 'heatMap',
+    content:  `{
+  "table":"Set(nRows(40000),nRows(36000),nRows(32000),nRows(28000),nRows(24000),nRows(20000),nRows(16000),nRows(12000),nRows(8000),nRows(4000)) And nCols(3)",
+  "columns": {
+    "x": "Random('normal, loc=120.13, scale=0.02')",
+    "y": "Random('normal, loc=30.24, scale=0.01')",
+    "value": "Random('categorical, categories=[1]')"
+  }
+}
+
+visFunc = function (data, domId, d3, echarts, zCharts) {
+  var myChart = echarts.init(document.getElementById(domId));
+  option = { 
+      animation: false,
+      amap: {
+        center: [120.13, 30.24],
+        zoom:14,
+        lang: "en"
+      },
+      visualMap: {
+        show: false,
+        top: 'top',
+        min: 0,
+        max: 5,
+        seriesIndex: 0,
+        calculable: true,
+        inRange: {
+          color: ['#ffffcc', '#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026']
+        }
+      },
+      series: [
+        {
+          type: 'heatmap',
+          coordinateSystem: 'amap',
+          data: data.map(v=>Object.values(v)),
+          pointSize: 5,
+          blurSize: 6
+        }
+      ]
+    }
+  option && myChart.setOption(option);
+  return myChart
+}
+evaluationFunc = function(ddata, domId, instance, efficiencyTest){
+  return efficiencyTest
+}`
+  },
+  {
+    id: 3,
+    title: 'd3 case',
+    content:  `{
+      "table":"Set(nRows(50), nRows(20)) And nCols(7)",
       "columns": {
-        "city_name": "GPT('city name') And Repeat(3) And Empty(2)",
-        "species": "Frequency('Adelie',0.3,'Chinstrap',0.4,'Gentoo',0.3)",
-        "culmen_length_mm": "Real And Range(30,60)",
-        "culmen_depth_mm": "Real And Range(13,25)",
-        "flipper_length_mm": "Range(150,250)",
-        "body_mass_g": "Cluster(4) And Range(0,300)",
-        "sex": "Frequency('MALE',0.6,'FEMALE',0.4)"
+        "city_name": "String() And Repeat(3)",
+        "species": "Random('categorical, categories=['Adelie','Chinstrap','Gentoo'], weights=[0.3,0.4,0.3]')",
+        "culmen_length_mm": "Real() And Range(30,60)",
+        "culmen_depth_mm": "Real() And Range(13,25)",
+        "flipper_length_mm": "Real() And Range(150,250)",
+        "body_mass_g": "Real And Range(0,300)",
+        "sex": "Random('categorical, categories=['MALE','FEMALE'], weights=[0.6,0.4]')"
       }
     }
     
@@ -569,235 +616,19 @@ export const caseOptions = [
     }`
   },
   {
-    id: 3,
-    title: 'echart case 1',
-    content:  `data = {
-  "table":"Set(nRows(50),nRows(20)) And nCols(8)",
-  "columns": {
-    "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
-    "PM25": "Range(0,300) And FreqIf('<100',0.7)",
-    "PM10": "Range(0,300) And Set(FreqIf('<100',0.6),FreqIf('<100',0.2))",
-    "CO": "Real And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And Set(Distribution('normal', 50,30),Distribution('normal', 60,10))",
-    "SO2": "Range(0,90) And Set(Distribution('normal', 25,15),Distribution('normal', 50,20))",
-    "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
-    "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
-  }
-}
-
-visFunc= function (data, domId, d3, echarts, zCharts) {
-  var myChart = echarts.init(document.getElementById(domId));
-  var option;
-
-  const schema = [
-    { name: 'AQIindex', index: 1, text: 'AQI' },
-    { name: 'PM25', index: 2, text: 'PM 2.5' },
-    { name: 'PM10', index: 3, text: 'PM 10' },
-    { name: 'CO', index: 4, text: 'CO' },
-    { name: 'NO2', index: 5, text: 'NO₂' },
-    { name: 'SO2', index: 6, text: 'SO₂' },
-    { name: 'rank', index: 7, text: 'rank' }
-  ];
-
-  var lineStyle = {
-    width: 1,
-    opacity: 0.5
-  };
-
-  const CATEGORY_DIM = 7;
-
-  const rawData = data.map(v =>{
-    return [v['AQIindex'], v['PM25'], v['PM10'], v['CO'], v['NO2'], v['SO2'], v['rank'], v['city']]
-  })
-
-  option = {
-    backgroundColor: '#333',
-    legend: {
-      bottom: 30,
-      data: ['Beijing', 'Shanghai', 'Guangzhou'],
-      itemGap: 20,
-      textStyle: {
-        color: '#fff',
-        fontSize: 14
-      }
-    },
-    tooltip: {
-      padding: 10,
-      backgroundColor: '#222',
-      borderColor: '#777',
-      borderWidth: 1
-    },
-    parallelAxis: [
-      { dim: 0, name: schema[0].text },
-      { dim: 1, name: schema[1].text },
-      { dim: 2, name: schema[2].text },
-      { dim: 3, name: schema[3].text },
-      { dim: 4, name: schema[4].text },
-      { dim: 5, name: schema[5].text },
-      {
-        dim: 6,
-        name: schema[6].text,
-        type: 'category',
-        data: ['A', 'B', 'C', 'D', 'E', 'F']
-      }
-    ],
-    visualMap: {
-      show: true,
-      min: 0,
-      max: 150,
-      dimension: 2,
-      inRange: {
-        color: ['#d94e5d', '#eac736', '#50a3ba'].reverse()
-        // colorAlpha: [0, 1]
-      }
-    },
-    parallel: {
-      left: '10%',
-      right: '10%',
-      bottom: 100,
-      parallelAxisDefault: {
-        type: 'value',
-        name: 'AQI指数',
-        nameLocation: 'end',
-        nameGap: 20,
-        nameTextStyle: {
-          color: '#fff',
-          fontSize: 12
-        },
-        axisLine: {
-          lineStyle: {
-            color: '#aaa'
-          }
-        },
-        axisTick: {
-          lineStyle: {
-            color: '#777'
-          }
-        },
-        splitLine: {
-          show: false
-        },
-        axisLabel: {
-          color: '#fff'
-        }
-      }
-    },
-    series: [
-      {
-        name: 'Beijing',
-        type: 'parallel',
-        lineStyle: lineStyle,
-        data: rawData.filter(v=>v[CATEGORY_DIM]==='Beijing')
-      },
-      {
-        name: 'Shanghai',
-        type: 'parallel',
-        lineStyle: lineStyle,
-        data: rawData.filter(v=>v[CATEGORY_DIM]==='Shanghai')
-      },
-      {
-        name: 'Guangzhou',
-        type: 'parallel',
-        lineStyle: lineStyle,
-        data: rawData.filter(v=>v[CATEGORY_DIM]==='Guangzhou')
-      }
-    ]
-  };
-
-  option && myChart.setOption(option);
-  return myChart
-}
-evaluationFunc = function(data, domId, instance, efficiencyTest){
-  // data density
-  // return data.length
-
-  // data demension
-  // let keys = Object.keys(data)
-  // return keys.length
-
-  // Data overlap degree
-  // let overlap = 0
-  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
-  // let len = data.length
-  // let dem = keys.length 
-  // for(let i=0; i<len;i++){
-  //   for(let j=0;j<len;j++){
-  //     if(i!=j){
-  //       for(let k=0; k<dem-1; k++){
-  //         let key1 = keys[k]
-  //         let key2 = keys[k+1]
-  //         if(data[i][key1]===data[j][key1] &&data[i][key2]===data[j][key2]){
-  //           overlap++
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-  // overlap = overlap/(dem-1)
-  // overlap=overlap/(len*len)
-  // return overlap
-
-  // Data intersect degree
-  let intersect = 0
-  let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
-  let len = data.length
-  let dem = keys.length 
-  for(let i=0; i<len;i++){
-    for(let j=0;j<len;j++){
-      if(i!=j){
-        for(let k=0; k<dem-1; k++){
-          let key1 = keys[k]
-          let key2 = keys[k+1]
-          if(data[i][key1]===data[j][key1] || 
-              data[i][key2]===data[j][key2] ||
-              (data[i][key1]-data[j][key1])*(data[i][key2]===data[j][key2])<0
-              ){
-            intersect++
-          }
-        }
-      }
-    }
-  }
-  intersect = intersect/(dem-1)
-  intersect=intersect/(len*len)
-  return intersect
-
-  // Data distribution
-  // let keys =  ['AQIindex', 'PM25', 'PM10', 'CO', 'NO2', 'SO2', 'rank']
-  // let dem = keys.length 
-  // let sum = 0
-  // for(let i=0;i<keys.length;i++){
-  //   var yMax = instance.getModel().getComponent('parallelAxis',i).axis.scale._extent[1];
-  //   var yMin = instance.getModel().getComponent('parallelAxis',i).axis.scale._extent[0];
-  //   let colData = data.map(v=>v[keys[i]])
-  //   let dataMax = Math.max(...colData)
-  //   let dataMin = Math.min(...colData)
-  //   let dataSub = dataMax-dataMin
-  //   let axisSub = yMax-yMin
-  //   if(!Number.isNaN(dataSub)){
-  //     sum += Math.pow(dataSub - axisSub, 2)
-  //   }
-  // }
-  // sum=sum/dem
-  // return sum
-  
-  // return efficiencyTest
-}`
-  },
-  {
     id: 4,
-    title: 'echart case 2',
-    content:  `data = {
-  "table":"Set(nRows(50),nRows(20)) And nCols(8)",
+    title: 'echart case',
+    content:  `{
+  "table":"Set(nRows(20),nRows(50)) And nCols(8)",
   "columns": {
-    "AQIindex": "Range(0,300) And FreqIf('<100',0.8) And Empty(3)",
+    "AQIindex": "Range(0,300) And FreqIf('<100',0.8)",
     "PM25": "Range(0,300) And FreqIf('<100',0.7)",
     "PM10": "Range(0,300) And FreqIf('<100',0.6)",
     "CO": "Real() And Range(0,6) And FreqIf('<2',0.8)",
-    "NO2": "Range(0,150) And Set(Distribution('normal', 50,30),Distribution('normal', 60,10))",
-    "SO2": "Range(0,90) And Set(Distribution('normal', 25,15),Distribution('normal', 60,10))",
-    "rank": "Frequency('A', 0.2, 'B', 0.4, 'C', 0.2, 'D', 0.1, 'E', 0.1)",
-    "city": "Frequency('Beijing', 0.3, 'Shanghai', 0.4, 'Guangzhou', 0.3)"
+    "NO2": "Set(Random('normal, loc=50, scale=30'),Random('normal, loc=60, scale=10'))",
+    "SO2": "Set(Random('normal, loc=25, scale=15'),Random('normal, loc=60, scale=10'))",
+    "rank": "Random('categorical, categories=['A','B','C','D','E'], weights=[0.2,0.4,0.2,0.1, 0.1]')",
+    "city": "Random('categorical, categories=['Beijing','Shanghai','Guangzhou'], weights=[0.3,0.4,0.3]')"
   }
 }
 
@@ -1041,465 +872,4 @@ evaluationFunc = function(data, domId, instance, efficiencyTest){
   return intersect
 }`
   },
-  {
-    id: 5,
-    title: 'diffBar',
-    content:  `{
-  "table":"nRows(10) And nCols(2)",
-  "columns": {
-    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','18','+18']'),String(),Empty(4))",
-    "current": "Random('uniform, min=20, max=50')"
-  }
-}
-
-visFunc= function (data, domId, d3, echarts, zCharts) {
-  let chartDom = document.getElementById(domId)
-  let instanceArr = []
-  data.forEach((item, index) => {
-    let grid = document.createElement('div')
-    grid.id = \`\${domId}-grid-\${index}\`
-    grid.style.width = 262 + 'px'
-    grid.style.height = 240 + 'px'
-    grid.style.display = 'inline-block'
-    grid.style.marginLeft = 13+'px'
-    chartDom.appendChild(grid)
-    let itemData = Object.keys(item).map((k) => { return { type: k, value: item[k] } })
-    let itemChart = new zCharts.DiffBarChart(\`\${domId}-grid-\${index}\`, {
-      title: '',
-      titleIsShow: false,
-      size:[262,240],
-      padding: [0,0,0,0],
-      labelKey: 'type',
-      valueKey: 'value',
-      value: itemData,
-      colors: ['#8c6bb1', '#e0e0e0'],
-      xAxisFontSize: 16,
-      yAxisFontSize: 16,
-      labelFontSize: 16,
-      tooltipFontSzie: 16,
-      legendIsShow: false,
-    });
-    itemChart.$on('drag-bar', function(data){
-      console.log(data)
-    })
-    instanceArr.push(itemChart)
-  })
-
-  let keys = ['diff','baseline','current']
-  const color = d3.scaleOrdinal()
-      .domain(keys)
-      .range(['#E7E7E7','#BAACCF','#8D76B1'])
-  let svg = d3.select("#"+domId)
-    .append('svg')
-    .attr("width", 400)
-    .attr("height", 40)
-
-  svg.selectAll("mycircles")
-    .data(keys)
-    .enter()
-    .append("circle")
-      .attr("cy", 10) 
-      .attr("cx", function(d,i){ return i===2? 71 + i*110 : 71 + i*100})
-      .attr("r", 5)
-      .style("fill", function(d){ return color(d)})
-
-  // Add one dot in the legend for each name.
-  svg.selectAll("mylabels")
-    .data(keys)
-    .enter()
-    .append("text")
-      .attr("y", 10)
-      .attr("x", function(d,i){ return i===2? 80 + i*110 : 80 + i*100})
-      .style("fill",'#222222')
-      .text(function(d){ return d})
-      .attr("text-anchor", "left")
-      .style("font-size", "16px")
-      .style("alignment-baseline", "middle")
-  return instanceArr
-}
-evaluationFunc = function(data, domId, instance, efficiencyTest){
-  let cnt = 0
-  instance.forEach(item => {
-    let data = item.realChart.chart.geometries[0].data
-    data.forEach(el => {
-      let v = el.value
-      if (v === null || Number.isNaN(v) || !Number.isFinite(v)) {
-        cnt++
-      }
-    })
-  })
-  return cnt
-}`
-  },
-  {
-    id: 6,
-    title: 'zCharts case 2',
-    content:  `{
-  "table":"nRows(10) And nCols(5)",
-  "columns": {
-    "time": "Set(String(),Range(1,120) And Distinct)",
-    "start": "Distribution('uniform',1000,1500)",
-    "rangeLen": "Set(Trend('linear', 200,500),Trend('exponential', 1.2,500))",
-    "pre": "Distribution('uniform',2000,3000)",
-    "real": "Distribution('uniform',2500,3000)"
-  }
-}
-
-visFunc= function (data, domId, d3, echarts, zCharts) {
-  const gdpData = data.map(v => {
-    return {
-      ...v,
-      range: [v.start, v.start + v.rangeLen]
-    }
-  })
-  console.log(gdpData)
-
-  const chart1 = new zCharts.AreaRangeChart(domId, {
-    title: '',
-    size: [520, 520],
-    value: gdpData,
-    valueKey: 'range',
-    labelKey: 'time',
-    xAxisAttribute: 'time',
-    yAxisAttribute: ['pre', 'real'],
-    xAxisTitle: 'month',
-    yAxisTitle: 'GDP',
-    colors: ['#ff0000', '#00ff00']
-  })
-}
-evaluationFunc = function(ddata, domId, instance, efficiencyTest){
-  return efficiencyTest
-}`
-  },
-  {
-    id: 7,
-    title: 'heatMap',
-    content:  `{
-  "table":"Set(nRows(40000),nRows(36000),nRows(32000),nRows(28000),nRows(24000),nRows(20000),nRows(16000),nRows(12000),nRows(8000),nRows(4000)) And nCols(3)",
-  "columns": {
-    "x": "Random('normal, loc=120.13, scale=0.02')",
-    "y": "Random('normal, loc=30.24, scale=0.01')",
-    "value": "Random('categorical, categories=[1]')"
-  }
-}
-
-visFunc = function (data, domId, d3, echarts, zCharts) {
-  var myChart = echarts.init(document.getElementById(domId));
-  option = { 
-      animation: false,
-      amap: {
-        center: [120.13, 30.24],
-        zoom:14,
-        lang: "en"
-      },
-      visualMap: {
-        show: false,
-        top: 'top',
-        min: 0,
-        max: 5,
-        seriesIndex: 0,
-        calculable: true,
-        inRange: {
-          color: ['#ffffcc', '#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026']
-        }
-      },
-      series: [
-        {
-          type: 'heatmap',
-          coordinateSystem: 'amap',
-          data: data.map(v=>Object.values(v)),
-          pointSize: 5,
-          blurSize: 6
-        }
-      ]
-    }
-  option && myChart.setOption(option);
-  return myChart
-}
-evaluationFunc = function(ddata, domId, instance, efficiencyTest){
-  return efficiencyTest
-}`
-  },
-  {
-    id: 8,
-    title: 'heatMap d3',
-    content:  `data = {
-      "table":"nRows(800) And nCols(2)",
-      "columns": {
-        "x": "Set(Distribution('normal', 15, 0.5),Distribution('normal', 15, 1),Distribution('normal', 15, 2),Distribution('normal', 15, 3),Distribution('normal', 15, 4),Distribution('normal', 15, 5))",
-        "y": "Distribution('normal', 10, 5)"
-      }
-    }
-    
-    visFunc = function (data, domId, d3, echarts, zCharts) {
-// set the dimensions and margins of the graph
-var margin = {top: 20, right: 30, bottom: 30, left: 60},
-    width = 1350 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
-
-// append the svg object to the body of the page
-var svg = d3.select("#"+domId)
-  .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
-  // Add X axis
-  var x = d3.scaleLinear()
-    .domain([0, 30])
-    .range([ margin.left, width - margin.right ]);
-  svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x));
-
-  // Add Y axis
-  var y = d3.scaleLinear()
-    .domain([0, 20])
-    .range([ height - margin.bottom, margin.top ]);
-  svg.append("g")
-    .call(d3.axisLeft(y));
-
-
-
-  // compute the density data
-  var densityData = d3.contourDensity()
-    .x(function(d) { return x(d.x); })
-    .y(function(d) { return y(d.y); })
-    .size([width, height])
-    .bandwidth(10) 
-    (data)
-
-  let minData = Math.min(...densityData.map(v=>v.value))
-  let maxData = Math.max(...densityData.map(v=>v.value))
-  // Prepare a color palette
-  var color = d3.scaleLinear()
-      .domain([minData, maxData]) // Points per square pixel.
-      .range(["#F7FBFC", "#69a3b2"])
-
-  // show the shape!
-  // svg.insert("g", "g")
-  //   .selectAll("path")
-  //   .data(densityData)
-  //   .enter().append("path")
-  //     .attr("d", d3.geoPath()) 
-  //     .attr("fill", function(d) { return color(d.value); })
-    }
-    evaluationFunc = function(data, domId, instance, efficiencyTest){
-      return efficiencyTest
-    }`
-  },
-]
-export const gptCaseOptions = [
-  {
-    id: 1,
-    title: 'gpt case 1',
-    description: `generate a table satisfying following constraints: 
-1. it has 10 rows 
-2. it has 5 columns, "id","name", "gender", "score","p" 
-3. column "id", range from 1 to 10, with 3 duplicate value
-4. column "name" is random name 
-5. column "gender" 50% are 0, 50% are 1 
-6. column "score" is normal distribution,range from 0 to 100, with 1 empty value and 2 duplicate value`,
-    jsCode:  `visFunc= function (svgId, data, d3) {
-  console.log(data)
-}`
-  },
-  {
-    id: 2,
-    title: 'gpt case 2',
-    description: `generate a table satisfying following constraints: 
-    1. it has 10 rows 
-    2. it has 5 columns, "id","name", "gender", "score","p" 
-    3. column "id", range from 1 to 10, with 3 duplicate value
-    4. column "name" is random name 
-    5. column "gender" 50% are 0, 50% are 1 
-    6. column "score" is normal distribution,range from 0 to 100, with 1 empty value and 2 duplicate value`,
-    jsCode:  `visFunc= function (svgId, data, d3) {
-      keys = [
-        "economy(mpg)",
-        "cylinders",
-        "displacement(cc)",
-        "power(hp)",
-        "weight(lb)",
-        "0-60 mph(s)",
-        "year"
-      ]
-
-      keyz = "economy(mpg)"
-      margin = ({top: 20, right: 10, bottom: 20, left: 10})
-      height = keys.length * 100
-
-      width = 900
-
-      x = new Map(Array.from(keys, key => [key, d3.scaleLinear(d3.extent(data, d => d[key]), [margin.left, width - margin.right])]))
-      y = d3.scalePoint(keys, [margin.top, height - margin.bottom])
-      z = d3.scaleSequential(x.get(keyz).domain(), t => d3.interpolateBrBG(1 - t))
-
-
-      line = d3.line()
-        .defined(([, value]) => value != null)
-        .x(([key, value]) => x.get(key)(value))
-        .y(([key]) => y(key))
-      
-      
-
-      const svg = d3.select(svgId)
-          .attr("viewBox", [0, 0, width, height]);
-
-      svg.append("g")
-          .attr("fill", "none")
-          .attr("stroke-width", 1.5)
-          .attr("stroke-opacity", 0.4)
-        .selectAll("path")
-        .data(data.slice().sort((a, b) => d3.ascending(a[keyz], b[keyz])))
-        .join("path")
-          .attr("stroke", d => z(d[keyz]))
-          .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])))
-        .append("title")
-          .text(d => d.name);
-
-      svg.append("g")
-        .selectAll("g")
-        .data(keys)
-        .join("g")
-          .attr("transform", d => \`translate(0,\${y(d)})\`)
-          .each(function(d) { d3.select(this).call(d3.axisBottom(x.get(d))); })
-          .call(g => g.append("text")
-            .attr("x", margin.left)
-            .attr("y", -6)
-            .attr("text-anchor", "start")
-            .attr("fill", "currentColor")
-            .text(d => d))
-          .call(g => g.selectAll("text")
-            .clone(true).lower()
-            .attr("fill", "none")
-            .attr("stroke-width", 5)
-            .attr("stroke-linejoin", "round")
-            .attr("stroke", "white"));
-    }`
-  },
-  {
-    id: 3,
-    title: 'gpt case 3',
-    jsCode:  `visFunc= function (svgId, data, d3) {
-      function ScatterplotMatrix(data, {
-        columns = data.columns, // array of column names, or accessor functions
-        x = columns, // array of x-accessors
-        y = columns, // array of y-accessors
-        z = () => 1, // given d in data, returns the (categorical) z-value
-        padding = 20, // separation between adjacent cells, in pixels
-        marginTop = 10, // top margin, in pixels
-        marginRight = 20, // right margin, in pixels
-        marginBottom = 30, // bottom margin, in pixels
-        marginLeft = 40, // left margin, in pixels
-        width = 500, // outer width, in pixels
-        height = width, // outer height, in pixels
-        xType = d3.scaleLinear, // the x-scale type
-        yType = d3.scaleLinear, // the y-scale type
-        zDomain, // array of z-values
-        fillOpacity = 0.7, // opacity of the dots
-        colors = d3.schemeCategory10, // array of colors for z
-      } = {}) {
-        // Compute values (and promote column names to accessors).
-        const X = d3.map(x, x => d3.map(data, typeof x === "function" ? x : d => d[x]));
-        const Y = d3.map(y, y => d3.map(data, typeof y === "function" ? y : d => d[y]));
-        const Z = d3.map(data, z);
-      
-        // Compute default z-domain, and unique the z-domain.
-        if (zDomain === undefined) zDomain = Z;
-        zDomain = new d3.InternSet(zDomain);
-      
-        // Omit any data not present in the z-domain.
-        const I = d3.range(Z.length).filter(i => zDomain.has(Z[i]));
-      
-        // Compute the inner dimensions of the cells.
-        const cellWidth = (width - marginLeft - marginRight - (X.length - 1) * padding) / X.length;
-        const cellHeight = (height - marginTop - marginBottom - (Y.length - 1) * padding) / Y.length;
-      
-        // Construct scales and axes.
-        const xScales = X.map(X => xType(d3.extent(X), [0, cellWidth]));
-        const yScales = Y.map(Y => yType(d3.extent(Y), [cellHeight, 0]));
-        const zScale = d3.scaleOrdinal(zDomain, colors);
-        const xAxis = d3.axisBottom().ticks(cellWidth / 50);
-        const yAxis = d3.axisLeft().ticks(cellHeight / 35);
-      
-        const svg = d3.select(svgId)
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", [-marginLeft, -marginTop, width, height])
-            .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
-      
-        svg.append("g")
-          .selectAll("g")
-          .data(yScales)
-          .join("g")
-            .attr("transform", (d, i) => \`translate(0,\${i * (cellHeight + padding)})\`)
-            .each(function(yScale) { return d3.select(this).call(yAxis.scale(yScale)); })
-            .call(g => g.select(".domain").remove())
-            .call(g => g.selectAll(".tick line").clone()
-                .attr("x2", width - marginLeft - marginRight)
-                .attr("stroke-opacity", 0.1));
-      
-        svg.append("g")
-          .selectAll("g")
-          .data(xScales)
-          .join("g")
-            .attr("transform", (d, i) => \`translate(\${i * (cellWidth + padding)},\${height - marginBottom - marginTop})\`)
-            .each(function(xScale) { return d3.select(this).call(xAxis.scale(xScale)); })
-            .call(g => g.select(".domain").remove())
-            .call(g => g.selectAll(".tick line").clone()
-                .attr("y2", -height + marginTop + marginBottom)
-                .attr("stroke-opacity", 0.1))
-      
-        const cell = svg.append("g")
-          .selectAll("g")
-          .data(d3.cross(d3.range(X.length), d3.range(Y.length)))
-          .join("g")
-            .attr("fill-opacity", fillOpacity)
-            .attr("transform", ([i, j]) => \`translate(\${i * (cellWidth + padding)},\${j * (cellHeight + padding)})\`);
-      
-        cell.append("rect")
-            .attr("fill", "none")
-            .attr("stroke", "currentColor")
-            .attr("width", cellWidth)
-            .attr("height", cellHeight);
-      
-        cell.each(function([x, y]) {
-          d3.select(this).selectAll("circle")
-            .data(I.filter(i => !isNaN(X[x][i]) && !isNaN(Y[y][i])))
-            .join("circle")
-              .attr("r", 3.5)
-              .attr("cx", i => xScales[x](X[x][i]))
-              .attr("cy", i => yScales[y](Y[y][i]))
-              .attr("fill", i => zScale(Z[i]));
-        });
-      
-        // TODO Support labeling for asymmetric sploms?
-        if (x === y) svg.append("g")
-            .attr("font-size", 10)
-            .attr("font-family", "sans-serif")
-            .attr("font-weight", "bold")
-          .selectAll("text")
-          .data(x)
-          .join("text")
-            .attr("transform", (d, i) => \`translate(\${i * (cellWidth + padding)},\${i * (cellHeight + padding)})\`)
-            .attr("x", padding / 2)
-            .attr("y", padding / 2)
-            .attr("dy", ".71em")
-            .text(d => d);
-      
-        return Object.assign(svg.node(), {scales: {color: zScale}});
-      }
-      chart = ScatterplotMatrix(data, {
-        columns: [
-          "culmen_length_mm",
-          "culmen_depth_mm",
-          "flipper_length_mm",
-          "body_mass_g"
-        ],
-        z: d => d.species
-      })
-    }`
-  }
 ]

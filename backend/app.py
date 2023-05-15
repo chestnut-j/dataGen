@@ -1,35 +1,24 @@
 # =================================================================
-#  =====================数据生成===========================#
-# 解析器函数定义
-from faker import Faker
 from itertools import product
 import z3
 import pandas as pd
 import json
-import csv
 import numpy as np
-import math
-import random
+from faker import Faker
 
 fake = Faker()
 global output_option_list 
 output_option_list ={}
 
-# ================================语法解析=============================
+# ================================parse=============================
 def findPosi(allStr, findStr):
-  #用于存储findStr标识符的出现
   posiList = []
-  #是否有findStr的标识符
   findPosi = False
   findOption = False
-  #先确定是否存在findStr标识符并获取其位置
   if allStr.find(findStr) != -1:
       posiList.append(allStr.find(findStr))
-      #已找到当前的posiStr位置，可以继续寻找下一个
       findOption = True
-      #下一个标识符开始寻找的位置
       findPosi = allStr.find(findStr) + 1
-  #寻找约束中剩余的findStr标识符
   while(findOption):
       if allStr.find(findStr, findPosi) != -1:
           posiList.append(allStr.find(findStr, findPosi))
@@ -48,13 +37,6 @@ def optionSoluntion(optionList):
       optionResult.append(tempList)
   return optionResult
 
-def orSoluntion(optionList):
-  optionResult = []
-  for option in optionList:
-      optionResult.append(option[np.random.randint(0,len(option))])
-  return optionResult
-
-# 计算slot内的括号数
 def calculateSlotParenthesis(frontParenthesisList, backParenthesisList, inverse=False):
   slotParenthesis = 0
   if inverse:
@@ -78,18 +60,16 @@ def generateSlot(constraintList):
   slotJson = ""
   isOnlyOption = True
   for constraintStr in constraintList:
-    # print(constraintStr)
-    #用于存储前括号的位置信息
     frontParenthesisList = findPosi(constraintStr, '(')
-    #用于存储后括号的位置信息
     backParenthesisList = findPosi(constraintStr, ')')
+
     if len(frontParenthesisList) > len(backParenthesisList):
         slotParenthesis = calculateSlotParenthesis(frontParenthesisList, backParenthesisList, True)
         slotStart = frontParenthesisList[-(slotParenthesis+1)]
         tempSlotContent.append(constraintStr[slotStart + 1:])
         slotJson += constraintStr[:slotStart]
         slotJson += "{"
-    # 处理字符串中只有条件的情况
+        
     elif len(frontParenthesisList) == len(backParenthesisList):
         if count==0: 
           slotParenthesis = 0
@@ -131,9 +111,7 @@ def generateSlot(constraintList):
         
     count += 1
 
-  #用于存储前括号的位置信息
   frontSlotList = findPosi(slotJson, '{')
-  #用于存储后括号的位置信息
   backSlotList = findPosi(slotJson, '}')
   if len(tempSlotContent):
     slotContentList.append(tempSlotContent)
@@ -142,24 +120,11 @@ def generateSlot(constraintList):
   # print(slotJson, slotContentList)
   return [slotJson, slotContentList]    
 
-def removeOrOp(constraint):
-  # 根据op标识符的位置把constraint分割为多个部分
-  constraintList = findConstrain(constraint, "Or")
-  # 根据括号寻找slot的位置
-  [slotJson, slotContentList] = generateSlot(constraintList)
-  optionResult = orSoluntion(slotContentList)
-  
-  finalJson = ''
-  finalJson = slotJson.format(*optionResult)
-  
-  return finalJson
-
 def isOuterrontParenthesis(constraint):
   if constraint[0] == '(' and constraint[len(constraint)-1] == ')':
     constraint = constraint[1:len(constraint)-1]
-    #用于存储前括号的位置信息
+    
     frontParenthesisList = findPosi(constraint, '(')
-    #用于存储后括号的位置信息
     backParenthesisList = findPosi(constraint, ')')
     for position in range(0, len(backParenthesisList)):
       if frontParenthesisList[position] > backParenthesisList[position]:
@@ -167,29 +132,6 @@ def isOuterrontParenthesis(constraint):
     return True
   else:
     return False
-
-# def parseConstraint(rawConstraint, key):
-
-#     # constraint = rawConstraint.replace(" ","")
-#     constraint = rawConstraint
-
-#     if constraint.find('Prod') == -1:
-#       if isOuterrontParenthesis(constraint):
-#         constraint = constraint[1:len(constraint)-1]
-#       return [constraint]
-            
-#     # # 根据option标识符的位置把constraint分割为多个部分
-#     constraintList = findConstrain(rawConstraint, "Prod")
- 
-#     [slotJson, slotContentList] = generateSlot(constraintList)
-#     optionResult = optionSoluntion(slotContentList)
-#     output_option_list[key] = slotContentList
-#     print(output_option_list)
-#     finalJsonList = []
-#     for ri in optionResult:
-#         finalJsonList.append(slotJson.format(*ri))
-        
-#     return finalJsonList
 
 def parseConstraint(rawConstraint, key):
 
@@ -200,8 +142,7 @@ def parseConstraint(rawConstraint, key):
       if isOuterrontParenthesis(constraint):
         constraint = constraint[1:len(constraint)-1]
       return [constraint]
-            
-    # # 根据option标识符的位置把constraint分割为多个部分
+  
     posList = findPosi(constraint, "Set")
     print(posList)
     slotContentList=[]
@@ -223,10 +164,6 @@ def parseConstraint(rawConstraint, key):
       setCons = constraint[pos+4:index-1]
       slotContentList.append(setCons.split('|'))
     slotJson = slotJson+constraint[index:]
-    # [slotJson, slotContentList] = generateSlot(constraintList)
-#  slotJson  slotContentList
-#  {} And Column(6) [['Length(50) ', ' Length(20)']]
-# {} [['Range(50,80) ', ' Range(0,100)']]
 
     optionResult = optionSoluntion(slotContentList)
     output_option_list[key] = slotContentList
@@ -259,11 +196,11 @@ def findConstrain(allStr, operation):
     return constraintList
 
 # =============================================================================
-# =============================约束映射=========================================
 
+# =============================constraints mapping=========================================
 def parseCons(cons, col):
   # parse type
-  if ['Int','Real','String','Date'].count(cons.replace(' ',''))>0:
+  if ['Int','Real','String'].count(cons.replace(' ',''))>0:
     col['type'] = cons.replace(' ','')
   
   if cons.find('Int')!= -1:
@@ -272,36 +209,6 @@ def parseCons(cons, col):
     col['type'] = 'Real'
   elif cons.find('String')!= -1:
     col['type'] = 'String'
-  elif cons.find('Date')!= -1:
-    col['type'] = 'Date'
-  
-  if cons.find('DateData')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['range'] = [eval(args[0]),eval(args[1])]
-    col['format'] = eval(args[2])
-    if eval(args[2]) == 'YYYY-MM-DD':
-      col['freq'] = 'D'
-    if eval(args[2]) == 'YYYY-MM':
-      col['freq'] = 'M'
-    if eval(args[2]) == 'YYYY':
-      col['freq'] = 'Y'
-  
-  if cons.find('Faker')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['type'] = 'Faker'
-    col['content'] = args[0]
-    if len(args)==2:
-      col['locale'] = args[1]
-
-  if cons.find('GPTCode')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')]
-    col['type'] = 'GPTCode'
-    col['content'] = eval(args)
-  elif cons.find('GPT')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')]
-    col['type'] = 'GPT'
-    col['content'] = eval(args)
-
 
   if cons.find('Range')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
@@ -332,7 +239,7 @@ def parseCons(cons, col):
       col['type'] = 'Int'
   
 
-  if cons.find('Repeat')!= -1 or cons.find('Frequency')!= -1:
+  if cons.find('Repeat')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     cons_name = cons[:cons.find('(')].lower().replace(" ","")
     if cons_name in col:
@@ -372,147 +279,18 @@ def parseCons(cons, col):
     args = cons[cons.find('(')+1:cons.find(')')].split(',')
     col['empty'] = eval(args[0]) 
 
-  if cons.find('Cluster')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['cluster'] = eval(args[0]) 
-
-  if cons.find('Trend')!= -1:
-    if 'trend' in col:
-      raise Exception('Repeat setting the constraints on the trend')
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['trend'] =  [eval(x) for x in args]
-
-  if cons.find('Distribution')!= -1:
-    if 'distribution' in col:
-      raise Exception('Repeat setting the constraints on the distribution')
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['distribution'] =  [eval(x) for x in args] 
-
-  if cons.find('Correlation')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')].split(',')
-    col['correlation'] = [eval(x) for x in args]
-  
   if cons.find('Distinct')!= -1:
     col['distinct'] = True
-
-  if cons.find('Enum')!= -1:
-    args = cons[cons.find('(')+1:cons.find(')')]
-    col['enum'] = eval(args)
-    content = col['enum'][0]
-    if isinstance(content,float) and 'type' not in col:
-      col['type'] = 'Real'
-    elif isinstance(content,int) and 'type' not in col:
-      col['type'] = 'Int'
-    elif isinstance(content,str) and 'type' not in col:
-      col['type'] = 'String'
 
   if cons.find('Random')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')].replace("'","\'")
     col['random'] = "random={}".format(args[1:-1])
+
   if cons.find('Sequence')!= -1:
     args = cons[cons.find('(')+1:cons.find(')')]
     col['sequence'] = "sequence, {}".format(args[1:-1])
 
-def date_format_match(format):
-  if format == 'YYYY-MM-DD':
-    return '%Y-%m-%d'
-  if format == 'YYYY-MM':
-    return '%Y-%m'
-  if format == 'YYYY':
-    return '%Y'
-
-def solveDate(config):
-  data = pd.date_range(config['range'][0], config['range'][1], freq=config['freq']).strftime(date_format_match(config['format']))
-  return data
-
-def solveFaker(config, length):
-  if 'locale' in config:
-    fk = Faker(locale=config['locale'])
-  else:
-    # fk = Faker(locale='zh-CN')
-    fk = Faker()
-  data = [eval('faker.unique.'+config['content']+'()',{'faker': fk}) for i in range(length)]
-
-  unselected_index = np.arange(length)
-  if 'repeat' in config and not 'trend' in config:
-    times = config['repeat'][0]
-    repeat_index = np.random.choice(unselected_index, times, replace=False)
-    for index in repeat_index:
-      data[index] = data[repeat_index[0]]
-    unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-
-  if 'frequency' in config and not 'trend' in config:
-    for i in range(int(len(config['frequency'])/2)):
-      content = config['frequency'][2*i]
-      times = int(config['frequency'][2*i+1] * length)
-      repeat_index = np.random.choice(unselected_index, times, replace=False)
-      for index in repeat_index:
-        data[index] = content
-      unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-    
-    
-  if 'empty' in config and not 'trend' in config:
-    times = config['empty']
-    empty_index = np.random.choice(unselected_index, times, replace=False)
-    for index in empty_index:
-      data[index] = None
-  
-  return data
-
-def generate_prompt(semantics, len):
-  return """
-    give me a python list containing {}, and it's length is {}, just a list, on other text
-  """.format(semantics, len)
-
-def solveGPT(config, length):
-  import openai
-  openai.api_key = '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'
-  openai.Model.list()
-
-  response = openai.Completion.create(
-    # model="text-curie-001",
-    model="text-davinci-003",
-    prompt=generate_prompt(config['content'], length), 
-    temperature=0.5,
-    max_tokens=2000,
-  )
-  text_data = response.choices[0].text
-  # print(response.choices[0])
-  data=eval(text_data.replace(' ','').replace('\n',''))
-  print(data)
-  unselected_index = np.arange(length)
-  if 'repeat' in config and not 'trend' in config:
-    times = config['repeat'][0]
-    repeat_index = np.random.choice(unselected_index, times, replace=False)
-    for index in repeat_index:
-      data[index] = data[repeat_index[0]]
-    unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-
-  if 'frequency' in config and not 'trend' in config:
-    for i in range(int(len(config['frequency'])/2)):
-      content = config['frequency'][2*i]
-      times = int(config['frequency'][2*i+1] * length)
-      repeat_index = np.random.choice(unselected_index, times, replace=False)
-      for index in repeat_index:
-        data[index] = content
-      unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-    
-    
-  if 'empty' in config and not 'trend' in config:
-    times = config['empty']
-    empty_index = np.random.choice(unselected_index, times, replace=False)
-    for index in empty_index:
-      data[index] = None
-  
-  return data
-
 def generate_code_prompt(semantics, length):
-  # return """
-  #   show me a python function to generate a list containing satisfying {} with length {} ,
-  #   and assign the list to the global variable temp_res['data'], 
-  #   and do not declare this variable temp_res and temp_res['data'] in the function
-  #   import any library used
-  # """.format(semantics, len)
   return "length={}, {}".format(length, semantics)
 
 def handler(signum, frame):
@@ -544,87 +322,31 @@ def get_code(semantics, length):
           return "#" + text_block[1]
   else:
       return None
-  # except TimeoutError:
-  #   print("It takes too much time.")
-  #   return None
-  # except Exception:
-  #   print("Something wrong with the request.")
-  #   return None
 
 def solve_gpt_code(semantics, length):
   code = get_code(semantics, length)
-  
-  # openai.Model.list()
-  # print(config,length)
-  # response = openai.Completion.create(
-  #   # model="text-curie-001",
-  #   model="text-davinci-003",
-  #   prompt=generate_code_prompt(config['content'], length), 
-  #   temperature=0.5,
-  #   max_tokens=2000,
-  # )
-  # text_data = response.choices[0].text
-  # # print(response.choices[0])
-  # print(text_data)
 
   # global result
   data = {"result": []}
   exec(code, data)
-  # data = result['data']
-  # unselected_index = np.arange(length)
-  # if 'repeat' in config and 'trend' not in config:
-  #   times = config['repeat'][0]
-  #   repeat_index = np.random.choice(unselected_index, times, replace=False)
-  #   for index in repeat_index:
-  #     data[index] = data[repeat_index[0]]
-  #   unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-
-  # if 'frequency' in config and 'trend' not in config:
-  #   for i in range(int(len(config['frequency'])/2)):
-  #     content = config['frequency'][2*i]
-  #     times = int(config['frequency'][2*i+1] * length)
-  #     repeat_index = np.random.choice(unselected_index, times, replace=False)
-  #     for index in repeat_index:
-  #       data[index] = content
-  #     unselected_index = [elem for elem in unselected_index if elem not in repeat_index]
-    
-    
-  # if 'empty' in config and 'trend' not in config:
-  #   times = config['empty']
-  #   empty_index = np.random.choice(unselected_index, times, replace=False)
-  #   for index in empty_index:
-  #     data[index] = None
   
   return data['result']
 
-# 拆分表格
+# parse json 
 def parseJson(origin):
   allTables = []
 
   for format in origin:
-    
     test = []
-    # remainValue = {}
     value_test = []
     key_test = []
-    # for key, value in format.items():
-    #   test = parseConstraint(key, 'table')
-    #   remainValue = value
-    #   for col_key, col_value in value.items():
-    #     value_test.append(parseConstraint(col_value, col_key))
-    #     key_test.append(col_key)
-    # valueList = []
-    # valueList = product(*value_test)
-
 
     test = parseConstraint(format['table'],'table')
-    # remainValue = format['columns']
     for col_key, col_value in format['columns'].items():
       value_test.append(parseConstraint(col_value, col_key))
       key_test.append(col_key)
     valueList = []
     valueList = product(*value_test)
-
 
     for value_op in valueList:
       for op in test:
@@ -632,11 +354,7 @@ def parseJson(origin):
         item = {}
         valueFormat = {}
         for i in range(len(key_test)):
-          if value_op[i].find('Or') != -1:
-            valueFormat[key_test[i]] = removeOrOp(value_op[i])
-          else:
-            valueFormat[key_test[i]] = value_op[i] 
-        # item[op] = valueFormat
+          valueFormat[key_test[i]] = value_op[i] 
         item = {
           "table": op,
           "columns": valueFormat
@@ -645,7 +363,7 @@ def parseJson(origin):
         allTables.append(parseFormat)
   return allTables
 
-# 单表映射
+# parse single table
 def parseTable(allTables):
   tables = []
   for table in allTables:
@@ -696,7 +414,7 @@ def parseTable(allTables):
           #   col['type'] = 'Real'
           format['children'].append(col)
         
-        # 补充其余列
+        # others columns
         if(len(value.items())<format['column']):
           for i in range(format['column']-len(value.items())):
             col = {}
@@ -734,26 +452,12 @@ def buildSolver(format):
         d[col['name']] = [z3.Real(f"{col['name']}_{i}") for i in range(num_len)]
       if col_type == 'String':
         d[col['name']] = [z3.String(f"{col['name']}_{i}") for i in range(num_len)]
-      if col_type == 'Date':
-        others[col['name']] = solveDate(col)
-        continue
-      if col_type == 'Faker':
-        # random_list = solveFaker(col,num_len)
-        others[col['name']] = solveFaker(col,num_len)
-        continue
-      if col_type == 'GPT':
-        others[col['name']] = solveGPT(col,num_len)
-        continue
-      # if col_type == 'GPTCode':
-      #   others[col['name']] = solve_gpt_code(col,num_len)
-      #   continue
     else:
       d[col['name']] = [z3.Real(f"{col['name']}_{i}") for i in range(num_len)]
 
     if 'type' not in col and 'random' not in col and 'sequence' not in col:
       col['type'] = 'Real'
 
-    
     # generator
     if 'random' in col:
       print(col['random'])
@@ -862,9 +566,7 @@ def buildSolver(format):
         times = col['repeat'][0]
         special_value += times
         repeat_index = np.random.choice(unselected_index, times, replace=False)
-        print(repeat_index[2])
         repeat_c = z3.And([d[col['name']][i]==d[col['name']][repeat_index[0]] for i in repeat_index])
-        print(repeat_c)
 
         solver.add(repeat_c)
 
@@ -877,15 +579,6 @@ def buildSolver(format):
           
           repeat_c = z3.Sum([d[col['name']][i]==content for i in unselected_index]) == times
           solver.add(repeat_c)
-
-    #define frequency
-    if 'frequency' in col:
-      for i in range(int(len(col['frequency'])/2)):
-        content = col['frequency'][2*i]
-        times = col['frequency'][2*i+1]
-        special_value += int(num_len * times)
-        frequency_c = z3.Sum([d[col['name']][i]==content for i in unselected_index]) == int(num_len * times)
-        solver.add(frequency_c)
     
     #define frequency
     if 'freqIf' in col:
@@ -941,41 +634,6 @@ def buildSolver(format):
       distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
       solver.add(distinct_c)
 
-    #define cluster
-    if 'cluster' in col:
-      part = col['cluster']
-      part_num = num_len // part
-      if 'range' in col:
-        range_len = col['range'][1]-col['range'][0]
-        part_mid = range_len//(part-1)
-        part_len = range_len//(2*part)
-
-        cluster_c = [  
-          z3.Sum([z3.And(d[col['name']][i]>col['range'][0]+part_mid*p-part_len,d[col['name']][i]<col['range'][0]+part_mid*p+part_len) for i in nonempty_index]) == part_num
-          for p in range(part)
-        ]
-      else:
-        part_mid = max(100,num_len)//(part-1)
-        part_len = max(100,num_len)//(2*part)
-        cluster_c = [
-          z3.Sum([z3.And(d[col['name']][i]>part_mid*p-part_len,d[col['name']][i]<part_mid*p+part_len) for i in nonempty_index]) == part_num
-          for p in range(part)
-        ]
-      solver.add(cluster_c)
-
-    #define correlation
-    if 'correlation' in col:
-      [col_name, type, k] = col['correlation']
-      if type == 'linear':
-        correlation_c = [d[col['name']][i]==k*d[col_name][i] for i in nonempty_index]
-      solver.add(correlation_c)
-
-    #define enum
-    if 'enum' in col:
-      col_enum = col['enum']
-      enum_c = [z3.Or([d[col['name']][i] == col_enum[j] for j in range(len(col_enum))])
-              for i in unselected_index]
-      solver.add(enum_c)
     
     #define distinct
     if 'distinct' in col:
@@ -983,53 +641,6 @@ def buildSolver(format):
       if col_distinct == True:
         distinct_c = z3.Distinct([d[col['name']][i] for i in unselected_index])
         solver.add(distinct_c)
-
-    #define trend
-    if 'trend' in col:
-      col_trend = col['trend'][0]
-      if col_trend == 'Stable':
-        # 方差
-        var_c = [z3.And(z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len < 2,
-                    z3.Sum([(d[col['name']][i]-z3.Sum(d[col['name']])/num_len)**2 for i in range(num_len)])/num_len > 0)]
-        solver.add(var_c)
-      if col_trend == 'linear':
-        # 线性
-        scope = col['trend'][1]
-        if len(col['trend'])>2:
-          a = col['trend'][2]
-        else:
-          a = np.random.random()+1
-        linear_c = [d[col['name']][i]==scope*i+a for i in nonempty_index]
-        # dec_c = [z3.And(d[col['name']][i]>=a*d[col['name']][j], a > 1) if i<=j else True  for j in nonempty_index for i in nonempty_index]
-        # asc_c = [d[col['name']][i]<d[col['name']][i+1] for i in range(num_len-1)]
-        solver.add(linear_c)
-      if col_trend == 'quadratic':
-        # 平方
-        if len(col['trend'])>1:
-          a = col['trend'][1]
-        else:
-          a = np.random.random()+1
-        quad_c = [d[col['name']][i]==i*i+a for i in nonempty_index]
-        solver.add(quad_c)
-      if col_trend == 'exponential':
-        # 指数
-        base = col['trend'][1]
-        if len(col['trend'])>2:
-          a = col['trend'][2]
-        else:
-          a = np.random.random()+1
-        exp_c = [d[col['name']][i]==math.pow(base,i)+a for i in nonempty_index]
-        solver.add(exp_c)
-      if col_trend == 'periodic':
-        fre = 3
-        fre_len = num_len//fre
-        #分布
-        distri_c = [d[col['name']][i]<d[col['name']][i+1] if i< fre_len//2 else d[col['name']][i]>d[col['name']][i+1] for i in range(fre_len)]
-        # 周期
-        period_c = [z3.And(d[col['name']][fre_len*j+i]<=d[col['name']][i+1],d[col['name']][fre_len*j+i]>=d[col['name']][i]) if i< fre_len//2 
-                    else z3.And(d[col['name']][fre_len*j+i]>=d[col['name']][i+1],d[col['name']][fre_len*j+i]<=d[col['name']][i])
-                    for i in range(fre_len) for j in range(1,fre)]
-        solver.add(distri_c+period_c)
 
     #define range
     random_num = num_len - special_value
@@ -1039,72 +650,11 @@ def buildSolver(format):
       if col_type == 'Int' or col_type == 'Real':
         range_c = [z3.And(d[col['name']][i]>=col_range[0], d[col['name']][i]<=col_range[1])  for i in nonempty_index]
         solver.add(range_c) 
-      # if col_type == 'Int' or col_type=='Real':
-      #   if 'distribution' in col:
-      #     args = col['distribution']
-      #     if args[0]=='normal':
-      #       random_list = np.random.normal(args[1],args[2],temp_len)
-      #     elif args[0]=='uniform':
-      #       random_list = np.random.uniform(args[1],args[2],temp_len)
-      #     elif args[0]=='exponential':
-      #       temp_list = np.random.exponential(args[1],temp_len)
-      #       max_value = max(temp_list)
-      #       min_value = min(temp_list)
-      #       target_len = col_range[1] - col_range[0]
-      #       current_len = max_value - min_value
-      #       random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
-      #   else:
-      #     random_list = np.random.uniform(col_range[0],col_range[1],temp_len)
-      # elif col_type == 'Real':
-      #   random_list = np.random.uniform(col_range[0],col_range[1], temp_len)
-    # else:
-    #   if col_type == 'Int' or col_type == 'Real':
-    #     if 'distribution' in col:
-    #       args = col['distribution']
-    #       if args[0]=='normal':
-    #         random_list = np.random.normal(args[1],args[2],temp_len)
-    #       elif args[0]=='uniform':
-    #         random_list = np.random.uniform(args[1],args[2],temp_len)
-    #       elif args[0]=='exponential':
-    #         temp_list = np.random.exponential(args[1],temp_len)
-    #         max_value = max(temp_list)
-    #         min_value = min(temp_list)
-    #         target_len = max(100,num_len)
-    #         current_len = max_value - min_value
-    #         random_list = [ (item - min_value)*target_len/current_len for item in temp_list]
-    #     else:
-    #       random_list = np.random.uniform(0,max(100,num_len), temp_len)
-    #   elif col_type == 'String':
-    #     random_list = [fake.pystr() for i in range(3*num_len)]
-    #     if 'if' in col:
-    #       random_list.append(col['if'][2])
-    #       if len(col['if'])>3:
-    #         random_list.append(col['if'][3])
-    #   others[col['name']]=random_list
 
     if len(col.keys())<=3 and 'random' in col:
       continue
 
-    # if 'cluster' in col:
-    #   part = col['cluster']
-    #   part_num = num_len // part
-    #   random_list = []
-    #   if 'range' in col:
-    #     range_len = col['range'][1]-col['range'][0]
-    #     part_mid = range_len//(part-1)
-    #     part_len = range_len//(2*part)
-    #     for p in range(part):
-    #       random_list.extend(np.random.uniform(max(col['range'][0]+part_mid*p-part_len,col['range'][0]),min(col['range'][0]+part_mid*p+part_len,col['range'][1]), part_num))
-    #     random_list.extend(np.random.uniform(col['range'][0],col['range'][1], 2*part_len))
-    #   else:
-    #     part_mid = max(100,num_len)//(part-1)
-    #     part_len = max(100,num_len)//(2*part)
-    #     for p in range(part):
-    #       random_list.extend(np.random.uniform(part_mid*p-part_len,part_mid*p+part_len,part_num))
-    #     random_list.extend(np.random.uniform(0,max(100,num_len), 2*part_len))
-
-
-    # # 随机数
+    # random
     if 'type' in col and (col['type']=='Int' or col['type']=='Real' or col['type']=='String') and 'trend' not in col and 'correlation' not in col and 'enum' not in col and 'if' not in col:
       # print(random_num,random_list)
       # random_c = z3.Sum([d[col['name']][i] == random_list[i] for i in unselected_index]) == random_num
@@ -1120,37 +670,7 @@ def buildSolver(format):
       
   return [solver, d, others]
 # ==========================================================
-# ================结果转换================================
-def save2json(data, path):
-  b = json.dumps(data)
-  json_fp = open(path,'w')
-  json_fp.write(b)
-  json_fp.close
 
-def parse2csv(data_list,path, sort_config):
-  csv_fp = open(path,'w',encoding='utf-8',newline='')
-  # print(data_list)
-  sheet_title = data_list[0].keys()
-  sheet_data = []
-  for data in data_list:
-    sheet_data.append(data.values())
-  writer = csv.writer(csv_fp)
-  writer.writerow(sheet_title)
-  writer.writerows(sheet_data)
-  csv_fp.close()
-  # sort part
-  if len(sort_config)>0:
-    col_name = sort_config[0]
-    sort_type = sort_config[1] == 'asc'
-    data_frame = pd.read_csv(path)
-    sorted_df = data_frame.sort_values(col_name,sort_type)
-    sorted_df.to_csv(path, index=False)
-  with open(path, 'r') as f:
-    reader = csv.DictReader(f)
-    my_list = list(reader)
-    my_list = json.loads(json.dumps(my_list))
-  return my_list
-# ================================================================
 # ====================data generation==================================
 def dataGen(json):
   origin = json
@@ -1236,11 +756,13 @@ def dataGen(json):
         print('无解')
         res.extend([])
     # sort part 
+    print(sort_config)
+    print(res)
     if len(sort_config)>0:
       col_name = sort_config[0]
       is_reverse = sort_config[1] == 'des'
       res.sort(key=lambda x:x[col_name],reverse=is_reverse)
-
+    print(res)
     response_item['table']=res
     response_data.append(response_item)
     AllRes.append(res)
