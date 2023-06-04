@@ -5,6 +5,11 @@ import pandas as pd
 import json
 import numpy as np
 from faker import Faker
+import openai
+import time
+
+# add your own api key
+openai.api_key = ''
 
 fake = Faker()
 global output_option_list 
@@ -297,10 +302,7 @@ def handler(signum, frame):
     raise TimeoutError("Timeout")
 
 def get_code(semantics, length):
-  import openai
-  import time
   time.sleep(30)
-  openai.api_key = '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'
   openai.Model.list()
   system_content="""You are a python code master. 
       You will help me deal with list generation tasks.
