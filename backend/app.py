@@ -9,7 +9,8 @@ import openai
 import time
 
 # add your own api key
-openai.api_key = ''
+# openai.api_key = ''
+openai.api_key = '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'
 
 fake = Faker()
 global output_option_list 
@@ -318,16 +319,19 @@ def get_code(semantics, length):
           {"role": "user", "content": generate_code_prompt(semantics, length)},
       ],
   )
-  if len(response.choices) > 0:
+  print(response,len(response.choices))
+  if len(response.choices)>0:
       text_block = response.choices[0].message.content.split("```")
       if len(text_block) >= 3:
           return "#" + text_block[1]
+      else:
+          return text_block[0]
   else:
       return None
 
 def solve_gpt_code(semantics, length):
   code = get_code(semantics, length)
-
+  print(code)
   # global result
   data = {"result": []}
   exec(code, data)

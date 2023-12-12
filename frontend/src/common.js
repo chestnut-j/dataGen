@@ -320,7 +320,7 @@ export const getOverviewBarOption = function(name, data) {
                         <span style="display:inline-block;margin-right:4px;
                           border-radius:10px;width:10px;height:10px;font-size:16px;
                           background-color:#8dbcf4;"></span>
-                        <span>evaluation Index:  ${[params.data.value]}</span>
+                        <span>评估指标:  ${[params.data.value]}</span>
                         `
             return html
           },
@@ -617,7 +617,7 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
   },
   {
     id: 4,
-    title: 'echart case',
+    title: 'echarts case',
     content:  `{
   "table":"Set(nRows(20),nRows(50)) And nCols(8)",
   "columns": {

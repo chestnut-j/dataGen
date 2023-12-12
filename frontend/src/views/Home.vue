@@ -3,7 +3,7 @@
     <a-spin :spinning="loading">
       <div class="content">
         <div class="comp-header">
-          Data Attibutes Panel
+          数据面板
           <a-select
             class="select-box"
             ref="select"
@@ -16,8 +16,8 @@
               {{item.title}}
             </a-select-option>
           </a-select>
-          <a-button class="run-btn" type="secondary" @click="submit()">Run</a-button>
-          <a-button class="download-btn" type="secondary" :disabled="!info" @click="download()">Download</a-button>
+          <a-button class="run-btn" type="secondary" @click="submit()">运行</a-button>
+          <a-button class="download-btn" type="secondary" :disabled="!info" @click="download()">下载</a-button>
         </div>
         
         <div class="data-panel">
@@ -25,14 +25,14 @@
           <StatisticPanel :overviewChart="overviewChart"  class="right-panel"/>
         </div>
         <div class="comp-header">
-          Visualization Panel
+          可视化面板
         </div>
         <div class="vis-panel">
           <VisualizationCode  class="left-panel"/>
           <VisualizationPanel class="right-panel"/>
         </div>
         <div class="comp-header">
-          Evaluation Panel
+          评估面板
         </div>
         <div class="evaluation-panel">
           <EvaluationCode  class="left-panel"/>

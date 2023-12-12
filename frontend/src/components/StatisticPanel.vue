@@ -4,7 +4,7 @@
       <left-circle-outlined />
     </div>
     <a-tabs v-model:activeKey="activeKey" size="small"  class="tab-panels">
-      <a-tab-pane key="1" tab="Attributes" class="tab-panel">
+      <a-tab-pane key="1" tab="数据特征" class="tab-panel">
         <div class="data-panel">
           <div class="column-content" 
             v-for="item in columns" 
@@ -21,7 +21,7 @@
           </div>      
         </div>
       </a-tab-pane>
-      <a-tab-pane key="2" tab="Raw Data" class="tab-panel">
+      <a-tab-pane key="2" tab="原始数据" class="tab-panel">
         <div class="data-panel hidden">
           <a-table :dataSource="tableData" :columns="tableColumns" size="small" :scroll="{ x: true, y: 190 }"/>
         </div>
