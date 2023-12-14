@@ -58,10 +58,10 @@ export default {
       parseOrigin: [],
       opts: {
         value: '',
-        readOnly: true, // 是否可编辑
+        readOnly: true, // 是否可编
         language: 'json', // 语言类型
         theme: 'vs-light', // 编辑器主题
-        fontSize: '16px',
+        fontSize: '21px',
         minimap: {
           enabled: false
         },
@@ -385,8 +385,14 @@ export default {
       overflow: hidden;
     }
   }
+  /deep/.ant-tabs-tab-btn {
+    font-size: 20px !important;
+  }
+  /deep/.ant-table-container {
+    font-size: 20px !important;
+  }
   .data-panel {
-    overflow: auto;
+    overflow: auto; 
     margin-right:5px;
     padding:5px;
     flex:1;
@@ -402,7 +408,7 @@ export default {
         font-weight:600;
         padding-top:0px;
         margin-bottom: -14px;
-        font-size: 18px;
+        font-size: 22px;
       }
       .column-chart {
         display: inline-block;
@@ -415,7 +421,7 @@ export default {
         background: rgba(238, 238, 238,0.35);
         padding: 2px 10px;
         margin-top:5px;
-        font-size: 18px;
+        font-size: 21px;
       }
     }
 

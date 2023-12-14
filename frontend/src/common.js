@@ -42,6 +42,9 @@ export const getBoxOption = function(name, data){
       },
       splitLine: {
         show: false
+      },
+      axisLabel:{
+        fontSize: 20,
       }
     },
     yAxis: {
@@ -49,7 +52,10 @@ export const getBoxOption = function(name, data){
       splitArea: {
         show: true
       },
-      scale: true
+      scale: true,
+      axisLabel:{
+        fontSize: 20,
+      }
     },
     series: [
       {
@@ -100,6 +106,9 @@ export const getLineOption = function(name, data) {
       },
       splitLine: {
         show: false
+      },
+      axisLabel:{
+        fontSize: 20,
       }
     },
     yAxis: {
@@ -107,7 +116,10 @@ export const getLineOption = function(name, data) {
       splitArea: {
         show: true
       },
-      scale: true
+      scale: true,
+      axisLabel:{
+        fontSize: 20,
+      }
     },
     series: [
       {
@@ -130,7 +142,7 @@ export const getHistogramOption = function(name, data) {
     tooltip: {
     },
     grid: {
-      left: '15%',
+      left: '22%',
       right: '5%',
       bottom: '15%',
       top:'28%'
@@ -147,16 +159,16 @@ export const getHistogramOption = function(name, data) {
       //   show: false
       // }
       axisLabel:{
-        fontSize: 16,
+        fontSize: 20,
       }
     },
     yAxis: {
       name: 'frequency',
       nameTextStyle:{
-        fontSize: 16,
+        fontSize: 20,
       },
       axisLabel:{
-        fontSize: 16,
+        fontSize: 20,
       },
       splitNumber:4,
     },
@@ -189,7 +201,7 @@ export const getBarOption = function(name, data ,showLabel=true) {
     tooltip: {
     },
     grid: {
-      left: '15%',
+      left: '20%',
       right: '5%',
       bottom: '15%',
       top:'28%'
@@ -199,7 +211,7 @@ export const getBarOption = function(name, data ,showLabel=true) {
       data: Object.keys(data),
       axisLabel:{
         show: showLabel,
-        fontSize: 16,
+        fontSize: 20,
       }
       // nameGap: 30,
       // scale: true,
@@ -214,10 +226,10 @@ export const getBarOption = function(name, data ,showLabel=true) {
       type:'value',
       name: 'frequency',
       nameTextStyle:{
-        fontSize: 16,
+        fontSize: 20,
       },
       axisLabel:{
-        fontSize: 16,
+        fontSize: 20,
       },
       splitNumber:4,
     },
@@ -243,7 +255,7 @@ export const getPieOption = function(name, data) {
       orient: 'horizontal',
       bottom: 'bottom',
       textStyle: {
-        fontSize: 15,
+        fontSize: 19,
       }
     },
     series: [
@@ -261,7 +273,7 @@ export const getPieOption = function(name, data) {
         label:{
           position: 'inside',
           formatter: '{b}\n({c})',
-          fontSize: 16,
+          fontSize: 20,
           show: true,
         },
         labelLine:{
@@ -292,7 +304,7 @@ export const getOverviewBarOption = function(name, data) {
       type: 'category',
       data: Object.keys(data).map(v=>+v+1),
       axisLabel:{
-        fontSize: 16,
+        fontSize: 20,
       }
     },
     yAxis: {
@@ -301,7 +313,7 @@ export const getOverviewBarOption = function(name, data) {
       // interval: 'function(value){ return Math.ceil(value.max); }',
       splitNumber:3,
       axisLabel:{
-        fontSize: 16,
+        fontSize: 20,
       }
     },
     series: [
@@ -316,16 +328,16 @@ export const getOverviewBarOption = function(name, data) {
         tooltip:{
           formatter:(params)=>{
             let html = ` 
-                        <pre style="font-size:16px;">${JSON.stringify(params.data.info,null,2)}</pre>
+                        <pre style="font-size:19px;">${JSON.stringify(params.data.info,null,2)}</pre>
                         <span style="display:inline-block;margin-right:4px;
-                          border-radius:10px;width:10px;height:10px;font-size:16px;
+                          border-radius:10px;width:10px;height:10px;font-size:29px;
                           background-color:#8dbcf4;"></span>
                         <span>评估指标:  ${[params.data.value]}</span>
                         `
             return html
           },
           textStyle:{
-            fontSize:16,
+            fontSize:20,
           },
           extraCssText: "z-index: 999999;",
           confine: true,
@@ -342,8 +354,8 @@ export const caseOptions = [
     content:  `{
   "table":"nRows(10) And nCols(2)",
   "columns": {
-    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','18','+18']'),String(),Empty(4))",
-    "current": "Random('uniform, min=20, max=50')"
+    "baseline": "Set(Random('uniform, min=0, max=20'),Random('categorical, categories=['+12','12','-12','+18','-18'], weights=[0.2,0.2,0.2,0.2,0.2]'),String(),Empty(4))",
+    "current": "Set(Random('uniform, min=0, max=20'),Random('uniform, min=20, max=50'),Random('uniform, min=-20, max=0'))"
   }
 }
 
@@ -368,11 +380,11 @@ visFunc= function (data, domId, d3, echarts, zCharts) {
       valueKey: 'value',
       value: itemData,
       colors: ['#8c6bb1', '#e0e0e0'],
-      xAxisFontSize: 16,
-      yAxisFontSize: 16,
-      labelFontSize: 16,
-      tooltipFontSzie: 16,
-      legendIsShow: false,
+      xAxisFontSize: 20,
+      yAxisFontSize: 20,
+      labelFontSize: 20,
+      tooltipFontSzie: 20,
+      legendIsShow: false
     });
     itemChart.$on('drag-bar', function(data){
       console.log(data)
@@ -408,7 +420,7 @@ visFunc= function (data, domId, d3, echarts, zCharts) {
       .style("fill",'#222222')
       .text(function(d){ return d})
       .attr("text-anchor", "left")
-      .style("font-size", "16px")
+      .style("font-size", "20px")
       .style("alignment-baseline", "middle")
   return instanceArr
 }
@@ -482,12 +494,12 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
       "table":"Set(nRows(50), nRows(20)) And nCols(7)",
       "columns": {
         "city_name": "String() And Repeat(3)",
-        "species": "Random('categorical, categories=['Adelie','Chinstrap','Gentoo'], weights=[0.3,0.4,0.3]')",
-        "culmen_length_mm": "Real() And Range(30,60)",
-        "culmen_depth_mm": "Real() And Range(13,25)",
+        "species": "Random('categorical, categories=['Adelie','Chinstrap','Gentoo']')",
+        "culmen_length_mm": "Real() And Set(Range(30,60),Range(0,30))",
+        "culmen_depth_mm": "Real() And Set(Range(13,25),Range(28,40))",
         "flipper_length_mm": "Real() And Range(150,250)",
         "body_mass_g": "Real And Range(0,300)",
-        "sex": "Random('categorical, categories=['MALE','FEMALE'], weights=[0.6,0.4]')"
+        "sex": "Random('categorical, categories=['MALE','FEMALE']')"
       }
     }
     
@@ -538,6 +550,7 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
               .attr("width", width)
               .attr("height", height)
               .attr("viewBox", [-marginLeft, -marginTop, width, height])
+              .attr("font-size", 15)
               .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
       
         svg.append("g")
@@ -549,11 +562,13 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
             .call(g => g.select(".domain").remove())
             .call(g => g.selectAll(".tick line").clone()
                 .attr("x2", width - marginLeft - marginRight)
+                .attr("font-size", 15)
                 .attr("stroke-opacity", 0.1));
       
         svg.append("g")
           .selectAll("g")
           .data(xScales)
+          .attr("font-size", 15)
           .join("g")
             .attr("transform", (d, i) => \`translate(\${i * (cellWidth + padding)},\${height - marginBottom - marginTop})\`)
             .each(function(xScale) { return d3.select(this).call(xAxis.scale(xScale)); })
@@ -587,7 +602,7 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
       
         // TODO Support labeling for asymmetric sploms?
         if (x === y) svg.append("g")
-            .attr("font-size", 10)
+            .attr("font-size", 15)
             .attr("font-family", "sans-serif")
             .attr("font-weight", "bold")
           .selectAll("text")
@@ -598,7 +613,7 @@ evaluationFunc = function(ddata, domId, instance, efficiencyTest){
             .attr("y", padding / 2)
             .attr("dy", ".71em")
             .text(d => d);
-      
+        svg.selectAll("text").attr("font-size", 15)
         return Object.assign(svg.node(), {scales: {color: zScale}});
       }
       chart = ScatterplotMatrix(data, {
@@ -685,7 +700,8 @@ visFunc= function (data, domId, d3, echarts, zCharts) {
             inside: true
           },
           axisLabel: {
-            show: j === 0
+            show: j === 0,
+            fontSize: 14
           },
           type: 'value',
           gridIndex: index,
@@ -703,7 +719,8 @@ visFunc= function (data, domId, d3, echarts, zCharts) {
             inside: true
           },
           axisLabel: {
-            show: i === CATEGORY_DIM_COUNT - 1
+            show: i === CATEGORY_DIM_COUNT - 1,
+            fontSize: 13
           },
           type: 'value',
           gridIndex: index,
@@ -805,7 +822,7 @@ visFunc= function (data, domId, d3, echarts, zCharts) {
         nameGap: 20,
         splitNumber: 3,
         nameTextStyle: {
-          fontSize: 14
+          fontSize: 17
         },
         axisLine: {
           lineStyle: {
@@ -821,7 +838,8 @@ visFunc= function (data, domId, d3, echarts, zCharts) {
           show: false
         },
         axisLabel: {
-          color: '#555'
+          color: '#555',
+          fontSize: 17
         }
       }
     },

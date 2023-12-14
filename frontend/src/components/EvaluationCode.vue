@@ -33,7 +33,7 @@ export default {
         readOnly: false,
         language: 'javascript',
         theme: 'vs-light',
-        fontSize: '17px',
+        fontSize: '21px',
         minimap: {
           enabled: false
         },

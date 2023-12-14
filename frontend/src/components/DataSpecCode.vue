@@ -35,7 +35,7 @@ export default {
         readOnly: false, 
         language: 'json',
         theme: 'vs-light',
-        fontSize: '17px',
+        fontSize: '21px',
         minimap: {
           enabled: false
         },

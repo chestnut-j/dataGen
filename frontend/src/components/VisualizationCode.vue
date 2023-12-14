@@ -32,7 +32,7 @@ export default {
         readOnly: false,
         language: 'javascript', 
         theme: 'vs-light', 
-        fontSize: '17px',
+        fontSize: '21px',
         // wordWrap: true,
         scrollbar: {
           vertical: 'visible',

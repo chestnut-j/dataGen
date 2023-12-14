@@ -190,8 +190,8 @@ export default {
   .comp-header{
     width:100%;
     height: 40px;
-    font-size: 22px;
-    font-weight: 500;
+    font-size: 26px;
+    font-weight: 600;
     color: rgb(0, 0, 0);
     // background: rgb(220, 220, 220);
     border-bottom: 1.5px solid #acacac;
@@ -204,32 +204,32 @@ export default {
       // margin-top: auto;
       // line-height: 28px;
       position: absolute;
-      font-size: 18px;
-      top: 9px;
+      font-size: 22px;
+      top: 7px;
       box-shadow: 0 0 2px rgb(119, 119, 119);
 
     }
     .run-btn{
       // margin: 5px;
-      height: 24px;
+      height: 28px;
       padding: auto;
       line-height: 13px;
-      font-size: 18px;
+      font-size: 22px;
       margin: auto 10px;
       position: absolute;
-      top: 9px;
+      top: 5px;
       margin-left: calc(18% - 120px);
       box-shadow: 0 0 2px rgb(119, 119, 119);
 
     }
     .download-btn{
       // margin: 5px;
-      height: 24px;
+      height: 28px;
       padding: auto;
-      line-height: 13px;
+      line-height: 15px;
       right:15px;
-      font-size: 18px;
-      top:9px;
+      font-size: 22px;
+      top:5px;
       position: absolute;
       box-shadow: 0 0 2px rgb(119, 119, 119);
 
