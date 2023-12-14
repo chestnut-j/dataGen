@@ -1,0 +1,27 @@
+[{
+  "( Length(200) And Column(22) )": {
+    "Name": "Faker(name)",
+    "parent": "Frequency('root', 1)",
+    "var-5-1": "Int And Distribution('normal',5000,5) And Range(0,10000)",
+    "var-5-2": "Int And Distribution('normal',5000,5) And Range(0,10000)",
+    "var-10-1": "Int And Distribution('normal',5000,10) And Range(0,10000)",
+    "var-10-2": "Int And Distribution('normal',5000,10) And Range(0,10000)",
+    "var-20-1": "Int And Distribution('normal',5000,20) And Range(0,10000)",
+    "var-20-2": "Int And Distribution('normal',5000,20) And Range(0,10000)",
+    "var-40-1": "Int And Distribution('normal',5000,40) And Range(0,10000)",
+    "var-40-2": "Int And Distribution('normal',5000,40) And Range(0,10000)",
+    "var-80-1": "Int And Distribution('normal',5000,80) And Range(0,10000)",
+    "var-80-2": "Int And Distribution('normal',5000,80) And Range(0,10000)",
+    "var-160-1": "Int And Distribution('normal',5000,160) And Range(0,10000)",
+    "var-160-2": "Int And Distribution('normal',5000,160) And Range(0,10000)",
+    "var-320-1": "Int And Distribution('normal',5000,320) And Range(0,10000)",
+    "var-320-2": "Int And Distribution('normal',5000,320) And Range(0,10000)",
+    "var-640-1": "Int And Distribution('normal',5000,640) And Range(0,10000)",
+    "var-640-2": "Int And Distribution('normal',5000,640) And Range(0,10000)",
+    "var-1280-1": "Int And Distribution('normal',5000,1280) And Range(0,10000)",
+    "var-1280-2": "Int And Distribution('normal',5000,1280) And Range(0,10000)",
+    "var-2560-1": "Int And Distribution('normal',5000,2560) And Range(0,10000)",
+    "var-2560-2": "Int And Distribution('normal',5000,2560) And Range(0,10000)"
+    
+  }
+}]

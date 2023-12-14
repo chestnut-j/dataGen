@@ -1,0 +1,11 @@
+[
+  {
+    "table":"nRows(100) And nCols(4)",
+    "columns": {
+      "name": "String() And Frequency('L1',0.01,'L2',0.01,'L3',0.01,'L4',0.01,'L5',0.01,'L6',0.01,'L7',0.01,'L8',0.01,'L9',0.01) And Distinct()",
+      "parent": "String() And Switch('name','L1','root') And Enum(['L1','root'])",
+      "1": "Range(1,1000)",
+      "2": "Range(1,1000)"
+    }
+  }
+]

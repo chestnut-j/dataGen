@@ -1,0 +1,17 @@
+[{
+  "( Length(200) And Column(13) )": {
+    "Name": "Faker(name)",
+    "parent": "Frequency('root', 1)",
+    "std-0": "Int And Distribution('normal',10e12,1) And Range(0,10e14)",
+    "std-1": "Int And Distribution('normal',10e12,10) And Range(0,10e14)",
+    "std-2": "Int And Distribution('normal',10e12,100) And Range(0,10e14)",
+    "std-3": "Int And Distribution('normal',10e12,1000) And Range(0,10e14)",
+    "std-4": "Int And Distribution('normal',10e12,10e4) And Range(0,10e14)",
+    "std-5": "Int And Distribution('normal',10e12,10e5) And Range(0,10e14)",
+    "std-6": "Int And Distribution('normal',10e12,10e6) And Range(0,10e14)",
+    "std-7": "Int And Distribution('normal',10e12,10e7) And Range(0,10e14)",
+    "std-8": "Int And Distribution('normal',10e12,10e8) And Range(0,10e14)",
+    "std-9": "Int And Distribution('normal',10e12,10e9) And Range(0,10e14)",
+    "std-10": "Int And Distribution('normal',10e12,10e10) And Range(0,10e14)"    
+  }
+}]
